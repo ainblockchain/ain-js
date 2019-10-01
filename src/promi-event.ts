@@ -1,12 +1,10 @@
 import * as EventEmitter from 'eventemitter3';
 
-
 export class PromiEvent<T> implements Promise<T> {
   public eventEmitter: EventEmitter;
   public promise: Promise<T>
   private _resolve;
   private _reject;
-
 
   /**
    * @constructor

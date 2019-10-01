@@ -25,6 +25,11 @@ export default class Reference {
   private _numberOfListeners: number;
   private _ain: Ain;
 
+  /**
+   * @param {Ain} ain
+   * @param {String} path
+   * @constructor
+   */
   constructor(ain: Ain, path?: string) {
     this.path = path && path.endsWith('/') ? path.substr(0, path.length-1) : path;
     const pathArr = this.path ? this.path.split('/') : [];
@@ -35,18 +40,35 @@ export default class Reference {
     this._numberOfListeners = 0;
   }
 
+  /**
+   * A getter for number of listeners.
+   * @return {number} The number of listeners.
+   */
   get numberOfListeners(): number {
     return this._numberOfListeners;
   }
 
+  /**
+   * If value is given, it sets the value at a new child of this.path;
+   * otherwise, it creates a key for a new child but doesn't set any values.
+   * @param {any} value - A value to set at the path.
+   * @return {PromiEvent<any> | Reference} A reference instance of the given path.
+   */
   push(value?: any): PromiEvent<any> | Reference {
-    if (value) {
-      if (!this.path) { throw new Error(''); }
-      return this.setValue({ value });
+
+    let ref = new Reference(this._ain, this.path+"/"+PushId.generate());
+    if (value !== undefined) {
+      return ref.setValue({ value });
     }
-    return new Reference(this._ain, this.path+"/"+PushId.generate());
+    return ref;
   }
 
+  /**
+   * Returns the value / write rule / owner rule / function hash at {this.path}.
+   * @param {GetInputType | Array<GetInputType>} type - Type of data to get.
+   * Could be any one from "VALUE", "RULE", "OWNER", "FUNC" or a combination of them as an array.
+   * @return {Promise<any>}
+   */
   get(type: GetInputType | Array<GetInputType>): Promise<any> {
     let operation: any = {};
     if (Array.isArray(type)) {
@@ -73,6 +95,11 @@ export default class Reference {
     })
   }
 
+  /**
+   * Attaches an listener for database events.
+   * @param {EventType} event - A type of event.
+   * @param {Function} callback function to be executed when an event occurs.
+   */
   on(event: EventType, callback: Function) {
     if (this._isRootReference) {
       throw new Error('[ain-js.Reference.on] Cannot attach an on() listener to a root node');
@@ -89,6 +116,11 @@ export default class Reference {
     }, 1000);
   }
 
+  /**
+   * Removes a database event listener.
+   * @param {EventType} event - A type of event.
+   * @param {Function} callback - A callback function to dettach from the event.
+   */
   off(event?: EventType, callback?: Function) {
     if (!event && !callback) {
       this._listeners = {};
@@ -108,11 +140,17 @@ export default class Reference {
     }
   }
 
-  deleteValue(transactionInput?: ValueOnlyTransactionInput): PromiEvent<boolean> {
+  /**
+   * Deletes a value at {this.path}
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * Any value given will be overwritten with null.
+   * @return {PromiEvent<any>}
+   */
+  deleteValue(transactionInput?: ValueOnlyTransactionInput): PromiEvent<any> {
     let txInput: ValueOnlyTransactionInput = transactionInput || {};
     txInput['value'] = null;
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             txInput,
             this.path || "",
             "SET_RULE"
@@ -120,10 +158,10 @@ export default class Reference {
     );
   }
 
-  /* TO BE ADDED
+  /* TODO (lia): add this method
   setFunction(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "SET_FUNC"
@@ -132,9 +170,14 @@ export default class Reference {
   }
   */
 
+  /**
+   * Sets the owner rule at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   setOwner(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "SET_OWNER"
@@ -142,9 +185,14 @@ export default class Reference {
     );
   }
 
+  /**
+   * Sets the write rule at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   setRule(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "SET_RULE"
@@ -152,9 +200,14 @@ export default class Reference {
     );
   }
 
+  /**
+   * Sets a value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   setValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "SET_VALUE"
@@ -162,9 +215,14 @@ export default class Reference {
     );
   }
 
+  /**
+   * Increments the value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   incrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "INC_VALUE"
@@ -172,9 +230,14 @@ export default class Reference {
     );
   }
 
+  /**
+   * Decrements the value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   decrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "DEC_VALUE"
@@ -182,9 +245,14 @@ export default class Reference {
     );
   }
 
+  /**
+   * Processes multiple set operations.
+   * @param {UpdatesTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
   update(transactionInput: UpdatesTransactionInput): PromiEvent<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInputWithType(
+        Reference.extendTransactionInput(
             transactionInput,
             this.path || "",
             "UPDATES"
@@ -192,7 +260,14 @@ export default class Reference {
     );
   }
 
-  static extendTransactionInputWithType(
+  /**
+   * Decorates a transaction input with an appropriate type and update_list or ref and value.
+   * @param {ValueOnlyTransactionInput | UpdatesTransactionInput} input - A transaction input object
+   * @param {string} ref - The path at which set operations will take place
+   * @param {SetOperationType | UpdateOperationType} type - A type of set operations
+   * @return {TransactionInput}
+   */
+  static extendTransactionInput(
       input: ValueOnlyTransactionInput | UpdatesTransactionInput,
       ref: string,
       type: SetOperationType | UpdateOperationType
@@ -214,6 +289,7 @@ export default class Reference {
   }
 
   // For testing/dev purposes only
+  // TODO (lia): remove this function after integrating with AIN
   private getTestData(type) {
     switch (type) {
       case 'VALUE':

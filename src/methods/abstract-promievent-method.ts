@@ -4,14 +4,6 @@ import { TransactionBody, TransactionInput } from '../types';
 import Ain from '../ain';
 
 export default class AbstractPromiEventMethod {
-  /**
-   * @param {String} rpcMethod
-   * @param {Ain} ain
-   * @param {TransactionInput | TransactionBody} tx
-   * @param {String} signature
-   *
-   * @constructor
-   */
 
   public promiEvent: PromiEvent<any>;
   private _rpcMethod: string;
@@ -19,6 +11,13 @@ export default class AbstractPromiEventMethod {
   private _tx: TransactionInput | TransactionBody;
   private _signature: string;
 
+  /**
+   * @param {String} rpcMethod
+   * @param {Ain} ain
+   * @param {TransactionInput | TransactionBody} tx
+   * @param {String} signature
+   * @constructor
+   */
   constructor(
       rpcMethod: string,
       ain: Ain,
@@ -37,9 +36,8 @@ export default class AbstractPromiEventMethod {
 
   /**
    * This method will be executed before the RPC request.
-   *
+   * It builds the transaction body from the transaction information.
    * @method beforeExecution
-   *
    */
   async beforeExecution(): Promise<TransactionBody> {
     if (Ain.instanceofTransactionBody(this._tx)) {
@@ -52,10 +50,8 @@ export default class AbstractPromiEventMethod {
 
   /**
    * Sends a JSON-RPC call request
-   *
    * @method execute
-   *
-   * @returns {Promise<any>}
+   * @returns {PromiEvent<any>}
    */
   execute(): PromiEvent<any> {
     this.beforeExecution()
@@ -86,9 +82,7 @@ export default class AbstractPromiEventMethod {
 
   /**
    * Getter for the rpcMethod property
-   *
    * @property rpcMethod
-   *
    * @returns {String}
    */
   get rpcMethod() {
@@ -97,11 +91,9 @@ export default class AbstractPromiEventMethod {
 
   /**
    * This methods calls the correct error methods of the PromiEvent object.
-   *
    * @method handleError
-   *
    * @param {Error} error
-   * @param {Object} receipt
+   * @param {Object} result
    * @param {Number} confirmations
    */
   handleError(error, result, confirmations) {

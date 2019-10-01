@@ -132,7 +132,7 @@ export interface Transaction {
   tx_index?: number;
   nonce: number;
   timestamp: number;
-  from: string;
+  address: string;
   operation: SetOperation | SetUpdateOperation | GetOperation | GetBatchOperation;
   parent_tx_hash?: string;
 }
@@ -143,7 +143,7 @@ export interface TransactionResult {
   block_number?: number,
   tx_hash: string,
   tx_index?: number,
-  from: string,
+  address: string,
   parent_tx_hash?: string
 }
 

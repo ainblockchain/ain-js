@@ -20,6 +20,10 @@ export default class Ain {
   public wallet: Wallet;
   public utils: any;
 
+  /**
+   * @param {string} providerUrl
+   * @constructor
+   */
   constructor(providerUrl: string) {
     this.provider = new Provider(providerUrl);
     this.net = new Network(this.provider);
@@ -28,12 +32,23 @@ export default class Ain {
     this.utils = Utils;
   }
 
+  /**
+   * Sets a new provider
+   * @param {string} providerUrl
+   */
   setProvider(providerUrl: string) {
     this.provider = new Provider(providerUrl);
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
   }
 
+  /**
+   * A promise returns a block with the given hash or block number.
+   * @param {string | number} blockHashOrBlockNumber
+   * @param {boolean} returnTransactionObjects - If true, returns the full transaction objects;
+   * otherwise, returns only the transaction hashes
+   * @return {Promise<Block>}
+   */
   getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
     return new Promise((resolve, reject) => {
       if (returnTransactionObjects) {
@@ -44,12 +59,22 @@ export default class Ain {
     });
   }
 
+  /**
+   * A promise returns the address of the forger of given block
+   * @param {string | number} blockHashOrBlockNumber
+   * @return {Promise<string>}
+   */
   getForger(blockHashOrBlockNumber: string | number): Promise<string> {
     return new Promise((resolve, reject) => {
       resolve("0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6");
     });
   }
 
+  /**
+   * A promise returns the list of validators for a given block
+   * @param {string | number} blockHashOrBlockNumber
+   * @return {Promise<string[]>}
+   */
   getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
     return new Promise((resolve, reject) => {
       let validators: string[] = [];
@@ -60,44 +85,90 @@ export default class Ain {
     });
   }
 
+  /**
+   * Returns the transaction with the given transaaction hash.
+   * @param {string} transactionHash
+   * @return {Promise<Transaction>}
+   */
   getTransaction(transactionHash: string): Promise<Transaction> {
     return new Promise((resolve, reject) => {
       resolve(test_transaction(transactionHash));
     });
   }
 
+  /**
+   * Returns the result of the transaction with the given transaaction hash.
+   * @param {string} transactionHash
+   * @return {Promise<Transaction>}
+   */
   getTransactionResult(transactionHash: string): Promise<TransactionResult> {
     return new Promise((resolve, reject) => {
       resolve(test_transactionResult(transactionHash));
     });
   }
 
+  /**
+   * Signs and sends a transaction to the network
+   * @param {TransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
   sendTransaction(transactionObject: TransactionInput): PromiEvent<any> {
     const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transactionObject);
     return method.execute();
   }
 
+  /**
+   * Sends a signed transaction to the network
+   * @param {string} signature
+   * @param {TransactionBody} transaction
+   * @return {PromiEvent<any>}
+   */
   sendSignedTransaction(signature: string, transaction: TransactionBody): PromiEvent<any> {
     const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transaction, signature);
     return method.execute();
   }
 
+  /**
+   * Sends a transaction that deposits AIN for bandwidth staking.
+   * @param {ValueOnlyTransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
   depositBandwidthStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.sendStakeRelatedFunctions('deposit/bandwidth', transactionObject);
+    return this.abstractStakeFunction('deposit/bandwidth', transactionObject);
   }
 
+  /**
+   * Sends a transaction that withdraws AIN from bandwidth staking.
+   * @param {ValueOnlyTransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
   withdrawBandwidthStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.sendStakeRelatedFunctions('withdraw/bandwidth', transactionObject);
+    return this.abstractStakeFunction('withdraw/bandwidth', transactionObject);
   }
 
+  /**
+   * Sends a transaction that deposits AIN for consensus staking.
+   * @param {ValueOnlyTransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
   depositConsensusStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.sendStakeRelatedFunctions('deposit/consensus', transactionObject);
+    return this.abstractStakeFunction('deposit/consensus', transactionObject);
   }
 
+  /**
+   * Sends a transaction that withdraws AIN for consensus staking.
+   * @param {ValueOnlyTransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
   withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.sendStakeRelatedFunctions('withdraw/consensus', transactionObject);
+    return this.abstractStakeFunction('withdraw/consensus', transactionObject);
   }
 
+  /**
+   * Gets the amount of AIN currently staked for bandwidth
+   * @param {string} account
+   * @return {Promise<number>}
+   */
   getBandwidthStakeAmount(account?: string): Promise<number> {
     return new Promise((resolve, reject) => {
       request('getBandwidthStakeAmount/').then(res => {
@@ -106,6 +177,11 @@ export default class Ain {
     });
   }
 
+  /**
+   * Gets the amount of AIN currently staked for participating in consensus protocol.
+   * @param {string} account
+   * @return {Promise<number>}
+   */
   getConsensusStakeAmount(account?: string): Promise<number> {
     return new Promise((resolve, reject) => {
       request('getConsensusStakeAmount/').then(res => {
@@ -114,6 +190,11 @@ export default class Ain {
     });
   }
 
+  /**
+   * Gets the current transaction count of account, which is the nonce of the account.
+   * @param {string} account
+   * @return {Promise<number>}
+   */
   getTransactionCount(account?: string): Promise<number> {
     return new Promise((resolve, reject) => {
       request('getTransactionCount/').then((res) => {
@@ -122,6 +203,11 @@ export default class Ain {
     });
   }
 
+  /**
+   * Builds a transaction body from transaction input.
+   * @param {TransactionInput} transactionInput
+   * @return {Promise<TransactionBody>}
+   */
   buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
     return new Promise(async (resolve, reject) => {
       let addr = transactionInput.address
@@ -149,30 +235,45 @@ export default class Ain {
     });
   }
 
+  /**
+   * Getter for ain-util library
+   */
   static get ainUtil() {
     return AinUtil;
   }
 
+  /**
+   * Checks whether a given object is an instance of TransactionBody interface.
+   * @param {string} account
+   * @return {boolean}
+   */
   static instanceofTransactionBody(object: any): object is TransactionBody {
     return object.nonce !== undefined && object.timestamp !== undefined &&
         object.operation !== undefined;
   }
 
-  private sendStakeRelatedFunctions(path: string, transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
+  /**
+   * An abstract function for all staking related database changes. It builds a
+   * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
+   * @param {string} path
+   * @param {ValueOnlyTransactionInput} transactionObject
+   * @return {PromiEvent<any>}
+   */
+  private abstractStakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
     const type: SetOperationType = "SET_VALUE";
     if (!transactionObject.value) {
-      throw new Error('[ain-js.sendStakeRelatedFunctions] a value should be specified.');
+      throw new Error('[ain-js.abstractStakeFunction] a value should be specified.');
     }
     if (typeof transactionObject.value !== 'number') {
-      throw new Error('[ain-js.sendStakeRelatedFunctions] value has to be a number.');
+      throw new Error('[ain-js.abstractStakeFunction] value has to be a number.');
     }
     if (!transactionObject.address) {
       if (!this.wallet.defaultAccount) {
-        throw new Error('[ain-js.sendStakeRelatedFunctions] Address not specified and defaultAccount not set.');
+        throw new Error('[ain-js.abstractStakeFunction] Address not specified and defaultAccount not set.');
       }
       transactionObject.address = String(this.wallet.defaultAccount);
     } else if (!this.wallet.isAdded(transactionObject.address)) {
-      throw new Error('[ain-js.sendStakeRelatedFunctions] Account not added.')
+      throw new Error('[ain-js.abstractStakeFunction] Account not added.')
     }
     const ref = this.db.ref(`${path}/${transactionObject.address}`).push()
     if (ref instanceof Reference) {
@@ -185,7 +286,7 @@ export default class Ain {
       const txInput = Object.assign({ operation }, { transactionObject });
       return this.sendTransaction(txInput);
     } else {
-      throw new Error('[ain-js.sendStakeRelatedFunctions] Error in Reference push.');
+      throw new Error('[ain-js.abstractStakeFunction] Error in Reference push.');
     }
   }
 }

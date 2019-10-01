@@ -36,7 +36,7 @@ export function test_blockWithTx(blockHashOrBlockNumber: string | number): Block
       block_hash: typeof blockHashOrBlockNumber === "number" ? "0x945b374735e7a3626b57cce1020c3fc87c254709ec62937e34a0aa976347111a" : blockHashOrBlockNumber,
       block_number: typeof blockHashOrBlockNumber === "number" ? blockHashOrBlockNumber: 123456,
       tx_index: i,
-      from: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
+      address: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
       operation: {
         type: "INC_VALUE",
         ref: "path/to/value",
@@ -74,7 +74,7 @@ export function test_transaction(transactionHash?: string, blockHash?: string, b
     block_hash: blockHash ? blockHash : "0x945b374735e7a3626b57cce1020c3fc87c254709ec62937e34a0aa976347111a",
     block_number: blockNumber ? blockNumber : 12345,
     tx_index: 7,
-    from: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
+    address: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
     operation: {
       type: "SET_RULE",
       ref: "path/to/rule",
@@ -91,7 +91,7 @@ export function test_transactionResult(transactionHash?: string): TransactionRes
     block_number: 123,
     tx_hash: transactionHash ? transactionHash : "0xfe5404ed4915e34e27d62a70265fabd0c4880ecd9b0e24aa494b2bf50e4499e2",
     tx_index: 23,
-    from: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
+    address: "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6",
     parent_tx_hash: "0x0a2f1285685338886790d68e41c2b4c068d829acdea176faecfaccb510519894"
   };
 }
