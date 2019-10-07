@@ -48,15 +48,13 @@ export interface V3Keystore {
 
 export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
 
-export type UpdateOperationType = "UPDATES";
+export type SetsOperationType = "SETS";
 
-export type BatchOperationType = "GET_BATCH";
+export type GetsOperationType = "GETS";
 
 export type SetOperationType = "SET_VALUE" | "INC_VALUE" | "DEC_VALUE" | "SET_RULE" | "SET_OWNER" | "SET_FUNC";
 
 export type GetOperationType = "GET_VALUE" | "GET_RULE" | "GET_OWNER" | "GET_FUNC";
-
-export type GetInputType = "VALUE" | "RULE" | "OWNER" | "FUNC";
 
 export interface SetOperation {
   type: SetOperationType;
@@ -64,9 +62,9 @@ export interface SetOperation {
   value: any | undefined | null;
 }
 
-export interface SetUpdateOperation {
-  type: UpdateOperationType;
-  update_list: SetOperation[];
+export interface SetsOperation {
+  type: SetsOperationType;
+  set_list: SetOperation[];
 }
 
 export interface GetOperation {
@@ -74,9 +72,9 @@ export interface GetOperation {
   ref: string;
 }
 
-export interface GetBatchOperation {
-  type: BatchOperationType;
-  batch_list: GetOperation[];
+export interface GetsOperation {
+  type: GetsOperationType;
+  get_list: GetOperation[];
 }
 
 export interface PathValueObject {
@@ -93,7 +91,7 @@ export interface PathFuncObject {
 
 export interface TransactionBodyBasics {
   parent_tx_hash?: string;
-  operation: SetOperation | SetUpdateOperation | GetOperation | GetBatchOperation;
+  operation: SetOperation | SetsOperation | GetOperation | GetsOperation;
 }
 
 export interface ValueOnlyTransactionBodyBasics {
@@ -116,13 +114,9 @@ export interface TransactionInput extends TransactionBodyBasics, TransactionInpu
 
 export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBasics, TransactionInputBasics {}
 
-export interface UpdatesTransactionInput extends TransactionInputBasics {
+export interface SetsTransactionInput extends TransactionInputBasics {
   parent_tx_hash?: string;
-  update_list: SetOperation[];
-}
-
-export interface BatchTransactionInput {
-  operation: GetOperation | GetBatchOperation;
+  set_list: SetOperation[];
 }
 
 export interface Transaction {
@@ -133,7 +127,7 @@ export interface Transaction {
   nonce: number;
   timestamp: number;
   address: string;
-  operation: SetOperation | SetUpdateOperation | GetOperation | GetBatchOperation;
+  operation: SetOperation | SetsOperation | GetOperation | GetsOperation; // TODO (lia): decide if gets should be regarded as transactions or not
   parent_tx_hash?: string;
 }
 

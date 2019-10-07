@@ -225,16 +225,39 @@ describe('ain-js', function() {
     const test_path = 'test/path';
 
     it('.ref()', function() {
-      expect(ain.db.ref().path).toBe(undefined);
-      expect(ain.db.ref(test_path).path).toBe(test_path);
+      expect(ain.db.ref().path).toBe('/');
+      expect(ain.db.ref(test_path).path).toBe('/'+test_path);
     });
 
+    it('getValue', async function() {
+      expect(await ain.db.ref(test_path).getValue()).toMatchSnapshot();
+    });
+
+    it('getRule', async function() {
+      expect(await ain.db.ref(test_path).getRule()).toMatchSnapshot();
+    });
+
+    it('getOwner', async function() {
+      expect(await ain.db.ref(test_path).getOwner()).toMatchSnapshot();
+    })
+
     it('get', async function() {
-      expect(await ain.db.ref(test_path).get('VALUE')).toMatchSnapshot();
-      expect(await ain.db.ref(test_path).get('RULE')).toMatchSnapshot();
-      expect(await ain.db.ref(test_path).get('OWNER')).toMatchSnapshot();
-      expect(await ain.db.ref(test_path).get('FUNC')).toMatchSnapshot();
-      expect(await ain.db.ref(test_path).get(['RULE','OWNER','VALUE'])).toMatchSnapshot();
+      expect(await ain.db.ref(test_path).get(
+          [
+            {
+              type: 'GET_RULE',
+              ref: ''
+            },
+            {
+              type: 'GET_VALUE',
+              ref: ''
+            },
+            {
+              type: 'GET_VALUE',
+              ref: 'deeper/path/'
+            }
+          ]
+        )).toMatchSnapshot();
     });
 
     it('on and off', function(done) {
@@ -316,9 +339,9 @@ describe('ain-js', function() {
       });
     });
 
-    it('update', function(done) {
-      ain.db.ref().update({
-        update_list: [
+    it('set', function(done) {
+      ain.db.ref().set({
+        set_list: [
           {
             type: 'SET_RULE',
             ref: 'path/path/',

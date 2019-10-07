@@ -6,19 +6,18 @@ import {
   ListenerMap,
   SetOperationType,
   GetOperationType,
-  GetInputType,
-  UpdateOperationType,
-  SetUpdateOperation,
+  SetsOperationType,
+  SetsOperation,
   TransactionInput,
   ValueOnlyTransactionInput,
-  UpdatesTransactionInput
+  SetsTransactionInput
 } from '../types';
 import { test_value, test_rule, test_owner, test_func } from '../dummy-values';
 import Ain from '../ain';
 import { PushId } from './push-id';
 
 export default class Reference {
-  public readonly path?: string;
+  public readonly path: string;
   public readonly key: string | null;
   private _isRootReference: boolean;
   private _listeners: ListenerMap;
@@ -31,11 +30,11 @@ export default class Reference {
    * @constructor
    */
   constructor(ain: Ain, path?: string) {
-    this.path = path && path.endsWith('/') ? path.substr(0, path.length-1) : path;
+    this.path = Reference.sanitizeRef(path);
     const pathArr = this.path ? this.path.split('/') : [];
     this.key = pathArr.length > 0 ? pathArr[pathArr.length-1] : null;
     this._ain = ain;
-    this._isRootReference = !path;
+    this._isRootReference = this.path === '/';
     this._listeners = {};
     this._numberOfListeners = 0;
   }
@@ -55,44 +54,184 @@ export default class Reference {
    * @return {PromiEvent<any> | Reference} A reference instance of the given path.
    */
   push(value?: any): PromiEvent<any> | Reference {
-
-    let ref = new Reference(this._ain, this.path+"/"+PushId.generate());
+    let ref = new Reference(this._ain, this.path + "/" + PushId.generate());
     if (value !== undefined) {
       return ref.setValue({ value });
     }
     return ref;
   }
 
+  getValue(): Promise<any> {
+    let req = Reference.buildGetRequest('GET_VALUE', this.path);
+    return new Promise((resolve, reject) => {
+      resolve(this.getTestData('GET_VALUE'));
+    })
+  }
+
+  getRule(): Promise<any> {
+    let req = Reference.buildGetRequest('GET_RULE', this.path);
+    return new Promise((resolve, reject) => {
+      resolve(this.getTestData('GET_RULE'));
+    })
+  }
+
+  getOwner(): Promise<any> {
+    let req = Reference.buildGetRequest('GET_OWNER', this.path);
+    return new Promise((resolve, reject) => {
+      resolve(this.getTestData('GET_OWNER'));
+    })
+  }
+
+ /* TODO (lia): add this method
+  getFunction(): Promise<any> {
+
+  }
+  */
+
   /**
-   * Returns the value / write rule / owner rule / function hash at {this.path}.
-   * @param {GetInputType | Array<GetInputType>} type - Type of data to get.
+   * Returns the value / write rule / owner rule / function hash at multiple paths.
+   * @param {Array<GetOperation>} requests - Array of get requests
    * Could be any one from "VALUE", "RULE", "OWNER", "FUNC" or a combination of them as an array.
    * @return {Promise<any>}
    */
-  get(type: GetInputType | Array<GetInputType>): Promise<any> {
-    let operation: any = {};
-    if (Array.isArray(type)) {
-      operation.type = 'GET_BATCH';
-      let ops: Array<any> = [];
-      type.forEach(t => {
-        ops.push({ ref: this.path || '', type: 'GET_' + t });
-      })
-      operation.batch_list = ops as GetOperation[];
-    } else {
-      operation.type = 'GET_' + type as GetOperationType;
-      operation.ref = this.path || '';
+  get(gets: GetOperation[]): Promise<any> {
+    let request = {
+      operation: {
+        type: 'GETS',
+        get_list: gets
+      }
+    }
+    for (let i = 0; i < gets.length; i++) {
+      let sanitized = Reference.sanitizeRef(gets[i].ref);
+      request.operation.get_list[i].ref = this.path + sanitized;
     }
     return new Promise((resolve, reject) => {
-      if (Array.isArray(type)) {
-        let dataArr: Array<any> = []
-        type.forEach(t => {
-          dataArr.push(this.getTestData(t));
-        })
-        resolve(dataArr);
-      } else {
-        resolve(this.getTestData(type));
-      }
+      let dataArr: Array<any> = []
+      gets.forEach(get => {
+        dataArr.push(this.getTestData(get.type));
+      })
+      resolve(dataArr);
     })
+  }
+
+  /**
+   * Deletes a value at {this.path}
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * Any value given will be overwritten with null.
+   * @return {PromiEvent<any>}
+   */
+  deleteValue(transactionInput?: ValueOnlyTransactionInput): PromiEvent<any> {
+    let txInput: ValueOnlyTransactionInput = transactionInput || {};
+    txInput['value'] = null;
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            txInput,
+            this.path,
+            "SET_RULE"
+        )
+    );
+  }
+
+  /* TODO (lia): add this method
+  setFunction(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "SET_FUNC"
+        )
+    );
+  }
+  */
+
+  /**
+   * Sets the owner rule at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  setOwner(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "SET_OWNER"
+        )
+    );
+  }
+
+  /**
+   * Sets the write rule at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  setRule(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "SET_RULE"
+        )
+    );
+  }
+
+  /**
+   * Sets a value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  setValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "SET_VALUE"
+        )
+    );
+  }
+
+  /**
+   * Increments the value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  incrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "INC_VALUE"
+        )
+    );
+  }
+
+  /**
+   * Decrements the value at {this.path}.
+   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  decrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "DEC_VALUE"
+        )
+    );
+  }
+
+  /**
+   * Processes multiple set operations.
+   * @param {SetsTransactionInput} transactionInput - A transaction input object.
+   * @return {PromiEvent<any>}
+   */
+  set(transactionInput: SetsTransactionInput): PromiEvent<any> {
+    return this._ain.sendTransaction(
+        Reference.extendTransactionInput(
+            transactionInput,
+            this.path,
+            "SETS"
+        )
+    );
   }
 
   /**
@@ -107,12 +246,15 @@ export default class Reference {
     if (!this._listeners[event]) { this._listeners[event] = []; }
     this._listeners[event].push(callback);
     this._numberOfListeners++;
-    setInterval(() => {
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count >= 3) clearInterval(interval);
       if (!!this._listeners[event]) {
         this._listeners[event].forEach(cb => {
           cb(10);
         });
       }
+      count++;
     }, 1000);
   }
 
@@ -140,142 +282,31 @@ export default class Reference {
     }
   }
 
-  /**
-   * Deletes a value at {this.path}
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * Any value given will be overwritten with null.
-   * @return {PromiEvent<any>}
-   */
-  deleteValue(transactionInput?: ValueOnlyTransactionInput): PromiEvent<any> {
-    let txInput: ValueOnlyTransactionInput = transactionInput || {};
-    txInput['value'] = null;
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            txInput,
-            this.path || "",
-            "SET_RULE"
-        )
-    );
-  }
-
-  /* TODO (lia): add this method
-  setFunction(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "SET_FUNC"
-        )
-    );
-  }
-  */
-
-  /**
-   * Sets the owner rule at {this.path}.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  setOwner(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "SET_OWNER"
-        )
-    );
+  static buildGetRequest(type: GetOperationType, ref: string) {
+    return {
+        operation: {
+          type,
+          ref
+        }
+      };
   }
 
   /**
-   * Sets the write rule at {this.path}.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  setRule(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "SET_RULE"
-        )
-    );
-  }
-
-  /**
-   * Sets a value at {this.path}.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  setValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "SET_VALUE"
-        )
-    );
-  }
-
-  /**
-   * Increments the value at {this.path}.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  incrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "INC_VALUE"
-        )
-    );
-  }
-
-  /**
-   * Decrements the value at {this.path}.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  decrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "DEC_VALUE"
-        )
-    );
-  }
-
-  /**
-   * Processes multiple set operations.
-   * @param {UpdatesTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
-   */
-  update(transactionInput: UpdatesTransactionInput): PromiEvent<any> {
-    return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path || "",
-            "UPDATES"
-        )
-    );
-  }
-
-  /**
-   * Decorates a transaction input with an appropriate type and update_list or ref and value.
-   * @param {ValueOnlyTransactionInput | UpdatesTransactionInput} input - A transaction input object
+   * Decorates a transaction input with an appropriate type and set_list or ref and value.
+   * @param {ValueOnlyTransactionInput | SetsTransactionInput} input - A transaction input object
    * @param {string} ref - The path at which set operations will take place
-   * @param {SetOperationType | UpdateOperationType} type - A type of set operations
+   * @param {SetOperationType | SetsOperationType} type - A type of set operations
    * @return {TransactionInput}
    */
   static extendTransactionInput(
-      input: ValueOnlyTransactionInput | UpdatesTransactionInput,
+      input: ValueOnlyTransactionInput | SetsTransactionInput,
       ref: string,
-      type: SetOperationType | UpdateOperationType
+      type: SetOperationType | SetsOperationType
   ): TransactionInput {
-    if (input['update_list']) {
-      const operation: SetUpdateOperation = {
-          type: type as UpdateOperationType,
-          update_list: (input as UpdatesTransactionInput).update_list
+    if (input['set_list']) {
+      const operation: SetsOperation = {
+          type: type as SetsOperationType,
+          set_list: (input as SetsTransactionInput).set_list
         };
       return Object.assign(input, { operation });
     } else {
@@ -288,17 +319,25 @@ export default class Reference {
     }
   }
 
+  static sanitizeRef(ref?: string): string {
+    if (!ref) return '/';
+    let sanitized = ref;
+    if (sanitized.endsWith('/')) sanitized = sanitized.substr(0, sanitized.length-1);
+    if (!sanitized.startsWith('/')) sanitized = '/' + sanitized;
+    return sanitized;
+  }
+
   // For testing/dev purposes only
   // TODO (lia): remove this function after integrating with AIN
   private getTestData(type) {
     switch (type) {
-      case 'VALUE':
+      case 'GET_VALUE':
         return test_value;
-      case 'RULE':
+      case 'GET_RULE':
         return test_rule;
-      case 'OWNER':
+      case 'GET_OWNER':
         return test_owner;
-      case 'FUNC':
+      case 'GET_FUNC':
         return test_func;
     }
   }
