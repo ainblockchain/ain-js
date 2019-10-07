@@ -36,7 +36,7 @@ export default class Wallet {
   getPublicKey(address: string): string {
     const checksummed = Ain.ainUtil.toChecksumAddress(address);
     if (!this.accounts[checksummed]) return ''
-    return this.accounts[checksummed].full_public_key;
+    return this.accounts[checksummed].public_key;
   }
 
   /**
@@ -95,7 +95,7 @@ export default class Wallet {
         Ain.ainUtil.pubToAddress(wallet.publicKey, true).toString('hex'));
     this.accounts[address] = {
         address,
-        full_public_key: wallet.publicKey.toString('hex'),
+        public_key: wallet.publicKey.toString('hex'),
         private_key: wallet.privateKey.toString('hex')
       };
     this._length++;
@@ -376,11 +376,11 @@ export default class Wallet {
    * @return {Account}
    */
   static fromPrivateKey(privateKey: Buffer): Account {
-    let fullPublicKey = Ain.ainUtil.privateToPublic(privateKey);
+    let publicKey = Ain.ainUtil.privateToPublic(privateKey);
     return {
-      address: Ain.ainUtil.toChecksumAddress(Ain.ainUtil.bufferToHex(Ain.ainUtil.pubToAddress(fullPublicKey))),
+      address: Ain.ainUtil.toChecksumAddress(Ain.ainUtil.bufferToHex(Ain.ainUtil.pubToAddress(publicKey))),
       private_key: privateKey.toString('hex'),
-      full_public_key: fullPublicKey.toString('hex')
+      public_key: publicKey.toString('hex')
     };
   }
 }

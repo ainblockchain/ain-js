@@ -1,7 +1,7 @@
 export interface Account {
   address: string,
   private_key: string,
-  full_public_key: string
+  public_key: string
 }
 
 export interface Accounts {[address: string]: Account}
