@@ -322,10 +322,7 @@ export default class Reference {
 
   static sanitizeRef(ref?: string): string {
     if (!ref) return '/';
-    let sanitized = ref;
-    if (sanitized.endsWith('/')) sanitized = sanitized.substr(0, sanitized.length-1);
-    if (!sanitized.startsWith('/')) sanitized = '/' + sanitized;
-    return sanitized;
+    return '/' + ref.split('/').filter(key => key !== '').join('/');
   }
 
   // For testing/dev purposes only
