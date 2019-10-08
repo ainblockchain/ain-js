@@ -31,7 +31,7 @@ export default class Network {
 
   /**
    * Returns the node's information.
-   * @return {PromiEvent<NodeInfo>}
+   * @return {Promise<NodeInfo>}
    */
   getNodeInfo(): Promise<NodeInfo | boolean> {
     return new Promise((resolve, reject) => {

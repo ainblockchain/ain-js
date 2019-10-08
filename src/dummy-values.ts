@@ -125,4 +125,6 @@ export const test_owner = {
   }
 };
 
+export const test_hash = "0x963fe04778693e4554f232213a7d7a1a00c4c4923eb158badedc5472416c9f53";
+
 export const test_func = "0x186909cf6d2e3cbe339c0a7f99bb3f35a0d572554710f4da2c928118f635f4db";

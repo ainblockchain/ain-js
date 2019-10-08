@@ -1,16 +1,15 @@
-import { PromiEvent } from '../promi-event';
+// import { PromiEvent } from '../promi-event';
 import {
   SetOperation,
   GetOperation,
-  EventType,
   ListenerMap,
   SetOperationType,
   GetOperationType,
-  SetsOperationType,
-  SetsOperation,
+  SetMultiOperationType,
+  SetMultiOperation,
   TransactionInput,
   ValueOnlyTransactionInput,
-  SetsTransactionInput
+  SetMultiTransactionInput
 } from '../types';
 import { test_value, test_rule, test_owner, test_func } from '../dummy-values';
 import Ain from '../ain';
@@ -51,9 +50,9 @@ export default class Reference {
    * If value is given, it sets the value at a new child of this.path;
    * otherwise, it creates a key for a new child but doesn't set any values.
    * @param {any} value - A value to set at the path.
-   * @return {PromiEvent<any> | Reference} A reference instance of the given path.
+   * @return {Promise<any> | Reference} A reference instance of the given path.
    */
-  push(value?: any): PromiEvent<any> | Reference {
+  push(value?: any): Promise<any> | Reference {
     let ref = new Reference(this._ain, this.path + "/" + PushId.generate());
     if (value !== undefined) {
       return ref.setValue({ value });
@@ -97,7 +96,7 @@ export default class Reference {
   get(gets: GetOperation[]): Promise<any> {
     let request = {
       operation: {
-        type: 'GETS',
+        type: 'GET',
         get_list: gets
       }
     }
@@ -118,9 +117,9 @@ export default class Reference {
    * Deletes a value at {this.path}
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * Any value given will be overwritten with null.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  deleteValue(transactionInput?: ValueOnlyTransactionInput): PromiEvent<any> {
+  deleteValue(transactionInput?: ValueOnlyTransactionInput): Promise<any> {
     let txInput: ValueOnlyTransactionInput = transactionInput || {};
     txInput['value'] = null;
     return this._ain.sendTransaction(
@@ -133,7 +132,7 @@ export default class Reference {
   }
 
   /* TODO (lia): add this method
-  setFunction(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  setFunction(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -147,9 +146,9 @@ export default class Reference {
   /**
    * Sets the owner rule at {this.path}.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  setOwner(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  setOwner(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -162,9 +161,9 @@ export default class Reference {
   /**
    * Sets the write rule at {this.path}.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  setRule(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  setRule(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -177,9 +176,9 @@ export default class Reference {
   /**
    * Sets a value at {this.path}.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  setValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  setValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -192,9 +191,9 @@ export default class Reference {
   /**
    * Increments the value at {this.path}.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  incrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  incrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -207,9 +206,9 @@ export default class Reference {
   /**
    * Decrements the value at {this.path}.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  decrementValue(transactionInput: ValueOnlyTransactionInput): PromiEvent<any> {
+  decrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
@@ -221,66 +220,68 @@ export default class Reference {
 
   /**
    * Processes multiple set operations.
-   * @param {SetsTransactionInput} transactionInput - A transaction input object.
-   * @return {PromiEvent<any>}
+   * @param {SetMultiTransactionInput} transactionInput - A transaction input object.
+   * @return {Promise<any>}
    */
-  set(transactionInput: SetsTransactionInput): PromiEvent<any> {
+  set(transactionInput: SetMultiTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendTransactionInput(
             transactionInput,
             this.path,
-            "SETS"
+            "SET"
         )
     );
   }
 
   /**
+   * TODO (lia): Add this function
    * Attaches an listener for database events.
    * @param {EventType} event - A type of event.
    * @param {Function} callback function to be executed when an event occurs.
    */
-  on(event: EventType, callback: Function) {
-    if (this._isRootReference) {
-      throw new Error('[ain-js.Reference.on] Cannot attach an on() listener to a root node');
-    }
-    if (!this._listeners[event]) { this._listeners[event] = []; }
-    this._listeners[event].push(callback);
-    this._numberOfListeners++;
-    let count = 0;
-    const interval = setInterval(() => {
-      if (count >= 3) clearInterval(interval);
-      if (!!this._listeners[event]) {
-        this._listeners[event].forEach(cb => {
-          cb(10);
-        });
-      }
-      count++;
-    }, 1000);
-  }
+  // on(event: EventType, callback: Function) {
+  //   if (this._isRootReference) {
+  //     throw new Error('[ain-js.Reference.on] Cannot attach an on() listener to a root node');
+  //   }
+  //   if (!this._listeners[event]) { this._listeners[event] = []; }
+  //   this._listeners[event].push(callback);
+  //   this._numberOfListeners++;
+  //   let count = 0;
+  //   const interval = setInterval(() => {
+  //     if (count >= 3) clearInterval(interval);
+  //     if (!!this._listeners[event]) {
+  //       this._listeners[event].forEach(cb => {
+  //         cb(10);
+  //       });
+  //     }
+  //     count++;
+  //   }, 1000);
+  // }
 
   /**
+   * TODO (lia): Add this function
    * Removes a database event listener.
    * @param {EventType} event - A type of event.
    * @param {Function} callback - A callback function to dettach from the event.
    */
-  off(event?: EventType, callback?: Function) {
-    if (!event && !callback) {
-      this._listeners = {};
-      this._numberOfListeners = 0;
-    } else if (!!event && !callback) {
-      let len = this._listeners[event].length;
-      this._listeners[event] = [];
-      this._numberOfListeners = this._numberOfListeners - len;
-    } else if (!!event && !!callback) {
-      if (!!this._listeners[event]) {
-        let index = this._listeners[event].indexOf(callback);
-        if (index > -1) {
-          this._listeners[event].splice(index, 1);
-          this._numberOfListeners--;
-        }
-      }
-    }
-  }
+  // off(event?: EventType, callback?: Function) {
+  //   if (!event && !callback) {
+  //     this._listeners = {};
+  //     this._numberOfListeners = 0;
+  //   } else if (!!event && !callback) {
+  //     let len = this._listeners[event].length;
+  //     this._listeners[event] = [];
+  //     this._numberOfListeners = this._numberOfListeners - len;
+  //   } else if (!!event && !!callback) {
+  //     if (!!this._listeners[event]) {
+  //       let index = this._listeners[event].indexOf(callback);
+  //       if (index > -1) {
+  //         this._listeners[event].splice(index, 1);
+  //         this._numberOfListeners--;
+  //       }
+  //     }
+  //   }
+  // }
 
   static buildGetRequest(type: GetOperationType, ref: string) {
     return {
@@ -293,20 +294,20 @@ export default class Reference {
 
   /**
    * Decorates a transaction input with an appropriate type and set_list or ref and value.
-   * @param {ValueOnlyTransactionInput | SetsTransactionInput} input - A transaction input object
+   * @param {ValueOnlyTransactionInput | SetMultiTransactionInput} input - A transaction input object
    * @param {string} ref - The path at which set operations will take place
-   * @param {SetOperationType | SetsOperationType} type - A type of set operations
+   * @param {SetOperationType | SetMultiOperationType} type - A type of set operations
    * @return {TransactionInput}
    */
   static extendTransactionInput(
-      input: ValueOnlyTransactionInput | SetsTransactionInput,
+      input: ValueOnlyTransactionInput | SetMultiTransactionInput,
       ref: string,
-      type: SetOperationType | SetsOperationType
+      type: SetOperationType | SetMultiOperationType
   ): TransactionInput {
     if (input['set_list']) {
-      const operation: SetsOperation = {
-          type: type as SetsOperationType,
-          set_list: (input as SetsTransactionInput).set_list
+      const operation: SetMultiOperation = {
+          type: type as SetMultiOperationType,
+          set_list: (input as SetMultiTransactionInput).set_list
         };
       return Object.assign(input, { operation });
     } else {

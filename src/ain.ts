@@ -9,9 +9,8 @@ import Database from './ain-db/db';
 import Reference from './ain-db/ref';
 import Wallet from './wallet';
 import Network from './net';
-import { PromiEvent } from './promi-event';
-import AbstractPromiEventMethod from './methods/abstract-promievent-method';
-import { test_block, test_blockWithTx, test_transaction, test_transactionResult } from './dummy-values';
+// import AbstractPromiEventMethod from './methods/abstract-promievent-method';
+import { test_block, test_blockWithTx, test_transaction, test_transactionResult, test_hash } from './dummy-values';
 
 export default class Ain {
   public provider: Provider;
@@ -110,58 +109,76 @@ export default class Ain {
   /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  sendTransaction(transactionObject: TransactionInput): PromiEvent<any> {
-    const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transactionObject);
-    return method.execute();
+  sendTransaction(transactionObject: TransactionInput): Promise<any> {
+    // const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transactionObject);
+    // return method.execute();
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
    * Sends a signed transaction to the network
    * @param {string} signature
    * @param {TransactionBody} transaction
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  sendSignedTransaction(signature: string, transaction: TransactionBody): PromiEvent<any> {
-    const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transaction, signature);
-    return method.execute();
+  sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
+    // const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transaction, signature);
+    // return method.execute();
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
    * Sends a transaction that deposits AIN for bandwidth staking.
    * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  depositBandwidthStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.abstractStakeFunction('deposit/bandwidth', transactionObject);
+  depositBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
+    // return this.abstractStakeFunction('deposit/bandwidth', transactionObject);
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
    * Sends a transaction that withdraws AIN from bandwidth staking.
    * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  withdrawBandwidthStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.abstractStakeFunction('withdraw/bandwidth', transactionObject);
+  withdrawBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
+    // return this.abstractStakeFunction('withdraw/bandwidth', transactionObject);
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
    * Sends a transaction that deposits AIN for consensus staking.
    * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  depositConsensusStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.abstractStakeFunction('deposit/consensus', transactionObject);
+  depositConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
+    // return this.abstractStakeFunction('deposit/consensus', transactionObject);
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
    * Sends a transaction that withdraws AIN for consensus staking.
    * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
-    return this.abstractStakeFunction('withdraw/consensus', transactionObject);
+  withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
+    // return this.abstractStakeFunction('withdraw/consensus', transactionObject);
+    return new Promise((resolve, reject) => {
+      resolve(test_hash);
+    });
   }
 
   /**
@@ -257,9 +274,9 @@ export default class Ain {
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
    * @param {string} path
    * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {PromiEvent<any>}
+   * @return {Promise<any>}
    */
-  private abstractStakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): PromiEvent<any> {
+  private abstractStakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): Promise<any> {
     const type: SetOperationType = "SET_VALUE";
     if (!transactionObject.value) {
       throw new Error('[ain-js.abstractStakeFunction] a value should be specified.');

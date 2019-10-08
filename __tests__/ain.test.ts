@@ -12,6 +12,7 @@ const {
 // jest.mock('../__mocks__/request');
 jest.setTimeout(60000);
 
+// TODO (lia): Create more test cases
 describe('ain-js', function() {
   let ain = new Ain('http://localhost:8081');
 
@@ -175,15 +176,9 @@ describe('ain-js', function() {
           value: {".write": false, ".apply": "OVERRIDE"}
         }
       })
-      .once('tx_hash', res => {
-        console.log("got tx_hash:",res)
-      })
-      .once('result', res => {
-        console.log("got result:",res)
-        done();
-      })
       .then(res => {
         console.log("then",res)
+        done();
       })
       .catch(e => {
         console.log("ERROR:",e)
@@ -204,15 +199,9 @@ describe('ain-js', function() {
       const sig = ain.wallet.signTransaction(tx);
 
       ain.sendSignedTransaction(sig, tx)
-      .once('tx_hash', res => {
-        console.log("got tx_hash:",res)
-      })
-      .once('result', res => {
-        console.log("got result:",res)
-        done();
-      })
       .then(res => {
         console.log("then",res)
+        done();
       })
       .catch(e => {
         console.log("ERROR:",e)
@@ -260,7 +249,7 @@ describe('ain-js', function() {
         )).toMatchSnapshot();
     });
 
-    it('on and off', function(done) {
+    /*it('on and off', function(done) {
       try {
         ain.db.ref().on('value', (snap:any) => console.log)
       } catch(e) {
@@ -289,11 +278,12 @@ describe('ain-js', function() {
         expect(ref.numberOfListeners).toBe(0);
         done();
       }, 8000);
-    });
+    });*/
 
     it('deleteValue', function(done) {
       ain.db.ref(test_path).deleteValue()
-      .once('result', res => {
+      .then(res => {
+        console.log("then",res)
         done();
       });
     });
@@ -316,7 +306,8 @@ describe('ain-js', function() {
           }
         },
       })
-      .once('result', res => {
+      .then(res => {
+        console.log("then",res)
         done();
       });
     });
@@ -325,7 +316,8 @@ describe('ain-js', function() {
       ain.db.ref(test_path).setRule({
         value: {".write": true},
       })
-      .once('result', res => {
+      .then(res => {
+        console.log("then",res)
         done();
       });
     });
@@ -334,7 +326,8 @@ describe('ain-js', function() {
       ain.db.ref(test_path).setValue({
         value: 100,
       })
-      .once('result', res => {
+      .then(res => {
+        console.log("then",res)
         done();
       });
     });
@@ -359,7 +352,8 @@ describe('ain-js', function() {
           }
         ]
       })
-      .once('result', res => {
+      .then(res => {
+        console.log("then",res)
         done();
       });
     });

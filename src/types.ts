@@ -46,11 +46,11 @@ export interface V3Keystore {
   }
 }
 
-export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
+// export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
 
-export type SetsOperationType = "SETS";
+export type SetMultiOperationType = "SET";
 
-export type GetsOperationType = "GETS";
+export type GetMultiOperationType = "GET";
 
 export type SetOperationType = "SET_VALUE" | "INC_VALUE" | "DEC_VALUE" | "SET_RULE" | "SET_OWNER" | "SET_FUNC";
 
@@ -62,8 +62,8 @@ export interface SetOperation {
   value: any | undefined | null;
 }
 
-export interface SetsOperation {
-  type: SetsOperationType;
+export interface SetMultiOperation {
+  type: SetMultiOperationType;
   set_list: SetOperation[];
 }
 
@@ -72,8 +72,8 @@ export interface GetOperation {
   ref: string;
 }
 
-export interface GetsOperation {
-  type: GetsOperationType;
+export interface GetMultiOperation {
+  type: GetMultiOperationType;
   get_list: GetOperation[];
 }
 
@@ -91,7 +91,7 @@ export interface PathFuncObject {
 
 export interface TransactionBodyBasics {
   parent_tx_hash?: string;
-  operation: SetOperation | SetsOperation | GetOperation | GetsOperation;
+  operation: SetOperation | SetMultiOperation | GetOperation | GetMultiOperation;
 }
 
 export interface ValueOnlyTransactionBodyBasics {
@@ -114,7 +114,7 @@ export interface TransactionInput extends TransactionBodyBasics, TransactionInpu
 
 export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBasics, TransactionInputBasics {}
 
-export interface SetsTransactionInput extends TransactionInputBasics {
+export interface SetMultiTransactionInput extends TransactionInputBasics {
   parent_tx_hash?: string;
   set_list: SetOperation[];
 }
@@ -127,7 +127,7 @@ export interface Transaction {
   nonce: number;
   timestamp: number;
   address: string;
-  operation: SetOperation | SetsOperation | GetOperation | GetsOperation; // TODO (lia): decide if gets should be regarded as transactions or not
+  operation: SetOperation | SetMultiOperation;
   parent_tx_hash?: string;
 }
 

@@ -22,8 +22,7 @@ export default class AbstractPromiEventMethod {
       rpcMethod: string,
       ain: Ain,
       tx: TransactionInput | TransactionBody,
-      signature?: string
-  ) {
+      signature?: string) {
     if (Ain.instanceofTransactionBody(tx) && signature === undefined) {
       throw new Error("A signature should be provided with a transaction body.");
     }
