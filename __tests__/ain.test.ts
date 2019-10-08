@@ -334,7 +334,7 @@ describe('ain-js', function() {
 
     it('set', function(done) {
       ain.db.ref().set({
-        set_list: [
+        op_list: [
           {
             type: 'SET_RULE',
             ref: 'path/path/',

@@ -64,7 +64,7 @@ export interface SetOperation {
 
 export interface SetMultiOperation {
   type: SetMultiOperationType;
-  set_list: SetOperation[];
+  op_list: SetOperation[];
 }
 
 export interface GetOperation {
@@ -74,7 +74,7 @@ export interface GetOperation {
 
 export interface GetMultiOperation {
   type: GetMultiOperationType;
-  get_list: GetOperation[];
+  op_list: GetOperation[];
 }
 
 export interface PathValueObject {
@@ -116,7 +116,7 @@ export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBasic
 
 export interface SetMultiTransactionInput extends TransactionInputBasics {
   parent_tx_hash?: string;
-  set_list: SetOperation[];
+  op_list: SetOperation[];
 }
 
 export interface Transaction {

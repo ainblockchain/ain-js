@@ -97,12 +97,12 @@ export default class Reference {
     let request = {
       operation: {
         type: 'GET',
-        get_list: gets
+        op_list: gets
       }
     }
     for (let i = 0; i < gets.length; i++) {
       let sanitized = Reference.sanitizeRef(gets[i].ref);
-      request.operation.get_list[i].ref = this.path + sanitized;
+      request.operation.op_list[i].ref = this.path + sanitized;
     }
     return new Promise((resolve, reject) => {
       let dataArr: Array<any> = []
@@ -293,7 +293,7 @@ export default class Reference {
   }
 
   /**
-   * Decorates a transaction input with an appropriate type and set_list or ref and value.
+   * Decorates a transaction input with an appropriate type and op_list or ref and value.
    * @param {ValueOnlyTransactionInput | SetMultiTransactionInput} input - A transaction input object
    * @param {string} ref - The path at which set operations will take place
    * @param {SetOperationType | SetMultiOperationType} type - A type of set operations
@@ -304,10 +304,10 @@ export default class Reference {
       ref: string,
       type: SetOperationType | SetMultiOperationType
   ): TransactionInput {
-    if (input['set_list']) {
+    if (input['op_list']) {
       const operation: SetMultiOperation = {
           type: type as SetMultiOperationType,
-          set_list: (input as SetMultiTransactionInput).set_list
+          op_list: (input as SetMultiTransactionInput).op_list
         };
       return Object.assign(input, { operation });
     } else {
