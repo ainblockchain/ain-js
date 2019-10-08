@@ -284,12 +284,7 @@ export default class Reference {
   // }
 
   static buildGetRequest(type: GetOperationType, ref: string) {
-    return {
-        operation: {
-          type,
-          ref
-        }
-      };
+    return { type, ref };
   }
 
   /**
