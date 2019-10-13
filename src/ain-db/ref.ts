@@ -123,7 +123,7 @@ export default class Reference {
     let txInput: ValueOnlyTransactionInput = transactionInput || {};
     txInput['value'] = null;
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             txInput,
             this.path,
             "SET_RULE"
@@ -134,7 +134,7 @@ export default class Reference {
   /* TODO (lia): add this method
   setFunction(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "SET_FUNC"
@@ -150,7 +150,7 @@ export default class Reference {
    */
   setOwner(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "SET_OWNER"
@@ -165,7 +165,7 @@ export default class Reference {
    */
   setRule(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "SET_RULE"
@@ -180,7 +180,7 @@ export default class Reference {
    */
   setValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "SET_VALUE"
@@ -195,7 +195,7 @@ export default class Reference {
    */
   incrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "INC_VALUE"
@@ -210,7 +210,7 @@ export default class Reference {
    */
   decrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
+        Reference.extendSetTransactionInput(
             transactionInput,
             this.path,
             "DEC_VALUE"
@@ -225,12 +225,7 @@ export default class Reference {
    */
   set(transactionInput: SetMultiTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendTransactionInput(
-            transactionInput,
-            this.path,
-            "SET"
-        )
-    );
+        Reference.extendSetMultiTransactionInput(transactionInput, this.path));
   }
 
   /**
@@ -288,31 +283,34 @@ export default class Reference {
   }
 
   /**
-   * Decorates a transaction input with an appropriate type and op_list or ref and value.
-   * @param {ValueOnlyTransactionInput | SetMultiTransactionInput} input - A transaction input object
+   * Decorates a transaction input with an appropriate type, ref and value.
+   * @param {ValueOnlyTransactionInput} input - A transaction input object
    * @param {string} ref - The path at which set operations will take place
-   * @param {SetOperationType | SetMultiOperationType} type - A type of set operations
+   * @param {SetOperationType} type - A type of set operations
    * @return {TransactionInput}
    */
-  static extendTransactionInput(
-      input: ValueOnlyTransactionInput | SetMultiTransactionInput,
+  static extendSetTransactionInput(
+      input: ValueOnlyTransactionInput,
       ref: string,
-      type: SetOperationType | SetMultiOperationType
+      type: SetOperationType
   ): TransactionInput {
-    if (input['op_list']) {
-      const operation: SetMultiOperation = {
-          type: type as SetMultiOperationType,
-          op_list: (input as SetMultiTransactionInput).op_list
-        };
-      return Object.assign(input, { operation });
-    } else {
-      const operation: SetOperation = {
-          type: type as SetOperationType,
-          ref,
-          value: (input as ValueOnlyTransactionInput).value
-        };
-      return Object.assign(input, { operation });
-    }
+    const operation: SetOperation = { type, ref, value: input.value };
+    return Object.assign(input, { operation });
+  }
+
+  /**
+   * Decorates a transaction input with an appropriate type and op_list.
+   * @param {SetMultiTransactionInput} input - A transaction input object
+   * @param {string} ref - The path at which set operations will take place
+   * @param {SetMultiOperationType} type - A type of set operations
+   * @return {TransactionInput}
+   */
+  static extendSetMultiTransactionInput(
+      input: SetMultiTransactionInput,
+      ref: string
+  ): TransactionInput {
+    const operation: SetMultiOperation = { type: 'SET', op_list: input.op_list };
+    return Object.assign(input, { operation });
   }
 
   static sanitizeRef(ref?: string): string {
