@@ -1,14 +1,15 @@
 import * as EventEmitter from 'eventemitter3';
 
+/**
+ * A combination of a promise and an event emitter.
+ * @implements {Promise<T>}
+ */
 export class PromiEvent<T> implements Promise<T> {
   public eventEmitter: EventEmitter;
   public promise: Promise<T>
   private _resolve;
   private _reject;
 
-  /**
-   * @constructor
-   */
   constructor() {
     this.promise = new Promise((resolve, reject) => {
       this._resolve = resolve;
