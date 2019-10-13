@@ -89,32 +89,32 @@ export interface PathFuncObject {
   value: string;
 }
 
-export interface TransactionBodyBasics {
+export interface TransactionBodyBase {
   parent_tx_hash?: string;
   operation: SetOperation | SetMultiOperation | GetOperation | GetMultiOperation;
 }
 
-export interface ValueOnlyTransactionBodyBasics {
+export interface ValueOnlyTransactionBodyBase {
   parent_tx_hash?: string;
   value?: any;
 }
 
-export interface TransactionInputBasics {
+export interface TransactionInputBase {
   nonce?: number;
   isNonced?: boolean;
   address?: string;
 }
 
-export interface TransactionBody extends TransactionBodyBasics {
+export interface TransactionBody extends TransactionBodyBase {
   nonce: number;
   timestamp: number;
 }
 
-export interface TransactionInput extends TransactionBodyBasics, TransactionInputBasics {}
+export interface TransactionInput extends TransactionBodyBase, TransactionInputBase {}
 
-export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBasics, TransactionInputBasics {}
+export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBase, TransactionInputBase {}
 
-export interface SetMultiTransactionInput extends TransactionInputBasics {
+export interface SetMultiTransactionInput extends TransactionInputBase {
   parent_tx_hash?: string;
   op_list: SetOperation[];
 }
