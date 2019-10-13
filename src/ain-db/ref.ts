@@ -24,8 +24,8 @@ export default class Reference {
   private _ain: Ain;
 
   /**
-   * @param {Ain} ain
-   * @param {String} path
+   * @param {Ain} ain An ain instance.
+   * @param {String} path The path in the global state tree.
    * @constructor
    */
   constructor(ain: Ain, path?: string) {
