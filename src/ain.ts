@@ -139,7 +139,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   depositBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.abstractStakeFunction('deposit/bandwidth', transactionObject);
+    // return this.stakeFunction('deposit/bandwidth', transactionObject);
     return new Promise((resolve, reject) => {
       resolve(test_hash);
     });
@@ -151,7 +151,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   withdrawBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.abstractStakeFunction('withdraw/bandwidth', transactionObject);
+    // return this.stakeFunction('withdraw/bandwidth', transactionObject);
     return new Promise((resolve, reject) => {
       resolve(test_hash);
     });
@@ -163,7 +163,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   depositConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.abstractStakeFunction('deposit/consensus', transactionObject);
+    // return this.stakeFunction('deposit/consensus', transactionObject);
     return new Promise((resolve, reject) => {
       resolve(test_hash);
     });
@@ -175,7 +175,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.abstractStakeFunction('withdraw/consensus', transactionObject);
+    // return this.stakeFunction('withdraw/consensus', transactionObject);
     return new Promise((resolve, reject) => {
       resolve(test_hash);
     });
@@ -276,21 +276,21 @@ export default class Ain {
    * @param {ValueOnlyTransactionInput} transactionObject
    * @return {Promise<any>}
    */
-  private abstractStakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): Promise<any> {
+  private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): Promise<any> {
     const type: SetOperationType = "SET_VALUE";
     if (!transactionObject.value) {
-      throw new Error('[ain-js.abstractStakeFunction] a value should be specified.');
+      throw new Error('[ain-js.stakeFunction] a value should be specified.');
     }
     if (typeof transactionObject.value !== 'number') {
-      throw new Error('[ain-js.abstractStakeFunction] value has to be a number.');
+      throw new Error('[ain-js.stakeFunction] value has to be a number.');
     }
     if (!transactionObject.address) {
       if (!this.wallet.defaultAccount) {
-        throw new Error('[ain-js.abstractStakeFunction] Address not specified and defaultAccount not set.');
+        throw new Error('[ain-js.stakeFunction] Address not specified and defaultAccount not set.');
       }
       transactionObject.address = String(this.wallet.defaultAccount);
     } else if (!this.wallet.isAdded(transactionObject.address)) {
-      throw new Error('[ain-js.abstractStakeFunction] Account not added.')
+      throw new Error('[ain-js.stakeFunction] Account not added.')
     }
     const ref = this.db.ref(`${path}/${transactionObject.address}`).push()
     if (ref instanceof Reference) {
@@ -303,7 +303,7 @@ export default class Ain {
       const txInput = Object.assign({ operation }, { transactionObject });
       return this.sendTransaction(txInput);
     } else {
-      throw new Error('[ain-js.abstractStakeFunction] Error in Reference push.');
+      throw new Error('[ain-js.stakeFunction] Error in Reference push.');
     }
   }
 }
