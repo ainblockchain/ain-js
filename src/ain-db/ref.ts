@@ -60,6 +60,7 @@ export default class Reference {
     return ref;
   }
 
+  // TODO (lia): Use relative paths for get* and set* functions.
   getValue(): Promise<any> {
     let req = Reference.buildGetRequest('GET_VALUE', this.path);
     return new Promise((resolve, reject) => {
