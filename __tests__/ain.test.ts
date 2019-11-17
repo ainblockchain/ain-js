@@ -38,9 +38,13 @@ describe('ain-js', function() {
     it('V3Keystore (encrypt and decrypt)', function() {
       const v3Keystore = test_keystore;
       const beforeLength = ain.wallet.length;
-      ain.wallet.addFromV3Keystore(v3Keystore, test_pw);
+      const address = ain.wallet.addFromV3Keystore(v3Keystore, test_pw);
       const afterLength = ain.wallet.length;
       expect(afterLength).toBe(beforeLength + 1);
+      const convertedV3Keystore = ain.wallet.accountToV3Keystore(address, test_pw);
+      const derivedAddress = ainUtil.privateToAddress(
+          ainUtil.v3KeystoreToPrivate(convertedV3Keystore, test_pw));
+      expect(derivedAddress).toBe(address);
     });
 
     it('add', function() {

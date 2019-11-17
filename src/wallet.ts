@@ -106,7 +106,7 @@ export default class Wallet {
    * @return {string} - The address of the newly added account.
    */
   addFromV3Keystore(v3Keystore: V3Keystore | string, password: string): string {
-    const privateKey = Wallet.v3KeystoreToPrivate(v3Keystore, password);
+    const privateKey = Ain.ainUtil.v3KeystoreToPrivate(v3Keystore, password);
     this.add(privateKey.toString('hex'));
     return Ain.ainUtil.privateToAddress(privateKey);
   }
@@ -237,8 +237,8 @@ export default class Wallet {
    * @param {V3KeystoreOptions} options
    * @return {V3Keystore}
    */
-  private accountToV3Keystore(
-      address:string,
+  accountToV3Keystore(
+      address: string,
       password: string,
       options: V3KeystoreOptions = {}
   ): V3Keystore {
@@ -247,15 +247,6 @@ export default class Wallet {
     }
     const privateKey = Buffer.from(this.accounts[address].private_key, 'hex');
     return Ain.ainUtil.privateToV3Keystore(privateKey, password, options);
-  }
-
-  /**
-   * Returns a private key from a V3 Keystore.
-   * @param {V3Keystore | string} v3Keystore
-   * @param {string} [password]
-   */
-  static v3KeystoreToPrivate(v3Keystore: V3Keystore | string, password: string): Buffer {
-    return Ain.ainUtil.v3KeystoreToPrivate(v3Keystore, password);
   }
 
   /**
