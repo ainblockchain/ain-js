@@ -1,7 +1,4 @@
 import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions, KdfParams } from './types';
-import * as scrypt from 'scryptsy';
-import * as randomBytes from 'randombytes';
-import uuid from 'uuid';
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import { pbkdf2Sync } from 'pbkdf2';
@@ -47,7 +44,7 @@ export default class Wallet {
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
     // TODO (lia): set maximum limit for numberOfAccounts?
     for (let i = 0; i < numberOfAccounts; i++) {
-      let account = Wallet.generateAccount();
+      let account = Ain.ainUtil.createAccount();
       this.accounts[account.address] = account;
     }
     this._length = this.accounts ? Object.keys(this.accounts).length : 0;
@@ -100,6 +97,18 @@ export default class Wallet {
       };
     this._length++;
     return address;
+  }
+
+  /**
+   * Adds an account from a V3 Keystore.
+   * @param {V3Keystore | string} v3Keystore
+   * @param {string} [password]
+   * @return {string} - The address of the newly added account.
+   */
+  addFromV3Keystore(v3Keystore: V3Keystore | string, password: string): string {
+    const privateKey = Wallet.v3KeystoreToPrivate(v3Keystore, password);
+    this.add(privateKey.toString('hex'));
+    return Ain.ainUtil.privateToAddress(privateKey);
   }
 
   /**
@@ -233,141 +242,20 @@ export default class Wallet {
       password: string,
       options: V3KeystoreOptions = {}
   ): V3Keystore {
-    const salt = options.salt || randomBytes(32);
-    const iv = options.iv || randomBytes(16);
-    let derivedKey: Buffer;
-    const kdf = options.kdf || 'scrypt';
-    const kdfparams: KdfParams = { dklen: options.dklen || 32, salt: salt.toString('hex') };
-
-    if (kdf === 'pbkdf2') {
-      kdfparams.c = options.c || 262144;
-      kdfparams.prf = 'hmac-sha256';
-      derivedKey = pbkdf2Sync(
-          Buffer.from(password),
-          Buffer.from(kdfparams.salt, 'hex'),
-          kdfparams.c,
-          kdfparams.dklen,
-          'sha256'
-        );
-    } else if (kdf === 'scrypt') {
-      kdfparams.n = options.n || 8192; // 2048 4096 8192 16384
-      kdfparams.r = options.r || 8;
-      kdfparams.p = options.p || 1;
-      derivedKey = scrypt(
-          Buffer.from(password),
-          Buffer.from(kdfparams.salt, 'hex'),
-          kdfparams.n,
-          kdfparams.r,
-          kdfparams.p,
-          kdfparams.dklen,
-        );
-    } else {
-      throw new Error('[ain-js.wallet.accountToV3Keystore] Unsupported kdf');
+    if (!this.accounts[address]) {
+      throw new Error('[ain-js.wallet.accountToV3Keystore] No such address exists in the wallet');
     }
-
-    const cipher = createCipheriv(options.cipher || 'aes-128-ctr', derivedKey.slice(0, 16), iv);
-    if (!cipher) {
-      throw new Error('[ain-js.wallet.accountToV3Keystore] Unsupported cipher');
-    }
-    const ciphertext = Buffer.concat([
-      cipher.update(Buffer.from(this.accounts[address].private_key.replace('0x', ''), 'hex')),
-      cipher.final()
-    ]);
-    const mac = Ain.ainUtil.keccak(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-        .toString('hex').replace('0x', '');
-
-    return {
-      version: 3,
-      id: uuid.v4({random: options.uuid || randomBytes(16)}),
-      address: address.toLowerCase().replace('0x', ''),
-      crypto: {
-        ciphertext: ciphertext.toString('hex'),
-        cipherparams: {
-          iv: iv.toString('hex')
-        },
-        cipher: options.cipher || 'aes-128-ctr',
-        kdf,
-        kdfparams,
-        mac
-      }
-    };
+    const privateKey = Buffer.from(this.accounts[address].private_key, 'hex');
+    return Ain.ainUtil.privateToV3Keystore(privateKey, password, options);
   }
 
   /**
-   * Adds an account from a V3 Keystore.
+   * Returns a private key from a V3 Keystore.
    * @param {V3Keystore | string} v3Keystore
    * @param {string} [password]
    */
-  fromV3Keystore(v3Keystore: V3Keystore | string, password: string) {
-    let json: V3Keystore = (typeof v3Keystore === 'string') ?
-        JSON.parse(v3Keystore.toLowerCase()) : v3Keystore;
-    if (json.version !== 3) {
-        throw new Error('[ain-js.wallet.fromV3Keystore] Not a valid V3 wallet');
-    }
-    let derivedKey: Buffer;
-    let kdfparams: KdfParams;
-
-    if (json.crypto.kdf === 'scrypt') {
-      kdfparams = json.crypto.kdfparams;
-      derivedKey = scrypt(
-          Buffer.from(password),
-          Buffer.from(kdfparams.salt, 'hex'),
-          kdfparams.n,
-          kdfparams.r,
-          kdfparams.p,
-          kdfparams.dklen
-        );
-    } else if (json.crypto.kdf === 'pbkdf2') {
-      kdfparams = json.crypto.kdfparams;
-      if (kdfparams.prf !== 'hmac-sha256') {
-        throw new Error('[ain-js.wallet.fromV3Keystore] Unsupported parameters to PBKDF2');
-      }
-      derivedKey = pbkdf2Sync(
-          Buffer.from(password),
-          Buffer.from(kdfparams.salt, 'hex'),
-          kdfparams.c,
-          kdfparams.dklen,
-          'sha256'
-        );
-    } else {
-      throw new Error('[ain-js.wallet.fromV3Keystore] Unsupported key derivation scheme');
-    }
-
-    const ciphertext = Buffer.from(json.crypto.ciphertext, 'hex');
-    const mac = Ain.ainUtil.keccak(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-        .toString('hex').replace('0x', '');
-    if (mac !== json.crypto.mac) {
-      throw new Error('[ain-js.wallet.fromV3Keystore] Key derivation failed - possibly wrong password');
-    }
-    const decipher = createDecipheriv(
-        json.crypto.cipher,
-        derivedKey.slice(0, 16),
-        Buffer.from(json.crypto.cipherparams.iv, 'hex')
-      );
-    const seed = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    return Wallet.fromPrivateKey(seed);
-  }
-
-  /**
-   * Concatenates two buffers.
-   * @param {Buffer} a
-   * @param {Buffer} b
-   * @return {Bugger}
-   */
-  static concat(a: Buffer, b: Buffer): Buffer {
-    return Buffer.concat([a, b.slice(2)]);
-  }
-
-  /**
-   * Generates an account with a given entropy
-   * @param {string} entropy
-   * @return {Account} - signature
-   */
-  static generateAccount(entropy?: string): Account {
-    const innerHex = Ain.ainUtil.keccak(this.concat(randomBytes(32), !!entropy ? Buffer.from(entropy) : randomBytes(32)));
-    const middleHex = this.concat(this.concat(randomBytes(32), innerHex), randomBytes(32));
-    const outerHex = Ain.ainUtil.keccak(middleHex);
-    return this.fromPrivateKey(outerHex);
+  static v3KeystoreToPrivate(v3Keystore: V3Keystore | string, password: string): Buffer {
+    return Ain.ainUtil.v3KeystoreToPrivate(v3Keystore, password);
   }
 
   /**
