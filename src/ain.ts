@@ -4,20 +4,17 @@ import request from './request';
 import { Block, Transaction, TransactionBody, TransactionResult, SetOperationType,
     SetOperation, TransactionInput, ValueOnlyTransactionInput } from './types';
 import Provider from './provider';
-import * as Utils from './utils';
 import Database from './ain-db/db';
 import Reference from './ain-db/ref';
 import Wallet from './wallet';
 import Network from './net';
-// import AbstractPromiEventMethod from './methods/abstract-promievent-method';
-import { test_block, test_blockWithTx, test_transaction, test_transactionResult, test_hash } from './dummy-values';
+import { resolve } from 'dns';
 
 export default class Ain {
   public provider: Provider;
   public db: Database;
   public net: Network;
   public wallet: Wallet;
-  public utils: any;
 
   /**
    * @param {string} providerUrl
@@ -26,9 +23,8 @@ export default class Ain {
   constructor(providerUrl: string) {
     this.provider = new Provider(providerUrl);
     this.net = new Network(this.provider);
-    this.wallet = new Wallet();
+    this.wallet = new Wallet(this);
     this.db = new Database(this, this.provider);
-    this.utils = Utils;
   }
 
   /**
@@ -49,13 +45,12 @@ export default class Ain {
    * @return {Promise<Block>}
    */
   getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
-    return new Promise((resolve, reject) => {
-      if (returnTransactionObjects) {
-        resolve(test_blockWithTx(blockHashOrBlockNumber));
-      } else {
-        resolve(test_block(blockHashOrBlockNumber));
-      }
-    });
+    const byHash = typeof blockHashOrBlockNumber === 'string'
+    const rpcMethod = byHash ? 'ain_getBlockByHash' : 'ain_getBlockByNumber';
+    const data = Object.assign({},
+        { getFullTransactions: !!returnTransactionObjects,
+          [byHash ? 'hash' : 'number']: blockHashOrBlockNumber });
+    return this.provider.send(rpcMethod, data);
   }
 
   /**
@@ -63,10 +58,11 @@ export default class Ain {
    * @param {string | number} blockHashOrBlockNumber
    * @return {Promise<string>}
    */
-  getForger(blockHashOrBlockNumber: string | number): Promise<string> {
-    return new Promise((resolve, reject) => {
-      resolve("0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6");
-    });
+  getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
+    const byHash = typeof blockHashOrBlockNumber === 'string'
+    const rpcMethod = byHash ? 'ain_getProposerByHash' : 'ain_getProposerByNumber';
+    return this.provider.send(rpcMethod,
+        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
   }
 
   /**
@@ -75,13 +71,10 @@ export default class Ain {
    * @return {Promise<string[]>}
    */
   getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      let validators: string[] = [];
-      for (let i = 0; i < 11; i++) {
-        validators.push("0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6");
-      }
-      resolve(validators);
-    });
+    const byHash = typeof blockHashOrBlockNumber === 'string'
+    const rpcMethod = byHash ? 'ain_getValidatorsByHash' : 'ain_getValidatorsByNumber';
+    return this.provider.send(rpcMethod,
+        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
   }
 
   /**
@@ -90,9 +83,7 @@ export default class Ain {
    * @return {Promise<Transaction>}
    */
   getTransaction(transactionHash: string): Promise<Transaction> {
-    return new Promise((resolve, reject) => {
-      resolve(test_transaction(transactionHash));
-    });
+    return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
   }
 
   /**
@@ -100,11 +91,11 @@ export default class Ain {
    * @param {string} transactionHash
    * @return {Promise<Transaction>}
    */
-  getTransactionResult(transactionHash: string): Promise<TransactionResult> {
-    return new Promise((resolve, reject) => {
-      resolve(test_transactionResult(transactionHash));
-    });
-  }
+  // TODO (lia): implement this function
+  // getTransactionResult(transactionHash: string): Promise<TransactionResult> {
+  //   return new Promise((resolve, reject) => {
+  //   });
+  // }
 
   /**
    * Signs and sends a transaction to the network
@@ -112,10 +103,14 @@ export default class Ain {
    * @return {Promise<any>}
    */
   sendTransaction(transactionObject: TransactionInput): Promise<any> {
-    // const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transactionObject);
-    // return method.execute();
     return new Promise((resolve, reject) => {
-      resolve(test_hash);
+      return this.buildTransactionBody(transactionObject)
+      .then(txBody => {
+        const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+        const response = this.provider.send('ain_sendSignedTransaction',
+            { signature, transaction: txBody });
+        resolve(response);
+      });
     });
   }
 
@@ -126,35 +121,32 @@ export default class Ain {
    * @return {Promise<any>}
    */
   sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
-    // const method = new AbstractPromiEventMethod('ain_sendSignedTransaction', this, transaction, signature);
-    // return method.execute();
-    return new Promise((resolve, reject) => {
-      resolve(test_hash);
-    });
+    return this.provider.send('ain_sendSignedTransaction', { signature, transaction });
   }
 
-  /**
-   * Sends a transaction that deposits AIN for bandwidth staking.
-   * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {Promise<any>}
-   */
-  depositBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.stakeFunction('deposit/bandwidth', transactionObject);
+  sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      resolve(test_hash);
-    });
-  }
-
-  /**
-   * Sends a transaction that withdraws AIN from bandwidth staking.
-   * @param {ValueOnlyTransactionInput} transactionObject
-   * @return {Promise<any>}
-   */
-  withdrawBandwidthStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.stakeFunction('withdraw/bandwidth', transactionObject);
-    return new Promise((resolve, reject) => {
-      resolve(test_hash);
-    });
+      let promises: Promise<any>[] = [];
+      for (let tx of transactionObjects) {
+        promises.push(this.buildTransactionBody(tx).then(txBody => {
+          if (tx.nonce === undefined) {
+            // Batch transactions' nonces should be specified.
+            // If they're not, they default to un-nonced (nonce = -1).
+            txBody.nonce = -1;
+          }
+          const signature = this.wallet.signTransaction(txBody, tx.address);
+          return { signature, transaction: txBody };
+        }));
+      }
+      return Promise.all(promises).then(result => {
+        const response = this.provider.send('ain_sendSignedTransaction', { tx_list: result });
+        resolve(response);
+      })
+      .catch(error => {
+        console.log("error:", error);
+        reject(error);
+      });
+    })
   }
 
   /**
@@ -163,10 +155,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   depositConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.stakeFunction('deposit/consensus', transactionObject);
-    return new Promise((resolve, reject) => {
-      resolve(test_hash);
-    });
+    return this.stakeFunction('/deposit/consensus', transactionObject);
   }
 
   /**
@@ -175,23 +164,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
-    // return this.stakeFunction('withdraw/consensus', transactionObject);
-    return new Promise((resolve, reject) => {
-      resolve(test_hash);
-    });
-  }
-
-  /**
-   * Gets the amount of AIN currently staked for bandwidth
-   * @param {string} account
-   * @return {Promise<number>}
-   */
-  getBandwidthStakeAmount(account?: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      request('getBandwidthStakeAmount/').then(res => {
-        resolve(Number(res));
-      });
-    });
+    return this.stakeFunction('/withdraw/consensus', transactionObject);
   }
 
   /**
@@ -201,9 +174,8 @@ export default class Ain {
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
     return new Promise((resolve, reject) => {
-      request('getConsensusStakeAmount/').then(res => {
-        resolve(Number(res));
-      });
+      const address = this.wallet.getImpliedAddress(account);
+      return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
     });
   }
 
@@ -212,11 +184,17 @@ export default class Ain {
    * @param {string} account
    * @return {Promise<number>}
    */
-  getTransactionCount(account?: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      request('getTransactionCount/').then((res) => {
-        resolve(Number(res));
-      });
+  getNonce(args: {address?: string, from?: string}): Promise<number> {
+    return new Promise(async (resolve, reject) => {
+      const address = this.wallet.getImpliedAddress(args.address);
+      if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
+        reject("'from' should be either 'pending' or 'committed'");
+      }
+      const res = await this.provider.send('ain_getNonce', { address, from: args.from })
+          .catch(error => {
+            reject(error);
+          });
+      resolve(res);
     });
   }
 
@@ -227,26 +205,14 @@ export default class Ain {
    */
   buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
     return new Promise(async (resolve, reject) => {
-      let addr = transactionInput.address
-      if (!addr) {
-        if (!this.wallet.defaultAccount) {
-          throw new Error('[ain-js.formatTransaction] Address not specified and defaultAccount not set.');
-        }
-        addr = String(this.wallet.defaultAccount);
-      } else if (!this.wallet.isAdded(addr)) {
-        throw new Error('[ain-js.formatTransaction] Account not added.')
-      }
+      const address = this.wallet.getImpliedAddress(transactionInput.address);
       let tx = {
         operation: transactionInput.operation,
         parent_tx_hash: transactionInput.parent_tx_hash
       }
-      let nonce = -1;
-      if (transactionInput.isNonced) {
-        if (transactionInput.nonce) {
-          nonce = transactionInput.nonce;
-        } else {
-          nonce = await this.getTransactionCount(addr);
-        }
+      let nonce = transactionInput.nonce;
+      if (nonce === undefined) {
+        nonce = await this.getNonce({address, from: "pending"}) + 1;
       }
       resolve(Object.assign(tx, { nonce, timestamp: Date.now() }));
     });
@@ -255,7 +221,7 @@ export default class Ain {
   /**
    * Getter for ain-util library
    */
-  static get ainUtil() {
+  static get utils() {
     return AinUtil;
   }
 
@@ -270,7 +236,7 @@ export default class Ain {
   }
 
   /**
-   * An abstract function for all staking related database changes. It builds a
+   * A base function for all staking related database changes. It builds a
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
    * @param {string} path
    * @param {ValueOnlyTransactionInput} transactionObject
@@ -284,18 +250,11 @@ export default class Ain {
     if (typeof transactionObject.value !== 'number') {
       throw new Error('[ain-js.stakeFunction] value has to be a number.');
     }
-    if (!transactionObject.address) {
-      if (!this.wallet.defaultAccount) {
-        throw new Error('[ain-js.stakeFunction] Address not specified and defaultAccount not set.');
-      }
-      transactionObject.address = String(this.wallet.defaultAccount);
-    } else if (!this.wallet.isAdded(transactionObject.address)) {
-      throw new Error('[ain-js.stakeFunction] Account not added.')
-    }
+    transactionObject.address = this.wallet.getImpliedAddress(transactionObject.address);
     const ref = this.db.ref(`${path}/${transactionObject.address}`).push()
     if (ref instanceof Reference) {
       const operation: SetOperation = {
-        ref: `${path}/${transactionObject.address}/${ref.key}`,
+        ref: `${path}/${transactionObject.address}/${ref.key}/value`,
         value: transactionObject.value,
         type
       }

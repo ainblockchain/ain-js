@@ -2,3 +2,4 @@ node_modules
 __snapshots__
 lib
 .DS_Store
+test_data.ts

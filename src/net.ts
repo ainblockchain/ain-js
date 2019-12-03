@@ -1,12 +1,9 @@
-import { NodeInfo } from './types';
 import Provider from './provider';
 import { version } from '../package.json';
 
 export default class Network {
   public provider: Provider;
   public version: string;
-  public name?: string;
-  public location?: string;
 
   /**
    * @param {Provider} provider
@@ -14,9 +11,8 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
+    // TODO (lia): should get the following info from the node
     this.version = version;
-    this.name = "ComCom Node";
-    this.location = "South Korea";
   }
 
   /**
@@ -24,35 +20,35 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isListening(): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      resolve(true);
-    })
+    return this.provider.send('net_listening');
   }
 
   /**
-   * Returns the node's information.
-   * @return {Promise<NodeInfo>}
+   * Returns the id of the network the node is connected to.
    */
-  getNodeInfo(): Promise<NodeInfo | boolean> {
+  getNetworkId(): Promise<string> {
     return new Promise((resolve, reject) => {
-      let nodeInfo = {
-        name: this.name,
-        location: this.location,
-        version: this.version,
-        endpoint: this.provider.endpoint
-      }
-      resolve(nodeInfo);
-    })
+      // TODO (lia): get the following info from the node
+      resolve("Testnet");
+    });
   }
 
   /**
-   * Returns the number of peers the provideri node is connected to.
+   * Returns the protocol version of the node.
+   */
+  getProtocolVersion(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // TODO (lia): get the following info from the node
+      resolve("1.0.0");
+    });
+  }
+
+  /**
+   * Returns the number of peers the provider node is connected to.
    * @return {Promise<number>}
    */
   getPeerCount(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      resolve(9);
-    })
+    return this.provider.send('net_peerCount');
   }
 
   /**
@@ -60,8 +56,6 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isSyncing(): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      resolve(false);
-    })
+    return this.provider.send('net_syncing');
   }
 }

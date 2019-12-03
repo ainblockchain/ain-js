@@ -69,7 +69,7 @@ export interface SetMultiOperation {
 
 export interface GetOperation {
   type: GetOperationType;
-  ref: string;
+  ref?: string;
 }
 
 export interface GetMultiOperation {
@@ -91,17 +91,17 @@ export interface PathFuncObject {
 
 export interface TransactionBodyBase {
   parent_tx_hash?: string;
-  operation: SetOperation | SetMultiOperation | GetOperation | GetMultiOperation;
+  operation: SetOperation | SetMultiOperation;
 }
 
 export interface ValueOnlyTransactionBodyBase {
   parent_tx_hash?: string;
   value?: any;
+  ref?: string;
 }
 
 export interface TransactionInputBase {
   nonce?: number;
-  isNonced?: boolean;
   address?: string;
 }
 
@@ -120,10 +120,10 @@ export interface SetMultiTransactionInput extends TransactionInputBase {
 }
 
 export interface Transaction {
-  tx_hash: string;
+  hash: string;
   block_hash?: string;
   block_number?: number;
-  tx_index?: number;
+  index?: number;
   nonce: number;
   timestamp: number;
   address: string;
@@ -135,8 +135,8 @@ export interface TransactionResult {
   status: boolean,
   block_hash?: string,
   block_number?: number,
-  tx_hash: string,
-  tx_index?: number,
+  hash: string,
+  index?: number,
   address: string,
   parent_tx_hash?: string
 }
@@ -145,7 +145,7 @@ export interface Block {
   number: number,
   hash?: string,
   parent_hash?: string,
-  forger?: string,
+  proposer?: string,
   validators?: string[],
   size: number,
   timestamp?: number,
@@ -156,9 +156,14 @@ export interface ListenerMap {
   [key: string]: Function[]
 }
 
-export interface NodeInfo {
-  name?: string,
-  location?: string,
-  version: string,
-  endpoint: string
+export interface EvalRuleInput {
+  value: any,
+  ref?: string,
+  address?: string,
+  timestamp?: number
+}
+
+export interface EvalOwnerInput {
+  ref?: string,
+  address?: string
 }
