@@ -3,7 +3,6 @@ import Reference from '../src/ain-db/ref';
 import { TransactionBody, Transaction, TransactionInput, SetOperationType } from '../src/types';
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
-// import * as ainUtil from '@ainblockchain/ain-util';
 const TEST_STRING = 'test_string';
 const {
   test_keystore,
@@ -14,7 +13,6 @@ const {
   test_node_2
 } = require('./test_data');
 
-// jest.mock('../__mocks__/request');
 jest.setTimeout(60000);
 
 // TODO (lia): Create more test cases

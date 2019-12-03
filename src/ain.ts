@@ -8,7 +8,6 @@ import Database from './ain-db/db';
 import Reference from './ain-db/ref';
 import Wallet from './wallet';
 import Network from './net';
-import { resolve } from 'dns';
 
 export default class Ain {
   public provider: Provider;
