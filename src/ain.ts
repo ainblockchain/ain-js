@@ -179,8 +179,12 @@ export default class Ain {
   }
 
   /**
-   * Gets the current transaction count of account, which is the nonce of the account.
-   * @param {string} account
+   * Returns the current transaction count of account, which is the nonce of the account.
+   * @param {object} args - May contain a string 'address' and a string 'from' values.
+   *                        The 'address' indicates the address of the account to get the
+   *                        nonce of, and the 'from' indicates where to get the nonce from.
+   *                        It could be either the pending transaction pool ("pending") or
+   *                        the committed blocks ("committed"). The default value is "committed".
    * @return {Promise<number>}
    */
   getNonce(args: {address?: string, from?: string}): Promise<number> {
