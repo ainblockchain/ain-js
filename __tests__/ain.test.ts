@@ -157,11 +157,10 @@ describe('ain-js', function() {
 
     it('transfer', async function() {
       const balanceBefore = await ain.wallet.getBalance();
-      console.log("balance:",balanceBefore);
-      const response = await ain.wallet.transfer({ to: 'abcd', value: 100, nonce: -1 });
-      console.log("transfer response:",response);
+      const response = await ain.wallet.transfer({
+          to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813', value: 100, nonce: -1 });
       const balanceAfter = await ain.wallet.getBalance();
-      console.log("balance:",balanceAfter);
+      expect(balanceAfter).toBe(balanceBefore - 100);
     });
   });
 

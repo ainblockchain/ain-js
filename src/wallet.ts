@@ -179,11 +179,12 @@ export default class Wallet {
 
   /**
    * Returns the AIN balance of the address.
-   * @param {string} address 
+   * @param {string} address - Defaults to the defaultAccount.
    */
   getBalance(address?: string): Promise<number> {
-    const addr = this.getImpliedAddress(address);
-    return this.ain.db.ref(`accounts/${addr}/balance`).getValue();
+    const addr = address ? Ain.utils.toChecksumAddress(address)
+        : this.getImpliedAddress(address);
+    return this.ain.db.ref(`/accounts/${addr}/balance`).getValue();
   }
 
   /**
@@ -192,7 +193,8 @@ export default class Wallet {
    */
   transfer(input: {to: string, value: number, from?: string, nonce?: number}): Promise<any> {
     const address = this.getImpliedAddress(input.from);
-    const transferRef = this.ain.db.ref(`/transfer/${address}/${input.to}`).push() as Reference;
+    const toAddress = Ain.utils.toChecksumAddress(input.to);
+    const transferRef = this.ain.db.ref(`/transfer/${address}/${toAddress}`).push() as Reference;
     return transferRef.setValue({
         ref: '/value', address, value: input.value, nonce: input.nonce });
   }
