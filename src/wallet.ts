@@ -3,19 +3,23 @@ import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import { pbkdf2Sync } from 'pbkdf2';
 import { createCipheriv, createDecipheriv } from 'browserify-cipher';
+import { toChecksumAddress } from '@ainblockchain/ain-util';
+import Reference from './ain-db/ref';
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
 
 export default class Wallet {
   public defaultAccount?: string | null;
-  private accounts: Accounts;
-  private _length: number;
+  public accounts: Accounts;
+  public _length: number;
+  public ain: Ain;
 
   /**
    * @constructor
    */
-  constructor() {
+  constructor(ain: Ain) {
     this.accounts = {};
     this._length = 0;
+    this.ain = ain;
   }
 
   /**
@@ -31,7 +35,7 @@ export default class Wallet {
    * @return {string}
    */
   getPublicKey(address: string): string {
-    const checksummed = Ain.ainUtil.toChecksumAddress(address);
+    const checksummed = Ain.utils.toChecksumAddress(address);
     if (!this.accounts[checksummed]) return ''
     return this.accounts[checksummed].public_key;
   }
@@ -40,14 +44,17 @@ export default class Wallet {
    * Creates {numberOfAccounts} new accounts and add them to the wallet.
    * @param {number} numberOfAccounts
    */
-  create(numberOfAccounts: number) {
+  create(numberOfAccounts: number): Array<string> {
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
     // TODO (lia): set maximum limit for numberOfAccounts?
+    let newAccounts: Array<string> = [];
     for (let i = 0; i < numberOfAccounts; i++) {
-      let account = Ain.ainUtil.createAccount();
+      let account = Ain.utils.createAccount();
       this.accounts[account.address] = account;
+      newAccounts.push(account.address);
     }
     this._length = this.accounts ? Object.keys(this.accounts).length : 0;
+    return newAccounts;
   }
 
   /**
@@ -56,17 +63,18 @@ export default class Wallet {
    * @return {boolean}
    */
   isAdded(address: string): boolean {
-    return !!(this.accounts[Ain.ainUtil.toChecksumAddress(address)])
+    return !!(this.accounts[Ain.utils.toChecksumAddress(address)])
   }
 
   /**
    * Adds a new account from the given private key.
    * @param {string} privateKey
    */
-  add(privateKey: string) {
+  add(privateKey: string): string {
     let newAccount = Wallet.fromPrivateKey(Buffer.from(privateKey, 'hex'));
     this.accounts[newAccount.address] = newAccount;
     this._length++;
+    return newAccount.address;
   }
 
   /**
@@ -88,8 +96,8 @@ export default class Wallet {
     const hdkey = HDkey.fromMasterSeed(seed);
     const path = AIN_HD_DERIVATION_PATH + index;
     const wallet = hdkey.derive(path);
-    const address = Ain.ainUtil.toChecksumAddress('0x'+
-        Ain.ainUtil.pubToAddress(wallet.publicKey, true).toString('hex'));
+    const address = Ain.utils.toChecksumAddress('0x'+
+        Ain.utils.pubToAddress(wallet.publicKey, true).toString('hex'));
     this.accounts[address] = {
         address,
         public_key: wallet.publicKey.toString('hex'),
@@ -106,9 +114,9 @@ export default class Wallet {
    * @return {string} - The address of the newly added account.
    */
   addFromV3Keystore(v3Keystore: V3Keystore | string, password: string): string {
-    const privateKey = Ain.ainUtil.v3KeystoreToPrivate(v3Keystore, password);
+    const privateKey = Ain.utils.v3KeystoreToPrivate(v3Keystore, password);
     this.add(privateKey.toString('hex'));
-    return Ain.ainUtil.privateToAddress(privateKey);
+    return Ain.utils.privateToAddress(privateKey);
   }
 
   /**
@@ -116,7 +124,7 @@ export default class Wallet {
    * @param {string} address
    */
   remove(address: string) {
-    let accountToRemove = Ain.ainUtil.toChecksumAddress(address);
+    let accountToRemove = Ain.utils.toChecksumAddress(address);
     delete this.accounts[accountToRemove];
     this._length--;
     if (this.defaultAccount === accountToRemove) this.removeDefaultAccount();
@@ -128,7 +136,7 @@ export default class Wallet {
    * @param {string} address
    */
   setDefaultAccount(address: string) {
-    const checksummed = Ain.ainUtil.toChecksumAddress(address);
+    const checksummed = Ain.utils.toChecksumAddress(address);
     if (!this.accounts[checksummed]) {
       throw new Error('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
     }
@@ -152,6 +160,44 @@ export default class Wallet {
   }
 
   /**
+   * Returns the "implied" address. If address is not given,
+   * it returns the defaultAccount. It throws an error if
+   * an address is not given and defaultAccount is not set, or
+   * the specified address is not added to the wallet.
+   * @param {string} address
+   */
+  getImpliedAddress(address?: string) {
+    if (!address && !this.defaultAccount) {
+      throw Error('You need to specify the address or set defaultAccount.');
+    }
+    let checksummed = Ain.utils.toChecksumAddress(String(address ? address : this.defaultAccount));
+    if (!this.accounts[checksummed]) {
+      throw Error('The address you specified is not added in your wallet. Try adding it first.');
+    }
+    return checksummed;
+  }
+
+  /**
+   * Returns the AIN balance of the address.
+   * @param {string} address 
+   */
+  getBalance(address?: string): Promise<number> {
+    const addr = this.getImpliedAddress(address);
+    return this.ain.db.ref(`accounts/${addr}/balance`).getValue();
+  }
+
+  /**
+   * Sends a transfer transaction to the network.
+   * @param input 
+   */
+  transfer(input: {to: string, value: number, from?: string, nonce?: number}): Promise<any> {
+    const address = this.getImpliedAddress(input.from);
+    const transferRef = this.ain.db.ref(`/transfer/${address}/${input.to}`).push() as Reference;
+    return transferRef.setValue({
+        ref: '/value', address, value: input.value, nonce: input.nonce });
+  }
+
+  /**
    * Signs a string data with the private key of the given address. It will use
    * the defaultAccount if an address is not provided.
    * @param {string} data
@@ -159,14 +205,8 @@ export default class Wallet {
    * @return {string} - signature
    */
   sign(data: string, address?: string): string {
-    if (!address && !this.defaultAccount) {
-      throw new Error('[ain-js.wallet.sign] You need to specify the address or set defaultAccount.');
-    }
-    let checksummed = Ain.ainUtil.toChecksumAddress(String(address ? address : this.defaultAccount));
-    if (!this.accounts[checksummed]) {
-      throw new Error('[ain-js.wallet.sign] The address you specified is not added in your wallet. Try adding it first.');
-    }
-    return Ain.ainUtil.ecSignMessage(data, Buffer.from(this.accounts[checksummed].private_key, 'hex'));
+    const addr = this.getImpliedAddress(address);
+    return Ain.utils.ecSignMessage(data, Buffer.from(this.accounts[addr].private_key, 'hex'));
   }
 
   /**
@@ -177,14 +217,8 @@ export default class Wallet {
    * @return {string} - signature
    */
   signTransaction(tx: TransactionBody, address?: string): string {
-    if (!address && !this.defaultAccount) {
-      throw new Error('[ain-js.wallet.signTransaction] You need to specify the address or set defaultAccount.');
-    }
-    let checksummed = Ain.ainUtil.toChecksumAddress(String(address ? address : this.defaultAccount));
-    if (!this.accounts[checksummed]) {
-      throw new Error('[ain-js.wallet.signTransaction] The address you specified is not added in your wallet. Try adding it first.');
-    }
-    return Ain.ainUtil.ecSignTransaction(tx, Buffer.from(this.accounts[checksummed].private_key, 'hex'));
+    const addr = this.getImpliedAddress(address);
+    return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'));
   }
 
   /**
@@ -193,14 +227,14 @@ export default class Wallet {
    * @return {string} - address
    */
   recover(signature: string): string {
-    const sigBuffer = Ain.ainUtil.toBuffer(signature);
+    const sigBuffer = Ain.utils.toBuffer(signature);
     const len = sigBuffer.length;
     const lenHash = len - 65;
     const hashedData = sigBuffer.slice(0, lenHash);
-    const { r, s, v } = Ain.ainUtil.ecSplitSig(sigBuffer.slice(lenHash, len));
-    return Ain.ainUtil.toChecksumAddress(
-        Ain.ainUtil.bufferToHex(Ain.ainUtil.pubToAddress(
-        Ain.ainUtil.ecRecoverPub(hashedData, r, s, v).slice(1))));
+    const { r, s, v } = Ain.utils.ecSplitSig(sigBuffer.slice(lenHash, len));
+    return Ain.utils.toChecksumAddress(
+        Ain.utils.bufferToHex(Ain.utils.pubToAddress(
+        Ain.utils.ecRecoverPub(hashedData, r, s, v).slice(1))));
   }
 
   /**
@@ -211,7 +245,7 @@ export default class Wallet {
    * @return {boolean}
    */
   verifySignature(data: any, signature: string, address: string): boolean {
-    return Ain.ainUtil.ecVerifySig(data, signature, address);
+    return Ain.utils.ecVerifySig(data, signature, address);
   }
 
   /**
@@ -246,7 +280,7 @@ export default class Wallet {
       throw new Error('[ain-js.wallet.accountToV3Keystore] No such address exists in the wallet');
     }
     const privateKey = Buffer.from(this.accounts[address].private_key, 'hex');
-    return Ain.ainUtil.privateToV3Keystore(privateKey, password, options);
+    return Ain.utils.privateToV3Keystore(privateKey, password, options);
   }
 
   /**
@@ -255,9 +289,9 @@ export default class Wallet {
    * @return {Account}
    */
   static fromPrivateKey(privateKey: Buffer): Account {
-    let publicKey = Ain.ainUtil.privateToPublic(privateKey);
+    let publicKey = Ain.utils.privateToPublic(privateKey);
     return {
-      address: Ain.ainUtil.toChecksumAddress(Ain.ainUtil.bufferToHex(Ain.ainUtil.pubToAddress(publicKey))),
+      address: Ain.utils.toChecksumAddress(Ain.utils.bufferToHex(Ain.utils.pubToAddress(publicKey))),
       private_key: privateKey.toString('hex'),
       public_key: publicKey.toString('hex')
     };

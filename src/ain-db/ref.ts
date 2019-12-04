@@ -1,4 +1,3 @@
-// import { PromiEvent } from '../promi-event';
 import {
   SetOperation,
   GetOperation,
@@ -9,9 +8,10 @@ import {
   SetMultiOperation,
   TransactionInput,
   ValueOnlyTransactionInput,
-  SetMultiTransactionInput
+  SetMultiTransactionInput,
+  EvalRuleInput,
+  EvalOwnerInput
 } from '../types';
-import { test_value, test_rule, test_owner, test_func } from '../dummy-values';
 import Ain from '../ain';
 import { PushId } from './push-id';
 
@@ -53,40 +53,49 @@ export default class Reference {
    * @return {Promise<any> | Reference} A reference instance of the given path.
    */
   push(value?: any): Promise<any> | Reference {
-    let ref = new Reference(this._ain, this.path + "/" + PushId.generate());
+    const newKey = "/" + PushId.generate();
+    let ref = new Reference(this._ain, Reference.extendPath(this.path, newKey));
     if (value !== undefined) {
       return ref.setValue({ value });
     }
     return ref;
   }
 
-  // TODO (lia): Use relative paths for get* and set* functions.
-  getValue(): Promise<any> {
-    let req = Reference.buildGetRequest('GET_VALUE', this.path);
-    return new Promise((resolve, reject) => {
-      resolve(this.getTestData('GET_VALUE'));
-    })
+  /**
+   * Returns the value at the path.
+   * @param path 
+   */
+  getValue(path?: string): Promise<any> {
+    const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path));
+    return this._ain.provider.send('ain_get', req);
   }
 
-  getRule(): Promise<any> {
-    let req = Reference.buildGetRequest('GET_RULE', this.path);
-    return new Promise((resolve, reject) => {
-      resolve(this.getTestData('GET_RULE'));
-    })
+  /**
+   * Returns the rule at the path.
+   * @param path 
+   */
+  getRule(path?: string): Promise<any> {
+    const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path));
+    return this._ain.provider.send('ain_get', req);
   }
 
-  getOwner(): Promise<any> {
-    let req = Reference.buildGetRequest('GET_OWNER', this.path);
-    return new Promise((resolve, reject) => {
-      resolve(this.getTestData('GET_OWNER'));
-    })
+  /**
+   * Returns the owner config at the path.
+   * @param path 
+   */
+  getOwner(path?: string): Promise<any> {
+    const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path));
+    return this._ain.provider.send('ain_get', req);
   }
-
- /* TODO (lia): add this method
-  getFunction(): Promise<any> {
-
+  
+  /**
+   * Returns the function config at the path.
+   * @param path 
+   */
+  getFunction(path?: string): Promise<any> {
+    const req = Reference.buildGetRequest('GET_FUNC', Reference.extendPath(this.path, path));
+    return this._ain.provider.send('ain_get', req);
   }
-  */
 
   /**
    * Returns the value / write rule / owner rule / function hash at multiple paths.
@@ -95,27 +104,15 @@ export default class Reference {
    * @return {Promise<any>}
    */
   get(gets: GetOperation[]): Promise<any> {
-    let request = {
-      operation: {
-        type: 'GET',
-        op_list: gets
-      }
-    }
+    let request = { type: 'GET', op_list: gets }
     for (let i = 0; i < gets.length; i++) {
-      let sanitized = Reference.sanitizeRef(gets[i].ref);
-      request.operation.op_list[i].ref = this.path + sanitized;
+      request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
     }
-    return new Promise((resolve, reject) => {
-      let dataArr: Array<any> = []
-      gets.forEach(get => {
-        dataArr.push(this.getTestData(get.type));
-      })
-      resolve(dataArr);
-    })
+    return this._ain.provider.send('ain_get', request);
   }
 
   /**
-   * Deletes a value at {this.path}
+   * Deletes a value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * Any value given will be overwritten with null.
    * @return {Promise<any>}
@@ -126,26 +123,28 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             txInput,
-            this.path,
-            "SET_RULE"
+            Reference.extendPath(this.path, txInput.ref),
+            "SET_VALUE"
         )
     );
   }
 
-  /* TODO (lia): add this method
+  /**
+   * Sets a function config.
+   * @param transactionInput 
+   */
   setFunction(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "SET_FUNC"
         )
     );
   }
-  */
 
   /**
-   * Sets the owner rule at {this.path}.
+   * Sets the owner rule.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
@@ -153,14 +152,14 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "SET_OWNER"
         )
     );
   }
 
   /**
-   * Sets the write rule at {this.path}.
+   * Sets the write rule.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
@@ -168,14 +167,14 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "SET_RULE"
         )
     );
   }
 
   /**
-   * Sets a value at {this.path}.
+   * Sets a value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
@@ -183,14 +182,14 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "SET_VALUE"
         )
     );
   }
 
   /**
-   * Increments the value at {this.path}.
+   * Increments the value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
@@ -198,14 +197,14 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "INC_VALUE"
         )
     );
   }
 
   /**
-   * Decrements the value at {this.path}.
+   * Decrements the value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
@@ -213,7 +212,7 @@ export default class Reference {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
-            this.path,
+            Reference.extendPath(this.path, transactionInput.ref),
             "DEC_VALUE"
         )
     );
@@ -227,6 +226,39 @@ export default class Reference {
   set(transactionInput: SetMultiTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetMultiTransactionInput(transactionInput, this.path));
+  }
+
+  /**
+   * Returns the rule evaluation result. True if the params satisfy the write rule,
+   * false if not.
+   * @param params 
+   */
+  evalRule(params: EvalRuleInput): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const address = this._ain.wallet.getImpliedAddress(params.address);
+      const request = {
+        address,
+        ref: Reference.extendPath(this.path, params.ref),
+        value: params.value,
+        timestamp: params.timestamp
+      }
+      const response = this._ain.provider.send('ain_evalRule', request);
+      resolve(response);
+    });
+  }
+
+  /**
+   * Returns the owner evaluation result.
+   * @param params 
+   */
+  evalOwner(params?: EvalOwnerInput) {
+    return new Promise((resolve, reject) => {
+      const request = params || {};
+      request.address = this._ain.wallet.getImpliedAddress(request.address);
+      request.ref = Reference.extendPath(this.path, request.ref);
+      const response = this._ain.provider.send('ain_evalOwner', request);
+      resolve(response);
+    });
   }
 
   /**
@@ -279,8 +311,30 @@ export default class Reference {
   //   }
   // }
 
+  /**
+   * Returns a get request
+   * @param type 
+   * @param ref 
+   */
   static buildGetRequest(type: GetOperationType, ref: string) {
-    return { type, ref };
+    return { type, ref: Reference.sanitizeRef(ref) };
+  }
+
+  /**
+   * Returns a path that is the basePath extended with extension.
+   * @param basePath 
+   * @param extension 
+   */
+  static extendPath(basePath?: string, extension?: string): string {
+    const sanitizedBase = Reference.sanitizeRef(basePath);
+    const sanitizedExt = Reference.sanitizeRef(extension);
+    if (sanitizedBase === '/') {
+      return sanitizedExt;
+    }
+    if (sanitizedExt === '/') {
+      return sanitizedBase;
+    }
+    return sanitizedBase + sanitizedExt;
   }
 
   /**
@@ -296,6 +350,7 @@ export default class Reference {
       type: SetOperationType
   ): TransactionInput {
     const operation: SetOperation = { type, ref, value: input.value };
+    delete input.value;
     return Object.assign(input, { operation });
   }
 
@@ -310,27 +365,22 @@ export default class Reference {
       input: SetMultiTransactionInput,
       ref: string
   ): TransactionInput {
-    const operation: SetMultiOperation = { type: 'SET', op_list: input.op_list };
+    const op_list: SetOperation[] = [];
+    input.op_list.forEach(op => {
+      op_list.push(Object.assign(op, { ref: Reference.extendPath(ref, op.ref) }));
+    });
+    delete input.op_list;
+    const operation: SetMultiOperation = { type: 'SET', op_list };
     return Object.assign(input, { operation });
   }
 
+  /**
+   * Returns a sanitized ref. If should have a slash at the
+   * beginning and no slash at the end.
+   * @param ref 
+   */
   static sanitizeRef(ref?: string): string {
     if (!ref) return '/';
     return '/' + ref.split('/').filter(key => key !== '').join('/');
-  }
-
-  // For testing/dev purposes only
-  // TODO (lia): remove this function after integrating with AIN
-  private getTestData(type) {
-    switch (type) {
-      case 'GET_VALUE':
-        return test_value;
-      case 'GET_RULE':
-        return test_rule;
-      case 'GET_OWNER':
-        return test_owner;
-      case 'GET_FUNC':
-        return test_func;
-    }
   }
 }

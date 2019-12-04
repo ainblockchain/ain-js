@@ -1,27 +1,30 @@
 import Ain from '../src/ain';
-import { TransactionBody } from '../src/types';
-import * as ainUtil from '@ainblockchain/ain-util';
+import Reference from '../src/ain-db/ref';
+import { TransactionBody, Transaction, TransactionInput, SetOperationType } from '../src/types';
+import { createSecretKey } from 'crypto';
+import { anyTypeAnnotation } from '@babel/types';
 const TEST_STRING = 'test_string';
 const {
   test_keystore,
   test_pw,
   test_seed,
-  test_sk
+  test_sk,
+  test_node_1,
+  test_node_2
 } = require('./test_data');
 
-// jest.mock('../__mocks__/request');
 jest.setTimeout(60000);
 
 // TODO (lia): Create more test cases
 describe('ain-js', function() {
-  let ain = new Ain('http://localhost:8081');
+  let ain = new Ain(test_node_1);
+  let keystoreAddress = '';
 
   describe('Network', function() {
     it('should set provider', async function() {
-      ain.setProvider('http://localhost:8080');
-      expect(await ain.net.isListening()).toBe(true);
-      expect(await ain.net.getNodeInfo()).toMatchSnapshot();
-      expect(await ain.net.getPeerCount()).toBe(9);
+      ain.setProvider(test_node_2);
+      expect(await ain.net.isListening()).toMatchSnapshot();
+      expect(await ain.net.getPeerCount()).toMatchSnapshot();
       expect(await ain.net.isSyncing()).toBe(false);
     });
   });
@@ -38,13 +41,13 @@ describe('ain-js', function() {
     it('V3Keystore (encrypt and decrypt)', function() {
       const v3Keystore = test_keystore;
       const beforeLength = ain.wallet.length;
-      const address = ain.wallet.addFromV3Keystore(v3Keystore, test_pw);
+      keystoreAddress = ain.wallet.addFromV3Keystore(v3Keystore, test_pw);
       const afterLength = ain.wallet.length;
       expect(afterLength).toBe(beforeLength + 1);
-      const convertedV3Keystore = ain.wallet.accountToV3Keystore(address, test_pw);
-      const derivedAddress = ainUtil.privateToAddress(
-          ainUtil.v3KeystoreToPrivate(convertedV3Keystore, test_pw));
-      expect(derivedAddress).toBe(address);
+      const convertedV3Keystore = ain.wallet.accountToV3Keystore(keystoreAddress, test_pw);
+      const derivedAddress = Ain.utils.privateToAddress(
+        Ain.utils.v3KeystoreToPrivate(convertedV3Keystore, test_pw));
+      expect(derivedAddress).toBe(keystoreAddress);
     });
 
     it('add', function() {
@@ -86,15 +89,15 @@ describe('ain-js', function() {
 
     it('setDefaultAccount', function() {
       try {
-        ain.wallet.setDefaultAccount('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6');
+        ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
       } catch(e) {
         expect(e.message).toBe('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
       }
       ain.wallet.add(test_sk);
-      ain.wallet.setDefaultAccount(('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6'.toLowerCase()));
-      expect(ain.wallet.defaultAccount).toBe('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6');
-      ain.wallet.setDefaultAccount('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6');
-      expect(ain.wallet.defaultAccount).toBe('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6');
+      ain.wallet.setDefaultAccount(('0xCAcD898dBaEdBD9037aCd25b82417587E972838d'.toLowerCase()));
+      expect(ain.wallet.defaultAccount).toBe('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
+      ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
+      expect(ain.wallet.defaultAccount).toBe('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
     });
 
     it('removeDefaultAccount', function() {
@@ -104,16 +107,16 @@ describe('ain-js', function() {
 
     it('sign', function() {
       const message = 'hello';
-      const hashed = ainUtil.hashMessage(message);
+      const hashed = Ain.utils.hashMessage(message);
       try {
         ain.wallet.sign(message)
       } catch(e) {
-        expect(e.message).toBe('[ain-js.wallet.sign] You need to specify the address or set defaultAccount.');
+        expect(e.message).toBe('You need to specify the address or set defaultAccount.');
       }
-      ain.wallet.setDefaultAccount('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6');
+      ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
       const sig = ain.wallet.sign(message);
       const addr:string = String(ain.wallet.defaultAccount);
-      expect(ainUtil.ecVerifySig(message, sig, addr)).toBe(true);
+      expect(Ain.utils.ecVerifySig(message, sig, addr)).toBe(true);
     });
 
     it('signTransaction', function() {
@@ -128,7 +131,7 @@ describe('ain-js', function() {
       }
       const sig = ain.wallet.signTransaction(tx);
       const addr:string = String(ain.wallet.defaultAccount);
-      expect(ainUtil.ecVerifySig(tx, sig, addr)).toBe(true);
+      expect(Ain.utils.ecVerifySig(tx, sig, addr)).toBe(true);
     });
 
     it('recover', function() {
@@ -145,100 +148,388 @@ describe('ain-js', function() {
       const addr:string = String(ain.wallet.defaultAccount);
       expect(ain.wallet.recover(sig)).toBe(addr);
     });
+
+    it('getBalance', async function() {
+      const balance = await ain.wallet.getBalance();
+      console.log("balance:",balance);
+      expect(balance).toMatchSnapshot();
+    });
+
+    it('transfer', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      console.log("balance:",balanceBefore);
+      const response = await ain.wallet.transfer({ to: 'abcd', value: 100, nonce: -1 });
+      console.log("transfer response:",response);
+      const balanceAfter = await ain.wallet.getBalance();
+      console.log("balance:",balanceAfter);
+    });
   });
 
   describe('Core', function() {
-    it('getBlock', async function() {
-      expect(await ain.getBlock(10000)).toMatchSnapshot();
-      expect(await ain.getBlock('0xabcdefghijklmnop')).toMatchSnapshot();
-      expect(await ain.getBlock(10000, true)).toMatchSnapshot();
-      expect(await ain.getBlock('0xabcdefghijklmnop', true)).toMatchSnapshot();
+    let addr1: string, addr2: string, defaultAddr: string;
+
+    beforeAll(() => {
+      const newAccounts = ain.wallet.create(2);
+      defaultAddr = ain.wallet.defaultAccount as string;
+      addr1 = newAccounts[0];
+      addr2 = newAccounts[1];
     });
 
-    it('getForger', async function() {
-      expect(await ain.getForger(10000)).toMatchSnapshot();
-      expect(await ain.getForger('0xabcdefghijklmnop')).toMatchSnapshot();
+    it('getBlock', async function() {
+      const block = await ain.getBlock(3)
+      const hash = block.hash || "";
+      expect(await ain.getBlock(hash)).toStrictEqual(block);
+    });
+
+    it('getProposer', async function() {
+      const proposer = await ain.getProposer(1);
+      const hash = (await ain.getBlock(1)).hash || "";
+      expect(await ain.getProposer(hash)).toBe(proposer);
     });
 
     it('getValidators', async function() {
-      expect(await ain.getValidators(10000)).toMatchSnapshot();
-      expect(await ain.getValidators('0xabcdefghijklmnop')).toMatchSnapshot();
-      expect(await ain.getValidators(10000)).toMatchSnapshot();
-      expect(await ain.getValidators('0xabcdefghijklmnop')).toMatchSnapshot();
+      const validators = await ain.getValidators(4);
+      const hash = (await ain.getBlock(4)).hash || "";
+      expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
     it('getTransaction', async function() {
-      expect(await ain.getTransaction('0xabcdefghijklmnop')).toMatchSnapshot();
+      const block = await ain.getBlock(5, true);
+      const tx = block.transactions[0] as Transaction;
+      expect(await ain.getTransaction(tx.hash)).toStrictEqual(tx);
     });
 
-    it('getTransactionResult', async function() {
-      expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
-    });
+    // TODO (lia): add getTransactionResult method and test case for it
+    // it('getTransactionResult', async function() {
+    //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
+    // });
 
     it('sendTransaction', function(done) {
       ain.sendTransaction({
         operation: {
-          type: "SET_RULE",
-          ref: "path/to/rule",
-          value: {".write": false, ".apply": "OVERRIDE"}
+          type: "SET_VALUE",
+          ref: "/afan/test",
+          value: 50
         }
       })
       .then(res => {
-        console.log("then",res)
+        expect(res).toBe(true);
         done();
       })
       .catch(e => {
-        console.log("ERROR:",e)
+        console.log("ERROR:", e)
         done();
       })
-    })
+    });
 
     it('sendSignedTransaction', function(done) {
       const tx: TransactionBody = {
-        nonce: 17,
+        nonce: -1,
         timestamp: Date.now(),
         operation: {
-          type: "SET_RULE",
-          ref: "path/to/rule",
-          value: {".write": false, ".apply": "OVERRIDE"}
+          type: "SET_OWNER",
+          ref: "/apps/bfan",
+          value: {
+            ".owner": {
+              owners: {
+                "*": {
+                  write_owner: true,
+                  write_rule: true,
+                  branch_owner: true
+                }
+              }
+            }
+          }
         }
       }
       const sig = ain.wallet.signTransaction(tx);
 
       ain.sendSignedTransaction(sig, tx)
       .then(res => {
-        console.log("then",res)
+        expect(res).toBe(true);
         done();
       })
       .catch(e => {
-        console.log("ERROR:",e)
+        console.log("ERROR:", e)
         done();
       })
-    })
+    });
+
+    it('sendTransactionBatch', function(done) {
+      const tx1: TransactionInput = {
+        operation: {
+          type: 'SET_VALUE',
+          ref: "/apps/bfan/users",
+          value: { [defaultAddr]: true }
+        },
+        address: addr1
+      };
+
+      const tx2: TransactionInput = {
+        operation: {
+          type: 'SET',
+          op_list: [
+            {
+              type: 'SET_OWNER',
+              ref: `/apps/bfan/users`,
+              value: {
+                ".owner": {
+                  "owners": {
+                    "*": {
+                      write_owner: false,
+                      write_rule: false,
+                      branch_owner: true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              type: 'SET_OWNER',
+              ref: `/apps/bfan/users/${defaultAddr}`,
+              value: {
+                ".owner": {
+                  "owners": {
+                    [defaultAddr]: {
+                      write_owner: true,
+                      write_rule: true,
+                      branch_owner: true
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        address: addr2
+      };
+
+      const tx3: TransactionInput = {
+        operation: {
+          type: 'SET_RULE',
+          ref: `/apps/bfan/users/${defaultAddr}`,
+          value: { ".write": `auth === "${defaultAddr}"` }
+        }
+      };
+
+      const tx4: TransactionInput = {
+        operation: {
+          type: 'SET_VALUE',
+          ref: `/apps/bfan/users/${defaultAddr}`,
+          value: false
+        }
+      };
+
+      const tx5: TransactionInput = {
+        operation: {
+          type: 'SET_VALUE',
+          ref: `/apps/bfan/users/${defaultAddr}`,
+          value: true
+        },
+        address: addr1
+      };
+
+      const tx6: TransactionInput = {
+        operation: {
+          type: 'SET_RULE',
+          ref: `/apps/bfan/users/${defaultAddr}`,
+          value: { '.write': 'true' }
+        },
+        address: addr2
+      }
+
+      ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
+      .then(res => {
+        expect(res[0].code).toBe(2);
+        expect(res[1]).toBe(true);
+        expect(res[2]).toBe(true);
+        expect(res[3]).toBe(true);
+        expect(res[4].code).toBe(2);
+        expect(res[5].code).toBe(3);
+        done();
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        done();
+      })
+    });
   });
 
   describe('Database', function() {
-    const test_path = 'test/path';
+    let defaultAccount, allowed_path;
+    const test_path = 'apps/bfan';
+
+    beforeAll(() => {
+      defaultAccount = ain.wallet.defaultAccount;
+      allowed_path = `${test_path}/users/${defaultAccount}`;
+    });
 
     it('.ref()', function() {
       expect(ain.db.ref().path).toBe('/');
-      expect(ain.db.ref(test_path).path).toBe('/'+test_path);
+      expect(ain.db.ref(test_path).path).toBe('/' + test_path);
+    });
+
+    it('setOwner', function(done) {
+      ain.db.ref(allowed_path).setOwner({
+        value: {
+          ".owner": {
+              owners: {
+              "*": {
+                write_owner: true,
+                write_rule: true,
+                write_function: true,
+                branch_owner: true
+              }
+            }
+          }
+        }
+      })
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch((error) => {
+        console.log("setOwner error:", error);
+        done();
+      });
+    });
+
+    it('should fail to setOwner', function(done) {
+      ain.db.ref('/consensus').setOwner({
+        value: {
+          ".owner": {
+              owners: {
+              "*": {
+                write_owner: true,
+                write_rule: true,
+                branch_owner: true
+              }
+            }
+          }
+        }
+      })
+      .then(res => {
+        expect(res.code).toBe(4);
+        done();
+      })
+      .catch((error) => {
+        console.log("setOwner error:", error);
+        done();
+      });
+    });
+
+    it('setRule', function(done) {
+      ain.db.ref(allowed_path).setRule({
+        value: { ".write": "true" }
+      })
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch((error) => {
+        console.log("setRule error:", error);
+        done();
+      });
+    });
+
+    it('setValue', function(done) {
+      ain.db.ref(allowed_path + '/username').setValue({
+        value: "test_user"
+      })
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch((error) => {
+        console.log("setValue error:", error);
+        done();
+      });
+    });
+
+    it('setFunction', function(done) {
+      ain.db.ref(allowed_path).setFunction({
+          value: { 
+            registry_service: "functions.ainetwork.ai",
+            event_listener: "events.ainetwork.ai",
+            function_hash: '0xFUNCTION_HASH'
+           }
+        })
+        .then(res => {
+          expect(res).toBe(true);
+          done();
+        })
+        .catch((error) => {
+          console.log("setFunction error:", error);
+          done();
+        })
+    });
+
+    it('set', function(done) {
+      ain.db.ref(allowed_path).set({
+        op_list: [
+          {
+            type: 'SET_RULE',
+            ref: 'can/write/',
+            value: { ".write": "true" }
+          },
+          {
+            type: 'SET_RULE',
+            ref: 'cannot/write',
+            value: { ".write": "false" }
+          },
+          {
+            type: 'INC_VALUE',
+            ref: 'can/write/',
+            value: 5
+          },
+          {
+            type: 'DEC_VALUE',
+            ref: 'can/write',
+            value: 10,
+          }
+        ],
+        nonce: -1
+      })
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch((error) => {
+        console.log("set error:",error);
+        done();
+      });
+    });
+
+    it('deleteValue', function(done) {
+      ain.db.ref(allowed_path).deleteValue()
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch((error) => {
+        console.log("deleteValue error:",error);
+        done();
+      });
     });
 
     it('getValue', async function() {
-      expect(await ain.db.ref(test_path).getValue()).toMatchSnapshot();
+      expect(await ain.db.ref(allowed_path).getValue()).toMatchSnapshot();
     });
 
     it('getRule', async function() {
-      expect(await ain.db.ref(test_path).getRule()).toMatchSnapshot();
+      expect(await ain.db.ref(allowed_path).getRule()).toMatchSnapshot();
     });
 
     it('getOwner', async function() {
-      expect(await ain.db.ref(test_path).getOwner()).toMatchSnapshot();
-    })
+      expect(await ain.db.ref(allowed_path).getOwner()).toMatchSnapshot();
+    });
+
+    it('getFunction', async function() {
+      expect(await ain.db.ref(allowed_path).getFunction()).toMatchSnapshot();
+    });
 
     it('get', async function() {
-      expect(await ain.db.ref(test_path).get(
+      expect(await ain.db.ref(allowed_path).get(
           [
             {
               type: 'GET_RULE',
@@ -246,7 +537,6 @@ describe('ain-js', function() {
             },
             {
               type: 'GET_VALUE',
-              ref: ''
             },
             {
               type: 'GET_VALUE',
@@ -254,6 +544,42 @@ describe('ain-js', function() {
             }
           ]
         )).toMatchSnapshot();
+    });
+
+    it('evalRule: true', function(done) {
+      ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
+      .then(res => {
+        expect(res).toBe(true);
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('evalRule: false', function(done) {
+      ain.db.ref(allowed_path).evalRule({ ref: '/cannot/write', value: 'hi' })
+      .then(res => {
+        expect(res).toBe(false);
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('evalOwner', function(done) {
+      ain.db.ref(allowed_path).evalOwner()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
     });
 
     /*it('on and off', function(done) {
@@ -286,91 +612,13 @@ describe('ain-js', function() {
         done();
       }, 8000);
     });*/
-
-    it('deleteValue', function(done) {
-      ain.db.ref(test_path).deleteValue()
-      .then(res => {
-        console.log("then",res)
-        done();
-      });
-    });
-
-    it('setOwner', function(done) {
-      ain.db.ref(test_path).setOwner({
-        value: {
-          inherit: ["test/"],
-          owners: {
-            "*": {
-              owner_update: true,
-              rule_update: true,
-              branch: true
-            },
-            "0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6": {
-              owner_update: true,
-              rule_update: true,
-              branch: true
-            }
-          }
-        },
-      })
-      .then(res => {
-        console.log("then",res)
-        done();
-      });
-    });
-
-    it('setRule', function(done) {
-      ain.db.ref(test_path).setRule({
-        value: {".write": true},
-      })
-      .then(res => {
-        console.log("then",res)
-        done();
-      });
-    });
-
-    it('setValue', function(done) {
-      ain.db.ref(test_path).setValue({
-        value: 100,
-      })
-      .then(res => {
-        console.log("then",res)
-        done();
-      });
-    });
-
-    it('set', function(done) {
-      ain.db.ref().set({
-        op_list: [
-          {
-            type: 'SET_RULE',
-            ref: 'path/path/',
-            value: {".write": true},
-          },
-          {
-            type: 'DEC_VALUE',
-            ref: 'path/path/path',
-            value: 10,
-          },
-          {
-            type: 'INC_VALUE',
-            ref: 'path/path/',
-            value: 5
-          }
-        ]
-      })
-      .then(res => {
-        console.log("then",res)
-        done();
-      });
-    });
   });
 
   describe('Utils', function() {
     it('isValidAddress', function() {
-      expect(ain.utils.isValidAddress('')).toBe(false);
-      expect(ain.utils.isValidAddress('0x00000000000000000000')).toBe(false);
-      expect(ain.utils.isValidAddress('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6')).toBe(true);
+      expect(Ain.utils.isValidAddress('')).toBe(false);
+      expect(Ain.utils.isValidAddress('0x00000000000000000000')).toBe(false);
+      expect(Ain.utils.isValidAddress('0x11F26Fc7b19cB04eeAD03F3d32aeDf5A6e726dA6')).toBe(true);
     });
   });
 });
