@@ -168,12 +168,13 @@ export default class Ain {
 
   /**
    * Gets the amount of AIN currently staked for participating in consensus protocol.
-   * @param {string} account
+   * @param {string} account - If not specified, will try to use the defaultAccount value.
    * @return {Promise<number>}
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
     return new Promise((resolve, reject) => {
-      const address = this.wallet.getImpliedAddress(account);
+      const address = account ? Ain.utils.toChecksumAddress(account)
+          : this.wallet.getImpliedAddress(account);
       return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
     });
   }
@@ -189,7 +190,8 @@ export default class Ain {
    */
   getNonce(args: {address?: string, from?: string}): Promise<number> {
     return new Promise(async (resolve, reject) => {
-      const address = this.wallet.getImpliedAddress(args.address);
+      const address = args.address ? Ain.utils.toChecksumAddress(args.address)
+          : this.wallet.getImpliedAddress(args.address);
       if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
         reject("'from' should be either 'pending' or 'committed'");
       }
