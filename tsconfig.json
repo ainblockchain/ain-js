@@ -4,6 +4,7 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "./lib",
+    "sourceMap": true,
     "strict": true,
     "resolveJsonModule": true,
     "noImplicitAny": false // for testing
