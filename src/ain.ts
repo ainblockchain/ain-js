@@ -102,14 +102,16 @@ export default class Ain {
    * @return {Promise<any>}
    */
   sendTransaction(transactionObject: TransactionInput): Promise<any> {
-    return new Promise((resolve, reject) => {
-      return this.buildTransactionBody(transactionObject)
-      .then(txBody => {
-        const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-        const response = this.provider.send('ain_sendSignedTransaction',
-            { signature, transaction: txBody });
-        resolve(response);
-      });
+    return new Promise(async (resolve, reject) => {
+      const txBody = await this.buildTransactionBody(transactionObject);
+      const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+      const txHash = this.wallet.getHashStrFromSig(signature);
+      let result = await this.provider.send('ain_sendSignedTransaction',
+          { signature, transaction: txBody });
+      if (!result || typeof result !== 'object') {
+        result = { result };
+      }
+      resolve(Object.assign(result, { txHash }));
     });
   }
 
@@ -120,7 +122,15 @@ export default class Ain {
    * @return {Promise<any>}
    */
   sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
-    return this.provider.send('ain_sendSignedTransaction', { signature, transaction });
+    return new Promise(async (resolve, reject) => {
+      const txHash = this.wallet.getHashStrFromSig(signature);
+      let result = await this.provider.send('ain_sendSignedTransaction',
+          { signature, transaction });
+      if (!result || typeof result !== 'object') {
+        result = { result };
+      }
+      resolve(Object.assign(result, { txHash }));
+    });
   }
 
   sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
@@ -137,9 +147,22 @@ export default class Ain {
           return { signature, transaction: txBody };
         }));
       }
-      return Promise.all(promises).then(result => {
-        const response = this.provider.send('ain_sendSignedTransaction', { tx_list: result });
-        resolve(response);
+      return Promise.all(promises).then(async (tx_list) => {
+        const resultList = await this.provider.send('ain_sendSignedTransaction', { tx_list });
+        if (!Array.isArray(resultList)) {
+          resolve(resultList);
+        }
+        const len = resultList.length;
+        if (len !== tx_list.length) {
+          throw Error('Invalid result received.');
+        }
+        for (let i = 0; i < len; i++) {
+          if (!resultList[i] || typeof resultList[i] !== 'object') {
+            resultList[i] = { result: resultList[i] };
+          }
+          resultList[i]['txHash'] = this.wallet.getHashStrFromSig(tx_list[i].signature);
+        }
+        resolve(resultList);
       })
       .catch(error => {
         console.log("error:", error);
