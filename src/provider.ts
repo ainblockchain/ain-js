@@ -5,12 +5,14 @@ const JSON_RPC_ENDPOINT = '/json-rpc/';
 
 export default class Provider {
   public endpoint: string;
+  private ain: Ain;
 
   /**
    * @param {String} endpoint
    * @constructor
    */
-  constructor(endpoint: string) {
+  constructor(ain: Ain, endpoint: string) {
+    this.ain = ain;
     this.endpoint = endpoint;
   }
 
@@ -20,19 +22,27 @@ export default class Provider {
    * @param {any} data
    * @return {Promise<any>}
    */
-  send(rpcMethod: string, data?: any): Promise<any> {
+  send(rpcMethod: string, resultKey: string, data?: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const message = {
         jsonrpc: "2.0",
         method: rpcMethod,
-        params: data || {},
+        params: Object.assign(data || {}, { protoVer: this.ain.net.protoVer }),
         id: 0
       };
       const response = await axios.post(this.endpoint + JSON_RPC_ENDPOINT, message)
       .catch(error => {
         reject(error);
       });
-      resolve(response && response.data ? response.data.result : null);
+      if (response && response.data && response.data.result) {
+        if (response.data.result.code !== undefined ||
+            resultKey === '' || typeof response.data.result !== 'object') {
+          resolve(response.data.result);
+        }
+        const result = response.data.result[resultKey];
+        resolve(result === undefined ? null : result);
+      }
+      resolve(null);
     });
   }
 }
