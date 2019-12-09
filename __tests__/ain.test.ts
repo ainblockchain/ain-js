@@ -4,6 +4,7 @@ import { TransactionBody, Transaction, TransactionInput, SetOperationType } from
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
 const TEST_STRING = 'test_string';
+const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 const {
   test_keystore,
   test_pw,
@@ -212,7 +213,8 @@ describe('ain-js', function() {
         }
       })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
+        expect(res.txHash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
       .catch(e => {
@@ -245,7 +247,8 @@ describe('ain-js', function() {
 
       ain.sendSignedTransaction(sig, tx)
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
+        expect(res.txHash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
       .catch(e => {
@@ -340,11 +343,17 @@ describe('ain-js', function() {
       ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
       .then(res => {
         expect(res[0].code).toBe(2);
-        expect(res[1]).toBe(true);
-        expect(res[2]).toBe(true);
-        expect(res[3]).toBe(true);
+        expect(res[0].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[1].result).toBe(true);
+        expect(res[1].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[2].result).toBe(true);
+        expect(res[2].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[3].result).toBe(true);
+        expect(res[3].txHash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[4].code).toBe(2);
+        expect(res[4].txHash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[5].code).toBe(3);
+        expect(res[5].txHash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
       .catch(e => {
@@ -384,7 +393,7 @@ describe('ain-js', function() {
         }
       })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
         done();
       })
       .catch((error) => {
@@ -422,7 +431,7 @@ describe('ain-js', function() {
         value: { ".write": "true" }
       })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
         done();
       })
       .catch((error) => {
@@ -436,7 +445,7 @@ describe('ain-js', function() {
         value: "test_user"
       })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
         done();
       })
       .catch((error) => {
@@ -454,7 +463,7 @@ describe('ain-js', function() {
            }
         })
         .then(res => {
-          expect(res).toBe(true);
+          expect(res.result).toBe(true);
           done();
         })
         .catch((error) => {
@@ -490,7 +499,7 @@ describe('ain-js', function() {
         nonce: -1
       })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
         done();
       })
       .catch((error) => {
@@ -502,7 +511,7 @@ describe('ain-js', function() {
     it('deleteValue', function(done) {
       ain.db.ref(allowed_path).deleteValue()
       .then(res => {
-        expect(res).toBe(true);
+        expect(res.result).toBe(true);
         done();
       })
       .catch((error) => {

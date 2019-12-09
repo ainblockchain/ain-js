@@ -223,6 +223,14 @@ export default class Wallet {
     return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'));
   }
 
+  getHashStrFromSig(signature: string): string {
+    const sigBuffer = Ain.utils.toBuffer(signature);
+    const len = sigBuffer.length;
+    const lenHash = len - 65;
+    const hashedData = sigBuffer.slice(0, lenHash);
+    return '0x' + hashedData.toString('hex');
+  }
+
   /**
    * Recovers an address of the account that was used to create the signature.
    * @param {string} signature

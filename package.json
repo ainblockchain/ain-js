@@ -2,9 +2,11 @@
   "name": "ain-js",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/ain.js",
+  "types": "lib/ain.d.ts",
   "scripts": {
     "test": "jest",
+    "build": "tsc",
     "snapshot": "./node_modules/.bin/jest --updateSnapshot"
   },
   "author": "",

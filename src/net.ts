@@ -1,9 +1,7 @@
 import Provider from './provider';
-import { version } from '../package.json';
 
 export default class Network {
   public provider: Provider;
-  public version: string;
 
   /**
    * @param {Provider} provider
@@ -12,7 +10,6 @@ export default class Network {
   constructor (provider: Provider) {
     this.provider = provider;
     // TODO (lia): should get the following info from the node
-    this.version = version;
   }
 
   /**
