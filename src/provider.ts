@@ -35,7 +35,8 @@ export default class Provider {
         reject(error);
       });
       if (response && response.data && response.data.result) {
-        if (response.data.result.code !== undefined) {
+        if (response.data.result.code !== undefined ||
+            resultKey === '' || typeof response.data.result !== 'object') {
           resolve(response.data.result);
         }
         const result = response.data.result[resultKey];
