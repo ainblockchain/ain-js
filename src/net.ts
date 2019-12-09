@@ -23,6 +23,10 @@ export default class Network {
     if (!VERSION_LIST[SDK_VERSION]) {
       throw Error("Current sdk version doesn't exist in the list");
     }
+    // Will try to use the max protocol version supported
+    // by this sdk's version first. If the max version is not
+    // supported by the connected node, it will try to adjust
+    // the protoVer to the node's, if possible.
     this.protoVer = VERSION_LIST[SDK_VERSION].max;
   }
 
