@@ -58,6 +58,7 @@ export default class Network {
         if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
               (!VERSION_LIST[SDK_VERSION].max ||
                   semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
+          console.log("Trying to adjust our protoVer to the node's..");
           // Update protoVer if we can
           this.protoVer = nodeProtoVer;
           const res = await this.provider.send('ain_checkProtocolVersion',
