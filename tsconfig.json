@@ -9,6 +9,6 @@
     "resolveJsonModule": true,
     "noImplicitAny": false // for testing
   },
-  "include": ["src"],
+  "include": ["src", "./src/protocol_versions.json", "./src/package.alias.json"],
   "exclude": ["node_modules", "**/__tests__/*"]
 }

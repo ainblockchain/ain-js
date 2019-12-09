@@ -20,7 +20,7 @@ export default class Ain {
    * @constructor
    */
   constructor(providerUrl: string) {
-    this.provider = new Provider(providerUrl);
+    this.provider = new Provider(this, providerUrl);
     this.net = new Network(this.provider);
     this.wallet = new Wallet(this);
     this.db = new Database(this, this.provider);
@@ -31,7 +31,7 @@ export default class Ain {
    * @param {string} providerUrl
    */
   setProvider(providerUrl: string) {
-    this.provider = new Provider(providerUrl);
+    this.provider = new Provider(this, providerUrl);
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
   }
@@ -49,7 +49,7 @@ export default class Ain {
     const data = Object.assign({},
         { getFullTransactions: !!returnTransactionObjects,
           [byHash ? 'hash' : 'number']: blockHashOrBlockNumber });
-    return this.provider.send(rpcMethod, data);
+    return this.provider.send(rpcMethod, 'block', data);
   }
 
   /**
@@ -60,7 +60,7 @@ export default class Ain {
   getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
     const byHash = typeof blockHashOrBlockNumber === 'string'
     const rpcMethod = byHash ? 'ain_getProposerByHash' : 'ain_getProposerByNumber';
-    return this.provider.send(rpcMethod,
+    return this.provider.send(rpcMethod, 'proposer',
         {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
   }
 
@@ -72,7 +72,7 @@ export default class Ain {
   getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
     const byHash = typeof blockHashOrBlockNumber === 'string'
     const rpcMethod = byHash ? 'ain_getValidatorsByHash' : 'ain_getValidatorsByNumber';
-    return this.provider.send(rpcMethod,
+    return this.provider.send(rpcMethod, 'validators',
         {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
   }
 
@@ -82,7 +82,8 @@ export default class Ain {
    * @return {Promise<Transaction>}
    */
   getTransaction(transactionHash: string): Promise<Transaction> {
-    return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
+    return this.provider.send('ain_getTransactionByHash', 'transaction',
+        { hash: transactionHash });
   }
 
   /**
@@ -107,7 +108,7 @@ export default class Ain {
       const signature = this.wallet.signTransaction(txBody, transactionObject.address);
       const txHash = this.wallet.getHashStrFromSig(signature);
       let result = await this.provider.send('ain_sendSignedTransaction',
-          { signature, transaction: txBody });
+          'result', { signature, transaction: txBody });
       if (!result || typeof result !== 'object') {
         result = { result };
       }
@@ -125,7 +126,7 @@ export default class Ain {
     return new Promise(async (resolve, reject) => {
       const txHash = this.wallet.getHashStrFromSig(signature);
       let result = await this.provider.send('ain_sendSignedTransaction',
-          { signature, transaction });
+          'result', { signature, transaction });
       if (!result || typeof result !== 'object') {
         result = { result };
       }
@@ -148,7 +149,8 @@ export default class Ain {
         }));
       }
       return Promise.all(promises).then(async (tx_list) => {
-        const resultList = await this.provider.send('ain_sendSignedTransaction', { tx_list });
+        const resultList = await this.provider.send('ain_sendSignedTransaction',
+            'result', { tx_list });
         if (!Array.isArray(resultList)) {
           resolve(resultList);
         }
@@ -218,7 +220,7 @@ export default class Ain {
       if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
         reject("'from' should be either 'pending' or 'committed'");
       }
-      const res = await this.provider.send('ain_getNonce', { address, from: args.from })
+      const res = await this.provider.send('ain_getNonce', 'nonce', { address, from: args.from })
           .catch(error => {
             reject(error);
           });

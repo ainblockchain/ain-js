@@ -1,7 +1,14 @@
+import * as path from 'path';
+import * as fs from 'fs';
+import semver from 'semver';
 import Provider from './provider';
+const VERSIONS_PATH = path.resolve(__dirname, './protocol_versions.json');
+const SDK_VERSION = require('./package.alias.json').version;
 
 export default class Network {
   public provider: Provider;
+  public protoVer: string;
+  // public version: string;
 
   /**
    * @param {Provider} provider
@@ -9,7 +16,14 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
-    // TODO (lia): should get the following info from the node
+    if (!fs.existsSync(VERSIONS_PATH)) {
+      throw Error('Missing protocol versions file: ' + VERSIONS_PATH);
+    }
+    const VERSION_LIST = JSON.parse(fs.readFileSync(VERSIONS_PATH, 'utf-8'));
+    if (!VERSION_LIST[SDK_VERSION]) {
+      throw Error("Current sdk version doesn't exist in the list");
+    }
+    this.protoVer = VERSION_LIST[SDK_VERSION].max;
   }
 
   /**
@@ -17,7 +31,7 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isListening(): Promise<boolean> {
-    return this.provider.send('net_listening');
+    return this.provider.send('net_listening', 'result');
   }
 
   /**
@@ -30,14 +44,32 @@ export default class Network {
     });
   }
 
+  checkProtocolVersion(): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const response = await this.provider.send('ain_checkProtocolVersion',
+          '', { version: this.protoVer });
+      if (response.code === 1) {
+        const nodeProtoVer = response.protoVer;
+        const VERSION_LIST = JSON.parse(fs.readFileSync(VERSIONS_PATH, 'utf-8'));
+        if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
+              (!VERSION_LIST[SDK_VERSION].max ||
+                  semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
+          // Update protoVer if we can
+          this.protoVer = nodeProtoVer;
+          const res = await this.provider.send('ain_checkProtocolVersion',
+              '', { version: this.protoVer });
+          resolve(res);
+        }
+      }
+      resolve(response);
+    });
+  }
+
   /**
    * Returns the protocol version of the node.
    */
   getProtocolVersion(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // TODO (lia): get the following info from the node
-      resolve("1.0.0");
-    });
+    return this.provider.send('ain_getProtocolVersion', '');
   }
 
   /**
@@ -45,7 +77,7 @@ export default class Network {
    * @return {Promise<number>}
    */
   getPeerCount(): Promise<number> {
-    return this.provider.send('net_peerCount');
+    return this.provider.send('net_peerCount', 'result');
   }
 
   /**
@@ -53,6 +85,6 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isSyncing(): Promise<boolean> {
-    return this.provider.send('net_syncing');
+    return this.provider.send('net_syncing', 'result');
   }
 }

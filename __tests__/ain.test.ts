@@ -28,6 +28,31 @@ describe('ain-js', function() {
       expect(await ain.net.getPeerCount()).toMatchSnapshot();
       expect(await ain.net.isSyncing()).toBe(false);
     });
+
+    it('getProtocolVersion', function(done) {
+      ain.net.getProtocolVersion()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(e => {
+        console.log("ERROR:", e);
+        done();
+      })
+    });
+
+    it('checkProtocolVersion', function(done) {
+      ain.net.checkProtocolVersion()
+      .then(res => {
+        expect(res.code).toBe(0);
+        expect(res.result).toBe('Success');
+        done();
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        done();
+      })
+    })
   });
 
   describe('Wallet', function() {
@@ -152,7 +177,6 @@ describe('ain-js', function() {
 
     it('getBalance', async function() {
       const balance = await ain.wallet.getBalance();
-      console.log("balance:",balance);
       expect(balance).toMatchSnapshot();
     });
 

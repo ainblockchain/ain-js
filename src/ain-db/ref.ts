@@ -67,7 +67,7 @@ export default class Reference {
    */
   getValue(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path));
-    return this._ain.provider.send('ain_get', req);
+    return this._ain.provider.send('ain_get', 'value', req);
   }
 
   /**
@@ -76,7 +76,7 @@ export default class Reference {
    */
   getRule(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path));
-    return this._ain.provider.send('ain_get', req);
+    return this._ain.provider.send('ain_get', 'rule', req);
   }
 
   /**
@@ -85,7 +85,7 @@ export default class Reference {
    */
   getOwner(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path));
-    return this._ain.provider.send('ain_get', req);
+    return this._ain.provider.send('ain_get', 'owner', req);
   }
   
   /**
@@ -94,7 +94,7 @@ export default class Reference {
    */
   getFunction(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_FUNC', Reference.extendPath(this.path, path));
-    return this._ain.provider.send('ain_get', req);
+    return this._ain.provider.send('ain_get', 'func', req);
   }
 
   /**
@@ -108,7 +108,7 @@ export default class Reference {
     for (let i = 0; i < gets.length; i++) {
       request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
     }
-    return this._ain.provider.send('ain_get', request);
+    return this._ain.provider.send('ain_get', 'result', request);
   }
 
   /**
@@ -242,7 +242,7 @@ export default class Reference {
         value: params.value,
         timestamp: params.timestamp
       }
-      const response = this._ain.provider.send('ain_evalRule', request);
+      const response = this._ain.provider.send('ain_evalRule', 'permission', request);
       resolve(response);
     });
   }
@@ -256,7 +256,7 @@ export default class Reference {
       const request = params || {};
       request.address = this._ain.wallet.getImpliedAddress(request.address);
       request.ref = Reference.extendPath(this.path, request.ref);
-      const response = this._ain.provider.send('ain_evalOwner', request);
+      const response = this._ain.provider.send('ain_evalOwner', 'permission', request);
       resolve(response);
     });
   }
