@@ -1,5 +1,5 @@
 {
-  "name": "ain-js",
+  "name": "@ainblockchain/ain-js",
   "version": "1.0.0",
   "description": "",
   "main": "lib/ain.js",
@@ -10,8 +10,22 @@
     "snapshot": "./node_modules/.bin/jest --updateSnapshot",
     "prepublishOnly": "npm run build"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ainblockchain/ain-js.git"
+  },
+  "keywords": [
+    "ainetwork",
+    "ain",
+    "JavaScript",
+    "API"
+  ],
+  "author": "AIN Dev Team",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ainblockchain/ain-js/issues"
+  },
+  "homepage": "https://github.com/ainblockchain/ain-js",
   "files": [
     "lib/**/*"
   ],
