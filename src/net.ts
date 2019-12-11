@@ -42,10 +42,7 @@ export default class Network {
    * Returns the id of the network the node is connected to.
    */
   getNetworkId(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // TODO (lia): get the following info from the node
-      resolve("Testnet");
-    });
+    return this.provider.send('net_getNetworkId');
   }
 
   checkProtocolVersion(): Promise<any> {
