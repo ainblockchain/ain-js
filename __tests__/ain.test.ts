@@ -24,6 +24,7 @@ describe('ain-js', function() {
   describe('Network', function() {
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
+      expect(await ain.net.getNetworkId()).toBe('Testnet');
       expect(await ain.net.isListening()).toMatchSnapshot();
       expect(await ain.net.getPeerCount()).toMatchSnapshot();
       expect(await ain.net.isSyncing()).toBe(false);

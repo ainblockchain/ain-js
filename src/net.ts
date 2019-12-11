@@ -35,23 +35,19 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isListening(): Promise<boolean> {
-    return this.provider.send('net_listening', 'result');
+    return this.provider.send('net_listening');
   }
 
   /**
    * Returns the id of the network the node is connected to.
    */
   getNetworkId(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // TODO (lia): get the following info from the node
-      resolve("Testnet");
-    });
+    return this.provider.send('net_getNetworkId');
   }
 
   checkProtocolVersion(): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const response = await this.provider.send('ain_checkProtocolVersion',
-          '', { version: this.protoVer });
+      const response = await this.provider.send('ain_checkProtocolVersion');
       if (response.code === 1) {
         const nodeProtoVer = response.protoVer;
         const VERSION_LIST = JSON.parse(fs.readFileSync(VERSIONS_PATH, 'utf-8'));
@@ -61,8 +57,7 @@ export default class Network {
           console.log("Trying to adjust our protoVer to the node's..");
           // Update protoVer if we can
           this.protoVer = nodeProtoVer;
-          const res = await this.provider.send('ain_checkProtocolVersion',
-              '', { version: this.protoVer });
+          const res = await this.provider.send('ain_checkProtocolVersion');
           resolve(res);
         }
       }
@@ -74,7 +69,7 @@ export default class Network {
    * Returns the protocol version of the node.
    */
   getProtocolVersion(): Promise<string> {
-    return this.provider.send('ain_getProtocolVersion', '');
+    return this.provider.send('ain_getProtocolVersion');
   }
 
   /**
@@ -82,7 +77,7 @@ export default class Network {
    * @return {Promise<number>}
    */
   getPeerCount(): Promise<number> {
-    return this.provider.send('net_peerCount', 'result');
+    return this.provider.send('net_peerCount');
   }
 
   /**
@@ -90,6 +85,6 @@ export default class Network {
    * @return {Promise<boolean>}
    */
   isSyncing(): Promise<boolean> {
-    return this.provider.send('net_syncing', 'result');
+    return this.provider.send('net_syncing');
   }
 }

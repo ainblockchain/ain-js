@@ -22,7 +22,7 @@ export default class Provider {
    * @param {any} data
    * @return {Promise<any>}
    */
-  send(rpcMethod: string, resultKey: string, data?: any): Promise<any> {
+  send(rpcMethod: string, data?: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const message = {
         jsonrpc: "2.0",
@@ -36,13 +36,15 @@ export default class Provider {
       });
       if (response && response.data && response.data.result) {
         if (response.data.result.code !== undefined ||
-            resultKey === '' || typeof response.data.result !== 'object') {
+            response.data.result.result === undefined) {
           resolve(response.data.result);
+        } else {
+          resolve(response.data.result.result === undefined ? null
+              : response.data.result.result);
         }
-        const result = response.data.result[resultKey];
-        resolve(result === undefined ? null : result);
+      } else {
+        resolve(null);
       }
-      resolve(null);
     });
   }
 }
