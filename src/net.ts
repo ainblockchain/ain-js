@@ -1,14 +1,11 @@
-import * as path from 'path';
-import * as fs from 'fs';
 import semver from 'semver';
 import Provider from './provider';
-const VERSIONS_PATH = path.resolve(__dirname, './protocol_versions.json');
+const VERSION_LIST = require('./protocol_versions.json');
 const SDK_VERSION = require('./package.alias.json').version;
 
 export default class Network {
   public provider: Provider;
   public protoVer: string;
-  // public version: string;
 
   /**
    * @param {Provider} provider
@@ -16,10 +13,6 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
-    if (!fs.existsSync(VERSIONS_PATH)) {
-      throw Error('Missing protocol versions file: ' + VERSIONS_PATH);
-    }
-    const VERSION_LIST = JSON.parse(fs.readFileSync(VERSIONS_PATH, 'utf-8'));
     if (!VERSION_LIST[SDK_VERSION]) {
       throw Error("Current sdk version doesn't exist in the list");
     }
@@ -50,7 +43,6 @@ export default class Network {
       const response = await this.provider.send('ain_checkProtocolVersion');
       if (response.code === 1) {
         const nodeProtoVer = response.protoVer;
-        const VERSION_LIST = JSON.parse(fs.readFileSync(VERSIONS_PATH, 'utf-8'));
         if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
               (!VERSION_LIST[SDK_VERSION].max ||
                   semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
