@@ -157,7 +157,7 @@ export default class Ain {
       }
       return Promise.all(promises).then(async (tx_list) => {
         const resultList = await this.provider.send('ain_sendSignedTransaction',
-            { tx_list });
+            { tx_list }).catch((error) => { reject(error); });
         if (!Array.isArray(resultList)) {
           resolve(resultList);
         }
