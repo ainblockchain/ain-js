@@ -127,13 +127,17 @@ export default class Ain {
    */
   sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const txHash = this.wallet.getHashStrFromSig(signature);
-      let result = await this.provider.send('ain_sendSignedTransaction',
-          { signature, transaction });
-      if (!result || typeof result !== 'object') {
-        result = { result };
+      try {
+        const txHash = this.wallet.getHashStrFromSig(signature);
+        let result = await this.provider.send('ain_sendSignedTransaction',
+            { signature, transaction });
+        if (!result || typeof result !== 'object') {
+          result = { result };
+        }
+        resolve(Object.assign(result, { txHash }));
+      } catch (e) {
+        reject(e);
       }
-      resolve(Object.assign(result, { txHash }));
     });
   }
 
