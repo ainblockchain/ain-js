@@ -40,20 +40,24 @@ export default class Network {
 
   checkProtocolVersion(): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const response = await this.provider.send('ain_checkProtocolVersion');
-      if (response.code === 1) {
-        const nodeProtoVer = response.protoVer;
-        if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
-              (!VERSION_LIST[SDK_VERSION].max ||
-                  semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
-          console.log("Trying to adjust our protoVer to the node's..");
-          // Update protoVer if we can
-          this.protoVer = nodeProtoVer;
-          const res = await this.provider.send('ain_checkProtocolVersion');
-          resolve(res);
+      try {
+        const response = await this.provider.send('ain_checkProtocolVersion');
+        if (response.code === 1) {
+          const nodeProtoVer = response.protoVer;
+          if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
+                (!VERSION_LIST[SDK_VERSION].max ||
+                    semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
+            console.log("Trying to adjust our protoVer to the node's..");
+            // Update protoVer if we can
+            this.protoVer = nodeProtoVer;
+            const res = await this.provider.send('ain_checkProtocolVersion');
+            resolve(res);
+          }
         }
+        resolve(response);
+      } catch (e) {
+        reject(e);
       }
-      resolve(response);
     });
   }
 

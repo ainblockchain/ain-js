@@ -103,15 +103,19 @@ export default class Ain {
    */
   sendTransaction(transactionObject: TransactionInput): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const txBody = await this.buildTransactionBody(transactionObject);
-      const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-      const txHash = this.wallet.getHashStrFromSig(signature);
-      let result = await this.provider.send('ain_sendSignedTransaction',
-          { signature, transaction: txBody });
-      if (!result || typeof result !== 'object') {
-        result = { result };
+      try {
+        const txBody = await this.buildTransactionBody(transactionObject);
+        const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+        const txHash = this.wallet.getHashStrFromSig(signature);
+        let result = await this.provider.send('ain_sendSignedTransaction',
+            { signature, transaction: txBody });
+        if (!result || typeof result !== 'object') {
+          result = { result };
+        }
+        resolve(Object.assign(result, { txHash }));
+      } catch (e) {
+        reject(e);
       }
-      resolve(Object.assign(result, { txHash }));
     });
   }
 
@@ -123,13 +127,17 @@ export default class Ain {
    */
   sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
     return new Promise(async (resolve, reject) => {
-      const txHash = this.wallet.getHashStrFromSig(signature);
-      let result = await this.provider.send('ain_sendSignedTransaction',
-          { signature, transaction });
-      if (!result || typeof result !== 'object') {
-        result = { result };
+      try {
+        const txHash = this.wallet.getHashStrFromSig(signature);
+        let result = await this.provider.send('ain_sendSignedTransaction',
+            { signature, transaction });
+        if (!result || typeof result !== 'object') {
+          result = { result };
+        }
+        resolve(Object.assign(result, { txHash }));
+      } catch (e) {
+        reject(e);
       }
-      resolve(Object.assign(result, { txHash }));
     });
   }
 
@@ -149,7 +157,7 @@ export default class Ain {
       }
       return Promise.all(promises).then(async (tx_list) => {
         const resultList = await this.provider.send('ain_sendSignedTransaction',
-            { tx_list });
+            { tx_list }).catch((error) => { reject(error); });
         if (!Array.isArray(resultList)) {
           resolve(resultList);
         }
