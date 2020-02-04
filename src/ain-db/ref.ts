@@ -234,39 +234,25 @@ export default class Reference {
    * @param params 
    */
   evalRule(params: EvalRuleInput): Promise<boolean> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const address = this._ain.wallet.getImpliedAddress(params.address);
-        const request = {
-          address,
-          ref: Reference.extendPath(this.path, params.ref),
-          value: params.value,
-          timestamp: params.timestamp
-        }
-        const response = await this._ain.provider.send('ain_evalRule', request);
-        resolve(response);
-      } catch (e) {
-        reject(e);
-      }
-    });
+    const address = this._ain.wallet.getImpliedAddress(params.address);
+    const request = {
+      address,
+      ref: Reference.extendPath(this.path, params.ref),
+      value: params.value,
+      timestamp: params.timestamp
+    }
+    return this._ain.provider.send('ain_evalRule', request);
   }
 
   /**
    * Returns the owner evaluation result.
    * @param params 
    */
-  evalOwner(params?: EvalOwnerInput) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const request = params || {};
-        request.address = this._ain.wallet.getImpliedAddress(request.address);
-        request.ref = Reference.extendPath(this.path, request.ref);
-        const response = await this._ain.provider.send('ain_evalOwner', request);
-        resolve(response);
-      } catch (e) {
-        reject(e);
-      }
-    });
+  evalOwner(params?: EvalOwnerInput): Promise<any> {
+    const request = params || {};
+    request.address = this._ain.wallet.getImpliedAddress(request.address);
+    request.ref = Reference.extendPath(this.path, request.ref);
+    return this._ain.provider.send('ain_evalOwner', request);
   }
 
   /**

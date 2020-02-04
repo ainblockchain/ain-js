@@ -91,32 +91,23 @@ export default class Ain {
    * @return {Promise<Transaction>}
    */
   // TODO (lia): implement this function
-  // getTransactionResult(transactionHash: string): Promise<TransactionResult> {
-  //   return new Promise((resolve, reject) => {
-  //   });
-  // }
+  // getTransactionResult(transactionHash: string): Promise<TransactionResult> {}
 
   /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
    * @return {Promise<any>}
    */
-  sendTransaction(transactionObject: TransactionInput): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const txBody = await this.buildTransactionBody(transactionObject);
-        const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-        const txHash = this.wallet.getHashStrFromSig(signature);
-        let result = await this.provider.send('ain_sendSignedTransaction',
-            { signature, transaction: txBody });
-        if (!result || typeof result !== 'object') {
-          result = { result };
-        }
-        resolve(Object.assign(result, { txHash }));
-      } catch (e) {
-        reject(e);
-      }
-    });
+  async sendTransaction(transactionObject: TransactionInput): Promise<any> {
+    const txBody = await this.buildTransactionBody(transactionObject);
+    const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+    const txHash = this.wallet.getHashStrFromSig(signature);
+    let result = await this.provider.send('ain_sendSignedTransaction',
+        { signature, transaction: txBody });
+    if (!result || typeof result !== 'object') {
+      result = { result };
+    }
+    return Object.assign(result, { txHash });
   }
 
   /**
@@ -125,63 +116,46 @@ export default class Ain {
    * @param {TransactionBody} transaction
    * @return {Promise<any>}
    */
-  sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const txHash = this.wallet.getHashStrFromSig(signature);
-        let result = await this.provider.send('ain_sendSignedTransaction',
-            { signature, transaction });
-        if (!result || typeof result !== 'object') {
-          result = { result };
-        }
-        resolve(Object.assign(result, { txHash }));
-      } catch (e) {
-        reject(e);
-      }
-    });
+  async sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
+    const txHash = this.wallet.getHashStrFromSig(signature);
+    let result = await this.provider.send('ain_sendSignedTransaction',
+        { signature, transaction });
+    if (!result || typeof result !== 'object') {
+      result = { result };
+    }
+    return Object.assign(result, { txHash });
   }
 
-  sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      let promises: Promise<any>[] = [];
-      for (let tx of transactionObjects) {
-        promises.push(this.buildTransactionBody(tx).then(txBody => {
-          if (tx.nonce === undefined) {
-            // Batch transactions' nonces should be specified.
-            // If they're not, they default to un-nonced (nonce = -1).
-            txBody.nonce = -1;
-          }
-          const signature = this.wallet.signTransaction(txBody, tx.address);
-          return { signature, transaction: txBody };
-        }));
+  async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
+    let promises: Promise<any>[] = [];
+    for (let tx of transactionObjects) {
+      promises.push(this.buildTransactionBody(tx).then(txBody => {
+        if (tx.nonce === undefined) {
+          // Batch transactions' nonces should be specified.
+          // If they're not, they default to un-nonced (nonce = -1).
+          txBody.nonce = -1;
+        }
+        const signature = this.wallet.signTransaction(txBody, tx.address);
+        return { signature, transaction: txBody };
+      }));
+    }
+    return Promise.all(promises).then(async (tx_list) => {
+      const resultList = await this.provider.send('ain_sendSignedTransaction', { tx_list });
+      if (!Array.isArray(resultList)) {
+        return resultList;
       }
-      return Promise.all(promises).then(async (tx_list) => {
-        const resultList = await this.provider.send('ain_sendSignedTransaction',
-            { tx_list }).catch((error) => { reject(error); });
-        if (!Array.isArray(resultList)) {
-          resolve(resultList);
-        }
-        const len = resultList.length;
-        if (len !== tx_list.length) {
-          if (resultList.code === 1) {
-            resolve(resultList);
-          } else {
-            reject('Invalid result received.');
+      const len = resultList.length;
+      if (len !== tx_list.length) {
+        return resultList;
+      } else {
+        for (let i = 0; i < len; i++) {
+          if (!resultList[i] || typeof resultList[i] !== 'object') {
+            resultList[i] = { result: resultList[i] };
           }
-        } else {
-          for (let i = 0; i < len; i++) {
-            if (!resultList[i] || typeof resultList[i] !== 'object') {
-              resultList[i] = { result: resultList[i] };
-            }
-            resultList[i]['txHash'] = this.wallet.getHashStrFromSig(tx_list[i].signature);
-          }
-          resolve(resultList);
+          resultList[i]['txHash'] = this.wallet.getHashStrFromSig(tx_list[i].signature);
         }
-      })
-      .catch(error => {
-        console.log("error:", error);
-        reject(error);
-      });
+        return resultList;
+      }
     })
   }
 
@@ -209,11 +183,9 @@ export default class Ain {
    * @return {Promise<number>}
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const address = account ? Ain.utils.toChecksumAddress(account)
-          : this.wallet.getImpliedAddress(account);
-      return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
-    });
+    const address = account ? Ain.utils.toChecksumAddress(account)
+        : this.wallet.getImpliedAddress(account);
+    return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
   }
 
   /**
@@ -226,18 +198,13 @@ export default class Ain {
    * @return {Promise<number>}
    */
   getNonce(args: {address?: string, from?: string}): Promise<number> {
-    return new Promise(async (resolve, reject) => {
-      const address = args.address ? Ain.utils.toChecksumAddress(args.address)
-          : this.wallet.getImpliedAddress(args.address);
-      if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
-        reject("'from' should be either 'pending' or 'committed'");
-      }
-      const res = await this.provider.send('ain_getNonce', { address, from: args.from })
-          .catch(error => {
-            reject(error);
-          });
-      resolve(res);
-    });
+    if (!args) { args = {}; }
+    const address = args.address ? Ain.utils.toChecksumAddress(args.address)
+        : this.wallet.getImpliedAddress(args.address);
+    if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
+      throw Error("'from' should be either 'pending' or 'committed'");
+    }
+    return this.provider.send('ain_getNonce', { address, from: args.from })
   }
 
   /**
@@ -245,19 +212,17 @@ export default class Ain {
    * @param {TransactionInput} transactionInput
    * @return {Promise<TransactionBody>}
    */
-  buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
-    return new Promise(async (resolve, reject) => {
-      const address = this.wallet.getImpliedAddress(transactionInput.address);
-      let tx = {
-        operation: transactionInput.operation,
-        parent_tx_hash: transactionInput.parent_tx_hash
-      }
-      let nonce = transactionInput.nonce;
-      if (nonce === undefined) {
-        nonce = await this.getNonce({address, from: "pending"}) + 1;
-      }
-      resolve(Object.assign(tx, { nonce, timestamp: Date.now() }));
-    });
+  async buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
+    const address = this.wallet.getImpliedAddress(transactionInput.address);
+    let tx = {
+      operation: transactionInput.operation,
+      parent_tx_hash: transactionInput.parent_tx_hash
+    }
+    let nonce = transactionInput.nonce;
+    if (nonce === undefined) {
+      nonce = await this.getNonce({address, from: "pending"}) + 1;
+    }
+    return Object.assign(tx, { nonce, timestamp: Date.now() });
   }
 
   /**

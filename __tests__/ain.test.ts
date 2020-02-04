@@ -116,15 +116,15 @@ describe('ain-js', function() {
 
     it('setDefaultAccount', function() {
       try {
-        ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
+        ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
       } catch(e) {
         expect(e.message).toBe('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
       }
       ain.wallet.add(test_sk);
-      ain.wallet.setDefaultAccount(('0xCAcD898dBaEdBD9037aCd25b82417587E972838d'.toLowerCase()));
-      expect(ain.wallet.defaultAccount).toBe('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
-      ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
-      expect(ain.wallet.defaultAccount).toBe('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
+      ain.wallet.setDefaultAccount(('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1'.toLowerCase()));
+      expect(ain.wallet.defaultAccount).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      expect(ain.wallet.defaultAccount).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
     });
 
     it('removeDefaultAccount', function() {
@@ -140,7 +140,7 @@ describe('ain-js', function() {
       } catch(e) {
         expect(e.message).toBe('You need to specify the address or set defaultAccount.');
       }
-      ain.wallet.setDefaultAccount('0xCAcD898dBaEdBD9037aCd25b82417587E972838d');
+      ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
       const sig = ain.wallet.sign(message);
       const addr:string = String(ain.wallet.defaultAccount);
       expect(Ain.utils.ecVerifySig(message, sig, addr)).toBe(true);

@@ -22,8 +22,7 @@ export default class Provider {
    * @param {any} data
    * @return {Promise<any>}
    */
-  send(rpcMethod: string, data?: any): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+  async send(rpcMethod: string, data?: any): Promise<any> {
       const message = {
         jsonrpc: "2.0",
         method: rpcMethod,
@@ -31,20 +30,16 @@ export default class Provider {
         id: 0
       };
       const response = await axios.post(this.endpoint + JSON_RPC_ENDPOINT, message)
-      .catch(error => {
-        reject(error);
-      });
       if (response && response.data && response.data.result) {
         if (response.data.result.code !== undefined ||
             response.data.result.result === undefined) {
-          resolve(response.data.result);
+        return response.data.result;
         } else {
-          resolve(response.data.result.result === undefined ? null
-              : response.data.result.result);
+        return response.data.result.result === undefined ? null
+            : response.data.result.result;
         }
       } else {
-        resolve(null);
+      return null;
       }
-    });
   }
 }
