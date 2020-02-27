@@ -481,10 +481,10 @@ describe('ain-js', function() {
 
     it('setFunction', function(done) {
       ain.db.ref(allowed_path).setFunction({
-          value: { 
-            registry_service: "functions.ainetwork.ai",
+          value: {
+            service_name: "functions.ainetwork.ai",
             event_listener: "events.ainetwork.ai",
-            function_hash: '0xFUNCTION_HASH'
+            function_id: '0xFUNCTION_HASH'
            }
         })
         .then(res => {

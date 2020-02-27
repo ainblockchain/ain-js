@@ -94,7 +94,7 @@ export default class Reference {
    * @param path
    */
   getFunction(path?: string): Promise<any> {
-    const req = Reference.buildGetRequest('GET_FUNC', Reference.extendPath(this.path, path));
+    const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path));
     return this._ain.provider.send('ain_get', req);
   }
 
@@ -139,7 +139,7 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "SET_FUNC"
+            "SET_FUNCTION"
         )
     );
   }
