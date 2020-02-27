@@ -249,10 +249,12 @@ export default class Reference {
    * Returns the owner evaluation result.
    * @param params
    */
-  evalOwner(params?: EvalOwnerInput): Promise<any> {
-    const request = params || {};
-    request.address = this._ain.wallet.getImpliedAddress(request.address);
-    request.ref = Reference.extendPath(this.path, request.ref);
+  evalOwner(params: EvalOwnerInput): Promise<any> {
+    const request = {
+      address: this._ain.wallet.getImpliedAddress(params.address),
+      ref: Reference.extendPath(this.path, params.ref),
+      permission: params.permission
+    };
     return this._ain.provider.send('ain_evalOwner', request);
   }
 

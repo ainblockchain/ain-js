@@ -604,7 +604,7 @@ describe('ain-js', function() {
     });
 
     it('evalOwner', function(done) {
-      ain.db.ref(allowed_path).evalOwner()
+      ain.db.ref(allowed_path).evalOwner({ permission: "branch_owner" })
       .then(res => {
         expect(res).toMatchSnapshot();
         done();
