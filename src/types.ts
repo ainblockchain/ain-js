@@ -167,3 +167,7 @@ export interface EvalOwnerInput {
   ref?: string,
   address?: string
 }
+
+export interface MatchInput {
+  ref?: string
+}

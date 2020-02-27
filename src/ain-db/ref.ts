@@ -10,7 +10,8 @@ import {
   ValueOnlyTransactionInput,
   SetMultiTransactionInput,
   EvalRuleInput,
-  EvalOwnerInput
+  EvalOwnerInput,
+  MatchInput
 } from '../types';
 import Ain from '../ain';
 import { PushId } from './push-id';
@@ -63,7 +64,7 @@ export default class Reference {
 
   /**
    * Returns the value at the path.
-   * @param path 
+   * @param path
    */
   getValue(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path));
@@ -72,7 +73,7 @@ export default class Reference {
 
   /**
    * Returns the rule at the path.
-   * @param path 
+   * @param path
    */
   getRule(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path));
@@ -81,16 +82,16 @@ export default class Reference {
 
   /**
    * Returns the owner config at the path.
-   * @param path 
+   * @param path
    */
   getOwner(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path));
     return this._ain.provider.send('ain_get', req);
   }
-  
+
   /**
    * Returns the function config at the path.
-   * @param path 
+   * @param path
    */
   getFunction(path?: string): Promise<any> {
     const req = Reference.buildGetRequest('GET_FUNC', Reference.extendPath(this.path, path));
@@ -131,7 +132,7 @@ export default class Reference {
 
   /**
    * Sets a function config.
-   * @param transactionInput 
+   * @param transactionInput
    */
   setFunction(transactionInput: ValueOnlyTransactionInput): Promise<any> {
     return this._ain.sendTransaction(
@@ -231,7 +232,7 @@ export default class Reference {
   /**
    * Returns the rule evaluation result. True if the params satisfy the write rule,
    * false if not.
-   * @param params 
+   * @param params
    */
   evalRule(params: EvalRuleInput): Promise<boolean> {
     const address = this._ain.wallet.getImpliedAddress(params.address);
@@ -246,13 +247,35 @@ export default class Reference {
 
   /**
    * Returns the owner evaluation result.
-   * @param params 
+   * @param params
    */
   evalOwner(params?: EvalOwnerInput): Promise<any> {
     const request = params || {};
     request.address = this._ain.wallet.getImpliedAddress(request.address);
     request.ref = Reference.extendPath(this.path, request.ref);
     return this._ain.provider.send('ain_evalOwner', request);
+  }
+
+  /**
+   * Returns the rule configs that are related to the input ref.
+   * @param params
+   */
+  matchRule(params?: MatchInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_matchRule', request);
+  }
+
+  /**
+   * Returns the owner configs that are related to the input ref.
+   * @param params
+   */
+  matchOwner(params?: MatchInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_matchOwner', request);
   }
 
   /**
@@ -307,8 +330,8 @@ export default class Reference {
 
   /**
    * Returns a get request
-   * @param type 
-   * @param ref 
+   * @param type
+   * @param ref
    */
   static buildGetRequest(type: GetOperationType, ref: string) {
     return { type, ref: Reference.sanitizeRef(ref) };
@@ -316,8 +339,8 @@ export default class Reference {
 
   /**
    * Returns a path that is the basePath extended with extension.
-   * @param basePath 
-   * @param extension 
+   * @param basePath
+   * @param extension
    */
   static extendPath(basePath?: string, extension?: string): string {
     const sanitizedBase = Reference.sanitizeRef(basePath);
@@ -371,7 +394,7 @@ export default class Reference {
   /**
    * Returns a sanitized ref. If should have a slash at the
    * beginning and no slash at the end.
-   * @param ref 
+   * @param ref
    */
   static sanitizeRef(ref?: string): string {
     if (!ref) return '/';

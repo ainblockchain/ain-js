@@ -615,6 +615,30 @@ describe('ain-js', function() {
       })
     });
 
+    it('matchRule', function(done) {
+      ain.db.ref(allowed_path).matchRule()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('matchOwner', function(done) {
+      ain.db.ref(allowed_path).matchOwner()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
     /*it('on and off', function(done) {
       try {
         ain.db.ref().on('value', (snap:any) => console.log)
