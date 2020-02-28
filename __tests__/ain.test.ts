@@ -481,10 +481,10 @@ describe('ain-js', function() {
 
     it('setFunction', function(done) {
       ain.db.ref(allowed_path).setFunction({
-          value: { 
-            registry_service: "functions.ainetwork.ai",
+          value: {
+            service_name: "functions.ainetwork.ai",
             event_listener: "events.ainetwork.ai",
-            function_hash: '0xFUNCTION_HASH'
+            function_id: '0xFUNCTION_HASH'
            }
         })
         .then(res => {
@@ -604,7 +604,31 @@ describe('ain-js', function() {
     });
 
     it('evalOwner', function(done) {
-      ain.db.ref(allowed_path).evalOwner()
+      ain.db.ref(allowed_path).evalOwner({ permission: "branch_owner" })
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('matchRule', function(done) {
+      ain.db.ref(allowed_path).matchRule()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('matchOwner', function(done) {
+      ain.db.ref(allowed_path).matchOwner()
       .then(res => {
         expect(res).toMatchSnapshot();
         done();

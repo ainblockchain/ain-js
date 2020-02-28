@@ -52,9 +52,11 @@ export type SetMultiOperationType = "SET";
 
 export type GetMultiOperationType = "GET";
 
-export type SetOperationType = "SET_VALUE" | "INC_VALUE" | "DEC_VALUE" | "SET_RULE" | "SET_OWNER" | "SET_FUNC";
+export type SetOperationType = "SET_VALUE" | "INC_VALUE" | "DEC_VALUE" | "SET_RULE" | "SET_OWNER" | "SET_FUNCTION";
 
-export type GetOperationType = "GET_VALUE" | "GET_RULE" | "GET_OWNER" | "GET_FUNC";
+export type GetOperationType = "GET_VALUE" | "GET_RULE" | "GET_OWNER" | "GET_FUNCTION";
+
+export type OwnerPermission = "branch_owner" | "write_function" | "write_owner" | "write_rule";
 
 export interface SetOperation {
   type: SetOperationType;
@@ -165,5 +167,10 @@ export interface EvalRuleInput {
 
 export interface EvalOwnerInput {
   ref?: string,
-  address?: string
+  address?: string,
+  permission: OwnerPermission
+}
+
+export interface MatchInput {
+  ref?: string
 }
