@@ -22,6 +22,15 @@ describe('ain-js', function() {
   let keystoreAddress = '';
 
   describe('Network', function() {
+    it('sanitize provider urls', function() {
+      expect(() => ain.setProvider('')).toThrow('Invalid endpoint received.');
+      expect(() => ain.setProvider('localhost:3000')).toThrow('Invalid endpoint received.');
+      const noTrailingSlash = 'http://localhost:3000';
+      ain.setProvider(noTrailingSlash + '/');
+      expect(ain.provider.endpoint).toBe(noTrailingSlash);
+      expect(ain.provider.apiEndpoint).toBe(noTrailingSlash + '/json-rpc');
+    });
+
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
       expect(await ain.net.getNetworkId()).toBe('Testnet');
