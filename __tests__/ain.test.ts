@@ -230,7 +230,8 @@ describe('ain-js', function() {
     it('getTransaction', async function() {
       const block = await ain.getBlock(5, true);
       const tx = block.transactions[0] as Transaction;
-      expect(await ain.getTransaction(tx.hash)).toStrictEqual(tx);
+      const txExpected = Object.assign({}, tx, { is_confirmed: true });
+      expect(await ain.getTransaction(tx.hash)).toStrictEqual(txExpected);
     });
 
     // TODO (lia): add getTransactionResult method and test case for it
@@ -614,6 +615,18 @@ describe('ain-js', function() {
 
     it('evalOwner', function(done) {
       ain.db.ref(allowed_path).evalOwner({ permission: "branch_owner" })
+      .then(res => {
+        expect(res).toMatchSnapshot();
+        done();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        done();
+      })
+    });
+
+    it('matchFunction', function(done) {
+      ain.db.ref(allowed_path).matchFunction()
       .then(res => {
         expect(res).toMatchSnapshot();
         done();
