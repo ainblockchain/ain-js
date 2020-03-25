@@ -259,6 +259,17 @@ export default class Reference {
   }
 
   /**
+   * Returns the function configs that are related to the input ref.
+   * @param params
+   */
+  matchFunction(params?: MatchInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_matchFunction', request);
+  }
+
+  /**
    * Returns the rule configs that are related to the input ref.
    * @param params
    */
