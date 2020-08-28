@@ -1,6 +1,6 @@
 import Ain from '../src/ain';
 import Reference from '../src/ain-db/ref';
-import { TransactionBody, Transaction, TransactionInput, SetOperationType } from '../src/types';
+import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperationType } from '../src/types';
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
 const TEST_STRING = 'test_string';
@@ -200,7 +200,12 @@ describe('ain-js', function() {
   });
 
   describe('Core', function() {
-    let addr1: string, addr2: string, defaultAddr: string;
+    let addr1: string, addr2: string, defaultAddr: string, targetTxHash: string;
+    const targetTx: SetOperation = {
+      type: "SET_VALUE",
+      ref: "/afan/test",
+      value: 50
+    };
 
     beforeAll(() => {
       const newAccounts = ain.wallet.create(2);
@@ -227,35 +232,28 @@ describe('ain-js', function() {
       expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
-    it('getTransaction', async function() {
-      const block = await ain.getBlock(5, true);
-      const tx = block.transactions[0] as Transaction;
-      const txExpected = Object.assign({}, tx, { is_confirmed: true });
-      expect(await ain.getTransaction(tx.hash)).toStrictEqual(txExpected);
-    });
-
     // TODO (lia): add getTransactionResult method and test case for it
     // it('getTransactionResult', async function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
     it('sendTransaction', function(done) {
-      ain.sendTransaction({
-        operation: {
-          type: "SET_VALUE",
-          ref: "/afan/test",
-          value: 50
-        }
-      })
+      ain.sendTransaction({ operation: targetTx })
       .then(res => {
         expect(res.result).toBe(true);
         expect(res.txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        targetTxHash = res.txHash;
         done();
       })
       .catch(e => {
         console.log("ERROR:", e)
         done();
       })
+    });
+
+    it('getTransaction', async function() {
+      const tx = await ain.getTransaction(targetTxHash);
+      expect(tx.operation).toStrictEqual(targetTx);
     });
 
     it('sendSignedTransaction', function(done) {
