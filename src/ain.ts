@@ -222,7 +222,8 @@ export default class Ain {
     if (nonce === undefined) {
       nonce = await this.getNonce({address, from: "pending"}) + 1;
     }
-    return Object.assign(tx, { nonce, timestamp: Date.now() });
+    const timestamp = !transactionInput.timestamp ? Date.now() : transactionInput.timestamp;
+    return Object.assign(tx, { nonce, timestamp });
   }
 
   /**
