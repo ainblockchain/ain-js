@@ -105,6 +105,7 @@ export interface ValueOnlyTransactionBodyBase {
 export interface TransactionInputBase {
   nonce?: number;
   address?: string;
+  timestamp?: number;
 }
 
 export interface TransactionBody extends TransactionBodyBase {
