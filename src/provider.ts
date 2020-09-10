@@ -56,7 +56,7 @@ export default class Provider {
    * Sets the httpClient's default timeout time
    * @param {number} time
    */
-  setDefaultTimeout(time: number) {
+  setDefaultTimeoutMs(time: number) {
     this.httpClient.defaults.timeout = time;
   }
 }
