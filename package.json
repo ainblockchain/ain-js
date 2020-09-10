@@ -39,7 +39,7 @@
     "@ainblockchain/ain-util": "^1.1.6",
     "@types/node": "^12.7.3",
     "@types/randombytes": "^2.0.0",
-    "axios": "^0.19.0",
+    "axios": "^0.19.2",
     "bip39": "^3.0.2",
     "browserify-cipher": "^1.0.1",
     "eventemitter3": "^4.0.0",
