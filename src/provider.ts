@@ -53,7 +53,7 @@ export default class Provider {
   }
 
   /**
-   * Sets httpClient's default timeout time
+   * Sets the httpClient's default timeout time
    * @param {number} time
    */
   setDefaultTimeout(time: number) {
