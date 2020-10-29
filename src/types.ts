@@ -123,15 +123,22 @@ export interface SetMultiTransactionInput extends TransactionInputBase {
 }
 
 export interface Transaction {
-  hash: string;
-  block_hash?: string;
-  block_number?: number;
-  index?: number;
-  nonce: number;
+  transaction: {
+    signature: string;
+    nonce: number;
+    timestamp: number;
+    operation: SetOperation | SetMultiOperation;
+    hash: string;
+    address: string;
+    parent_tx_hash?: string;
+  };
+  status: string;
+  number?: number;
+  address?: string;
+  index: number;
   timestamp: number;
-  address: string;
-  operation: SetOperation | SetMultiOperation;
-  parent_tx_hash?: string;
+  is_finalized: boolean;
+  finalized_at: number
 }
 
 export interface TransactionResult {
