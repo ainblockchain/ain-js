@@ -21,15 +21,16 @@ export default class Network {
    */
   setProtoVer(newProtoVer: string): boolean {
     if (this.protoVer === newProtoVer) return true;
+    if (!semver.valid(semver.coerce(newProtoVer))) {
+      console.error(`Invalid protocol version: ${newProtoVer}`);
+      return false;
+    }
     if (semver.lt(newProtoVer, this.protoVer)) {
       console.error(`New version (${newProtoVer}) is lower than the current version`);
       return false;
     }
-    if (semver.valid(semver.coerce(newProtoVer))) {
-      this.protoVer = newProtoVer;
-      return true;
-    }
-    return false;
+    this.protoVer = newProtoVer;
+    return true;
   }
 
   /**
