@@ -1,7 +1,6 @@
 import * as semver from 'semver';
 import Provider from './provider';
-import { PROTO_VER_INCOMPAT_ERROR } from './constants';
-const SDK_VERSION = require('./package.alias.json').version;
+import { BLOCKCHAIN_PROTOCOL_VERSION } from './constants';
 
 export default class Network {
   public provider: Provider;
@@ -13,7 +12,7 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
-    this.protoVer = '0.3.1';
+    this.protoVer = BLOCKCHAIN_PROTOCOL_VERSION;
   }
 
   /**

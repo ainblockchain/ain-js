@@ -1,1 +1,1 @@
-export const PROTO_VER_INCOMPAT_ERROR = 'Incompatible protocol version.';
+export const BLOCKCHAIN_PROTOCOL_VERSION = '0.3.1';
