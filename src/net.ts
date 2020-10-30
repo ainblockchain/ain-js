@@ -1,6 +1,6 @@
-import semver from 'semver';
+import * as semver from 'semver';
 import Provider from './provider';
-const VERSION_LIST = require('./protocol_versions.json');
+import { PROTO_VER_INCOMPAT_ERROR } from './constants';
 const SDK_VERSION = require('./package.alias.json').version;
 
 export default class Network {
@@ -13,14 +13,23 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
-    if (!VERSION_LIST[SDK_VERSION]) {
-      throw Error("Current sdk version doesn't exist in the list");
+    this.protoVer = '0.3.1';
+  }
+
+  /**
+   * Tries to update the protoVer
+   */
+  setProtoVer(newProtoVer: string): boolean {
+    if (this.protoVer === newProtoVer) return true;
+    if (semver.lt(newProtoVer, this.protoVer)) {
+      console.error(`New version (${newProtoVer}) is lower than the current version`);
+      return false;
     }
-    // Will try to use the max protocol version supported
-    // by this sdk's version first. If the max version is not
-    // supported by the connected node, it will try to adjust
-    // the protoVer to the node's, if possible.
-    this.protoVer = VERSION_LIST[SDK_VERSION].max;
+    if (semver.valid(semver.coerce(newProtoVer))) {
+      this.protoVer = newProtoVer;
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -40,14 +49,8 @@ export default class Network {
 
   async checkProtocolVersion(): Promise<any> {
     const response = await this.provider.send('ain_checkProtocolVersion');
-    if (response.code === 1) {
-      const nodeProtoVer = response.protoVer;
-      if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
-            (!VERSION_LIST[SDK_VERSION].max ||
-                semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
-        console.log("Trying to adjust our protoVer to the node's..");
-        // Update protoVer if we can
-        this.protoVer = nodeProtoVer;
+    if (response.code === 1 && response.message !== PROTO_VER_INCOMPAT_ERROR) {
+      if (this.setProtoVer(response.protoVer)) {
         return this.provider.send('ain_checkProtocolVersion');
       }
     }

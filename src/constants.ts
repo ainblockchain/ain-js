@@ -1,0 +1,1 @@
+export const PROTO_VER_INCOMPAT_ERROR = 'Incompatible protocol version.';
