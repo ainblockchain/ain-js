@@ -16,23 +16,6 @@ export default class Network {
   }
 
   /**
-   * Tries to update the protoVer
-   */
-  setProtoVer(newProtoVer: string): boolean {
-    if (this.protoVer === newProtoVer) return true;
-    if (!semver.valid(semver.coerce(newProtoVer))) {
-      console.error(`Invalid protocol version: ${newProtoVer}`);
-      return false;
-    }
-    if (semver.lt(newProtoVer, this.protoVer)) {
-      console.error(`New version (${newProtoVer}) is lower than the current version`);
-      return false;
-    }
-    this.protoVer = newProtoVer;
-    return true;
-  }
-
-  /**
    * Returns whether the node is listening for network connections.
    * @return {Promise<boolean>}
    */
