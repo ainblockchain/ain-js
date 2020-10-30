@@ -49,13 +49,7 @@ export default class Network {
   }
 
   async checkProtocolVersion(): Promise<any> {
-    const response = await this.provider.send('ain_checkProtocolVersion');
-    if (response.code === 1 && response.message !== PROTO_VER_INCOMPAT_ERROR) {
-      if (this.setProtoVer(response.protoVer)) {
-        return this.provider.send('ain_checkProtocolVersion');
-      }
-    }
-    return response;
+    return this.provider.send('ain_checkProtocolVersion');
   }
 
   /**

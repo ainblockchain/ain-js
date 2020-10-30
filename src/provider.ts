@@ -2,9 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import * as parseUrl from 'url-parse';
 import { get } from 'lodash';
 import Ain from './ain';
-import { PROTO_VER_INCOMPAT_ERROR } from './constants';
 const JSON_RPC_ENDPOINT = 'json-rpc';
-const PROTO_VER_METHODS = [ 'ain_getProtocolVersion', 'ain_checkProtocolVersion' ];
 
 export default class Provider {
   public endpoint: string;
@@ -44,14 +42,6 @@ export default class Provider {
     const response = await this.httpClient.post(this.apiEndpoint, data);
     const result = get(response, 'data.result.result', null);
     const code = get(response, 'data.result.code');
-    const message = get(response, 'data.message');
-    const nodeProtoVer = get(response, 'data.result.protoVer', '');
-    if (message === PROTO_VER_INCOMPAT_ERROR) {
-      return response.data;
-    }
-    if (!PROTO_VER_METHODS.includes(rpcMethod) && !this.ain.net.setProtoVer(nodeProtoVer)) {
-      return null;
-    }
     return code !== undefined ? response.data.result : result;
   }
 
