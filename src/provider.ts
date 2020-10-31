@@ -42,7 +42,7 @@ export default class Provider {
     const response = await this.httpClient.post(this.apiEndpoint, data);
     const result = get(response, 'data.result.result', null);
     const code = get(response, 'data.result.code');
-    return code !== undefined ? response.data.result : result;
+    return code !== undefined ? get(response, 'data.result') : result;
   }
 
   /**
