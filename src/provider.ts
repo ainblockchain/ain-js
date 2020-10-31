@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as parseUrl from 'url-parse';
+import { get } from 'lodash';
 import Ain from './ain';
 const JSON_RPC_ENDPOINT = 'json-rpc';
 
@@ -28,28 +29,20 @@ export default class Provider {
   /**
    * Creates the JSON-RPC payload and sends it to the node.
    * @param {string} rpcMethod
-   * @param {any} data
+   * @param {any} params
    * @return {Promise<any>}
    */
-  async send(rpcMethod: string, data?: any): Promise<any> {
-    const message = {
+  async send(rpcMethod: string, params?: any): Promise<any> {
+    const data = {
       jsonrpc: "2.0",
       method: rpcMethod,
-      params: Object.assign(data || {}, { protoVer: this.ain.net.protoVer }),
+      params: Object.assign(params || {}, { protoVer: this.ain.net.protoVer }),
       id: 0
     };
-    const response = await this.httpClient.post(this.apiEndpoint, message);
-    if (response && response.data && response.data.result) {
-      if (response.data.result.code !== undefined ||
-          response.data.result.result === undefined) {
-        return response.data.result;
-      } else {
-        return response.data.result.result === undefined ? null
-            : response.data.result.result;
-      }
-    } else {
-      return null;
-    }
+    const response = await this.httpClient.post(this.apiEndpoint, data);
+    const result = get(response, 'data.result.result', null);
+    const code = get(response, 'data.result.code');
+    return code !== undefined ? get(response, 'data.result') : result;
   }
 
   /**

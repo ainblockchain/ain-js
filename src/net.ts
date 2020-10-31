@@ -1,7 +1,6 @@
-import semver from 'semver';
+import * as semver from 'semver';
 import Provider from './provider';
-const VERSION_LIST = require('./protocol_versions.json');
-const SDK_VERSION = require('./package.alias.json').version;
+import { BLOCKCHAIN_PROTOCOL_VERSION } from './constants';
 
 export default class Network {
   public provider: Provider;
@@ -13,14 +12,7 @@ export default class Network {
    */
   constructor (provider: Provider) {
     this.provider = provider;
-    if (!VERSION_LIST[SDK_VERSION]) {
-      throw Error("Current sdk version doesn't exist in the list");
-    }
-    // Will try to use the max protocol version supported
-    // by this sdk's version first. If the max version is not
-    // supported by the connected node, it will try to adjust
-    // the protoVer to the node's, if possible.
-    this.protoVer = VERSION_LIST[SDK_VERSION].max;
+    this.protoVer = BLOCKCHAIN_PROTOCOL_VERSION;
   }
 
   /**
@@ -39,19 +31,7 @@ export default class Network {
   }
 
   async checkProtocolVersion(): Promise<any> {
-    const response = await this.provider.send('ain_checkProtocolVersion');
-    if (response.code === 1) {
-      const nodeProtoVer = response.protoVer;
-      if (semver.lte(VERSION_LIST[SDK_VERSION].min, nodeProtoVer) &&
-            (!VERSION_LIST[SDK_VERSION].max ||
-                semver.gte(VERSION_LIST[SDK_VERSION].max, nodeProtoVer))) {
-        console.log("Trying to adjust our protoVer to the node's..");
-        // Update protoVer if we can
-        this.protoVer = nodeProtoVer;
-        return this.provider.send('ain_checkProtocolVersion');
-      }
-    }
-    return response;
+    return this.provider.send('ain_checkProtocolVersion');
   }
 
   /**
