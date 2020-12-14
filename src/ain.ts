@@ -103,7 +103,7 @@ export default class Ain {
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
     const txHash = this.wallet.getHashStrFromSig(signature);
     let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, transaction: txBody });
+        { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
@@ -113,13 +113,13 @@ export default class Ain {
   /**
    * Sends a signed transaction to the network
    * @param {string} signature
-   * @param {TransactionBody} transaction
+   * @param {TransactionBody} txBody
    * @return {Promise<any>}
    */
-  async sendSignedTransaction(signature: string, transaction: TransactionBody): Promise<any> {
+  async sendSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
     const txHash = this.wallet.getHashStrFromSig(signature);
     let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, transaction });
+        { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
@@ -136,11 +136,11 @@ export default class Ain {
           txBody.nonce = -1;
         }
         const signature = this.wallet.signTransaction(txBody, tx.address);
-        return { signature, transaction: txBody };
+        return { signature, tx_body: txBody };
       }));
     }
     return Promise.all(promises).then(async (tx_list) => {
-      const resultList = await this.provider.send('ain_sendSignedTransaction', { tx_list });
+      const resultList = await this.provider.send('ain_sendSignedTransactionBatch', { tx_list });
       if (!Array.isArray(resultList)) {
         return resultList;
       }

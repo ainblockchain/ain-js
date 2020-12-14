@@ -253,7 +253,7 @@ describe('ain-js', function() {
 
     it('getTransaction', async function() {
       const tx = await ain.getTransaction(targetTxHash);
-      expect(tx.transaction.operation).toStrictEqual(targetTx);
+      expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
     it('sendSignedTransaction', function(done) {
