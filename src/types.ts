@@ -123,12 +123,14 @@ export interface SetMultiTransactionInput extends TransactionInputBase {
 }
 
 export interface Transaction {
-  transaction: {
-    tx_body: TransactionBody;
-    signature: string;
-    hash: string;
-    address: string;
-  }
+  tx_body: TransactionBody;
+  signature: string;
+  hash: string;
+  address: string;
+}
+
+export interface TransactionInfo {
+  transaction: Transaction;
   status: string;
   number?: number;
   index: number;
@@ -156,7 +158,8 @@ export interface Block {
   validators: any,
   size: number,
   timestamp: number,
-  transactions: Transaction[] | string[],
+  transactions: Transaction[],
+  last_votes: Transaction[],
   stateProofHash: string,
   last_votes_hash: string,
   transactions_hash: string

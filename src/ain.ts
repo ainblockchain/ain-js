@@ -1,7 +1,7 @@
 import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
 import request from './request';
-import { Block, Transaction, TransactionBody, TransactionResult, SetOperationType,
+import { Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
     SetOperation, TransactionInput, ValueOnlyTransactionInput } from './types';
 import Provider from './provider';
 import Database from './ain-db/db';
@@ -79,9 +79,9 @@ export default class Ain {
   /**
    * Returns the transaction with the given transaaction hash.
    * @param {string} transactionHash
-   * @return {Promise<Transaction>}
+   * @return {Promise<TransactionInfo>}
    */
-  getTransaction(transactionHash: string): Promise<Transaction> {
+  getTransaction(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
   }
 
