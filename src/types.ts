@@ -128,7 +128,6 @@ export interface Transaction {
     signature: string;
     hash: string;
     address: string;
-    parent_tx_hash?: string;
   }
   status: string;
   number?: number;
@@ -150,13 +149,17 @@ export interface TransactionResult {
 
 export interface Block {
   number: number,
-  hash?: string,
-  parent_hash?: string,
-  proposer?: string,
-  validators?: string[],
+  epoch: number,
+  hash: string,
+  last_hash: string,
+  proposer: string,
+  validators: any,
   size: number,
-  timestamp?: number,
-  transactions: Transaction[] | string[]
+  timestamp: number,
+  transactions: Transaction[] | string[],
+  stateProofHash: string,
+  last_votes_hash: string,
+  transactions_hash: string
 }
 
 export interface ListenerMap {
