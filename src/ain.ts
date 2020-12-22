@@ -101,13 +101,12 @@ export default class Ain {
   async sendTransaction(transactionObject: TransactionInput): Promise<any> {
     const txBody = await this.buildTransactionBody(transactionObject);
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-    const txHash = this.wallet.getHashStrFromSig(signature);
     let result = await this.provider.send('ain_sendSignedTransaction',
         { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
-    return Object.assign(result, { txHash });
+    return result;
   }
 
   /**
@@ -117,13 +116,12 @@ export default class Ain {
    * @return {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
-    const txHash = this.wallet.getHashStrFromSig(signature);
     let result = await this.provider.send('ain_sendSignedTransaction',
         { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
-    return Object.assign(result, { txHash });
+    return result;
   }
 
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
@@ -152,7 +150,6 @@ export default class Ain {
           if (!resultList[i] || typeof resultList[i] !== 'object') {
             resultList[i] = { result: resultList[i] };
           }
-          resultList[i]['txHash'] = this.wallet.getHashStrFromSig(tx_list[i].signature);
         }
         return resultList;
       }
