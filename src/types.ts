@@ -62,6 +62,7 @@ export interface SetOperation {
   type: SetOperationType;
   ref: string;
   value: any | undefined | null;
+  is_global?: boolean;
 }
 
 export interface SetMultiOperation {
@@ -72,23 +73,12 @@ export interface SetMultiOperation {
 export interface GetOperation {
   type: GetOperationType;
   ref?: string;
+  is_global?: boolean;
 }
 
 export interface GetMultiOperation {
   type: GetMultiOperationType;
   op_list: GetOperation[];
-}
-
-export interface PathValueObject {
-  ref: string;
-  value: any | undefined | null;
-}
-
-// export interface PathRuleObject
-
-export interface PathFuncObject {
-  ref: string;
-  value: string;
 }
 
 export interface TransactionBodyBase {
@@ -100,6 +90,7 @@ export interface ValueOnlyTransactionBodyBase {
   parent_tx_hash?: string;
   value?: any;
   ref?: string;
+  is_global?: boolean;
 }
 
 export interface TransactionInputBase {
@@ -173,15 +164,18 @@ export interface EvalRuleInput {
   value: any,
   ref?: string,
   address?: string,
-  timestamp?: number
+  timestamp?: number,
+  is_global?: boolean
 }
 
 export interface EvalOwnerInput {
   ref?: string,
   address?: string,
-  permission: OwnerPermission
+  permission: OwnerPermission,
+  is_global?: boolean
 }
 
 export interface MatchInput {
-  ref?: string
+  ref?: string,
+  is_global?: boolean
 }
