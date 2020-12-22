@@ -241,8 +241,8 @@ describe('ain-js', function() {
       ain.sendTransaction({ operation: targetTx })
       .then(res => {
         expect(res.result).toBe(true);
-        expect(res.txHash).toEqual(expect.stringMatching(TX_PATTERN));
-        targetTxHash = res.txHash;
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        targetTxHash = res.tx_hash;
         done();
       })
       .catch(e => {
@@ -281,7 +281,7 @@ describe('ain-js', function() {
       ain.sendSignedTransaction(sig, tx)
       .then(res => {
         expect(res.result).toBe(true);
-        expect(res.txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
       .catch(e => {
@@ -375,18 +375,18 @@ describe('ain-js', function() {
 
       ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
       .then(res => {
-        expect(res[0].code).toBe(2);
-        expect(res[0].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[0].result.code).toBe(103);
+        expect(res[0].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[1].result).toBe(true);
-        expect(res[1].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[1].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[2].result).toBe(true);
-        expect(res[2].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[2].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[3].result).toBe(true);
-        expect(res[3].txHash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[4].code).toBe(2);
-        expect(res[4].txHash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[5].code).toBe(3);
-        expect(res[5].txHash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[3].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[4].result.code).toBe(103);
+        expect(res[4].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res[5].result.code).toBe(503);
+        expect(res[5].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
       .catch(e => {
@@ -450,7 +450,7 @@ describe('ain-js', function() {
         }
       })
       .then(res => {
-        expect(res.code).toBe(4);
+        expect(res.result.code).toBe(603);
         done();
       })
       .catch((error) => {
