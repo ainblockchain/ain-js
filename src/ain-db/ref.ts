@@ -23,6 +23,7 @@ export default class Reference {
   private _listeners: ListenerMap;
   private _numberOfListeners: number;
   private _ain: Ain;
+  private _isGlobal: boolean;
 
   /**
    * @param {Ain} ain An ain instance.
@@ -37,6 +38,11 @@ export default class Reference {
     this._isRootReference = this.path === '/';
     this._listeners = {};
     this._numberOfListeners = 0;
+    this._isGlobal = false;
+  }
+
+  setIsGlobal(isGlobal: boolean) {
+    this._isGlobal = isGlobal;
   }
 
   /**
@@ -125,7 +131,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             txInput,
             Reference.extendPath(this.path, txInput.ref),
-            "SET_VALUE"
+            "SET_VALUE",
+            this._isGlobal
         )
     );
   }
@@ -139,7 +146,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "SET_FUNCTION"
+            "SET_FUNCTION",
+            this._isGlobal
         )
     );
   }
@@ -154,7 +162,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "SET_OWNER"
+            "SET_OWNER",
+            this._isGlobal
         )
     );
   }
@@ -169,7 +178,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "SET_RULE"
+            "SET_RULE",
+            this._isGlobal
         )
     );
   }
@@ -184,7 +194,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "SET_VALUE"
+            "SET_VALUE",
+            this._isGlobal
         )
     );
   }
@@ -199,7 +210,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "INC_VALUE"
+            "INC_VALUE",
+            this._isGlobal
         )
     );
   }
@@ -214,7 +226,8 @@ export default class Reference {
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
-            "DEC_VALUE"
+            "DEC_VALUE",
+            this._isGlobal
         )
     );
   }
@@ -377,10 +390,17 @@ export default class Reference {
   static extendSetTransactionInput(
       input: ValueOnlyTransactionInput,
       ref: string,
-      type: SetOperationType
+      type: SetOperationType,
+      isGlobal: boolean
   ): TransactionInput {
-    const operation: SetOperation = { type, ref, value: input.value };
+    const operation: SetOperation = {
+      type,
+      ref,
+      value: input.value,
+      is_global: input.is_global !== undefined ? input.is_global : isGlobal
+    };
     delete input.value;
+    delete input.is_global;
     return Object.assign(input, { operation });
   }
 
