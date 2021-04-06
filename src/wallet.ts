@@ -8,7 +8,7 @@ import Reference from './ain-db/ref';
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
 
 export default class Wallet {
-  public defaultAccount?: string | null;
+  public defaultAccount: Account | null;
   public accounts: Accounts;
   public _length: number;
   public ain: Ain;
@@ -17,6 +17,7 @@ export default class Wallet {
    * @constructor
    */
   constructor(ain: Ain) {
+    this.defaultAccount = null;
     this.accounts = {};
     this._length = 0;
     this.ain = ain;
@@ -124,10 +125,16 @@ export default class Wallet {
    * @param {string} address
    */
   remove(address: string) {
-    let accountToRemove = Ain.utils.toChecksumAddress(address);
-    delete this.accounts[accountToRemove];
+    let addressToRemove = Ain.utils.toChecksumAddress(address);
+    const accountToRemove = this.accounts[addressToRemove];
+    if (!accountToRemove) {
+      throw new Error(`[ain-js.wallet.remove] Can't find account to remove`);
+    }
+    delete this.accounts[addressToRemove];
     this._length--;
-    if (this.defaultAccount === accountToRemove) this.removeDefaultAccount();
+    if (this.defaultAccount === accountToRemove) {
+      this.removeDefaultAccount();
+    }
   }
 
   /**
@@ -137,10 +144,11 @@ export default class Wallet {
    */
   setDefaultAccount(address: string) {
     const checksummed = Ain.utils.toChecksumAddress(address);
-    if (!this.accounts[checksummed]) {
+    const account = this.accounts[checksummed];
+    if (!account) {
       throw new Error('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
     }
-    this.defaultAccount = checksummed;
+    this.defaultAccount = account;
   }
 
   /**
@@ -166,11 +174,12 @@ export default class Wallet {
    * the specified address is not added to the wallet.
    * @param {string} address
    */
-  getImpliedAddress(address?: string) {
-    if (!address && !this.defaultAccount) {
+  getImpliedAddress(inputAddress?: string) {
+    const address = inputAddress || (this.defaultAccount ? this.defaultAccount.address : null);
+    if (!address) {
       throw Error('You need to specify the address or set defaultAccount.');
     }
-    let checksummed = Ain.utils.toChecksumAddress(String(address ? address : this.defaultAccount));
+    let checksummed = Ain.utils.toChecksumAddress(String(address));
     if (!this.accounts[checksummed]) {
       throw Error('The address you specified is not added in your wallet. Try adding it first.');
     }
@@ -189,7 +198,7 @@ export default class Wallet {
 
   /**
    * Sends a transfer transaction to the network.
-   * @param input 
+   * @param input
    */
   transfer(input: {to: string, value: number, from?: string, nonce?: number}): Promise<any> {
     const address = this.getImpliedAddress(input.from);
