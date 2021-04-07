@@ -35,14 +35,14 @@ describe('ain-js', function() {
       ain.setProvider(test_node_2);
       expect(await ain.net.getNetworkId()).toBe('Testnet');
       expect(await ain.net.isListening()).toMatchSnapshot();
-      expect(await ain.net.getPeerCount()).toMatchSnapshot();
+      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
       expect(await ain.net.isSyncing()).toBe(false);
     });
 
     it('getProtocolVersion', function(done) {
       ain.net.getProtocolVersion()
       .then(res => {
-        expect(res).toMatchSnapshot();
+        expect(res).not.toBeNull();
         done();
       })
       .catch(e => {
@@ -131,14 +131,14 @@ describe('ain-js', function() {
       }
       ain.wallet.add(test_sk);
       ain.wallet.setDefaultAccount(('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1'.toLowerCase()));
-      expect(ain.wallet.defaultAccount).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
       ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-      expect(ain.wallet.defaultAccount).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
     });
 
     it('removeDefaultAccount', function() {
       ain.wallet.removeDefaultAccount();
-      expect(ain.wallet.defaultAccount).toBe(null);
+      expect(ain.wallet.defaultAccount).toBeNull();
     });
 
     it('sign', function() {
@@ -151,7 +151,7 @@ describe('ain-js', function() {
       }
       ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
       const sig = ain.wallet.sign(message);
-      const addr:string = String(ain.wallet.defaultAccount);
+      const addr:string = String(ain.wallet.defaultAccount!.address);
       expect(Ain.utils.ecVerifySig(message, sig, addr)).toBe(true);
     });
 
@@ -166,7 +166,7 @@ describe('ain-js', function() {
         }
       }
       const sig = ain.wallet.signTransaction(tx);
-      const addr:string = String(ain.wallet.defaultAccount);
+      const addr:string = String(ain.wallet.defaultAccount!.address);
       expect(Ain.utils.ecVerifySig(tx, sig, addr)).toBe(true);
     });
 
@@ -181,13 +181,13 @@ describe('ain-js', function() {
         }
       }
       const sig = ain.wallet.signTransaction(tx);
-      const addr:string = String(ain.wallet.defaultAccount);
+      const addr:string = String(ain.wallet.defaultAccount!.address);
       expect(ain.wallet.recover(sig)).toBe(addr);
     });
 
     it('getBalance', async function() {
       const balance = await ain.wallet.getBalance();
-      expect(balance).toMatchSnapshot();
+      expect(balance).toBeGreaterThan(0);
     });
 
     it('transfer', async function() {
@@ -202,31 +202,41 @@ describe('ain-js', function() {
   describe('Core', function() {
     let addr1: string, addr2: string, defaultAddr: string, targetTxHash: string;
     const targetTx: SetOperation = {
-      type: "SET_VALUE",
-      ref: "/afan/test",
-      value: 50
+      type: 'SET_OWNER',
+      ref: `/apps/test`,
+      value: {
+        ".owner": {
+          "owners": {
+            "*": {
+              write_owner: true,
+              write_rule: true,
+              branch_owner: true,
+            }
+          }
+        }
+      }
     };
 
     beforeAll(() => {
       const newAccounts = ain.wallet.create(2);
-      defaultAddr = ain.wallet.defaultAccount as string;
+      defaultAddr = ain.wallet.defaultAccount!.address as string;
       addr1 = newAccounts[0];
       addr2 = newAccounts[1];
     });
 
-    it('getBlock', async function() {
+    it('getBlock', async function () {
       const block = await ain.getBlock(3)
       const hash = block.hash || "";
       expect(await ain.getBlock(hash)).toStrictEqual(block);
     });
 
-    it('getProposer', async function() {
+    it('getProposer', async function () {
       const proposer = await ain.getProposer(1);
       const hash = (await ain.getBlock(1)).hash || "";
       expect(await ain.getProposer(hash)).toBe(proposer);
     });
 
-    it('getValidators', async function() {
+    it('getValidators', async function () {
       const validators = await ain.getValidators(4);
       const hash = (await ain.getBlock(4)).hash || "";
       expect(await ain.getValidators(hash)).toStrictEqual(validators);
@@ -251,7 +261,7 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction', async function() {
+    it('getTransaction', async function () {
       const tx = await ain.getTransaction(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
@@ -343,7 +353,7 @@ describe('ain-js', function() {
         operation: {
           type: 'SET_RULE',
           ref: `/apps/bfan/users/${defaultAddr}`,
-          value: { ".write": `auth === "${defaultAddr}"` }
+          value: { ".write": `auth.addr === "${defaultAddr}"` }
         }
       };
 
@@ -401,7 +411,7 @@ describe('ain-js', function() {
     const test_path = 'apps/bfan';
 
     beforeAll(() => {
-      defaultAccount = ain.wallet.defaultAccount;
+      defaultAccount = ain.wallet.defaultAccount!.address;
       allowed_path = `${test_path}/users/${defaultAccount}`;
     });
 
