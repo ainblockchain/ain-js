@@ -79,6 +79,17 @@ export default class Wallet {
   }
 
   /**
+   * Adds a new account from the given private key and sets the default account as a new account.
+   * @param {string} privateKey
+   * @return {string} address
+   */
+  addAndSetDefaultAccount(privateKey: string): string {
+    const address = this.add(privateKey);
+    this.setDefaultAccount(address);
+    return address;
+  }
+
+  /**
    * Adds an account from a seed phrase. Only the account at the given
    * index (default = 0) will be added.
    * @param {string} seedPhrase
