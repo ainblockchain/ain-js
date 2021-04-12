@@ -102,6 +102,11 @@ describe('ain-js', function() {
       expect(afterLength).toBe(beforeLength);
     });
 
+    it('addAndSetDefaultAccount', function () {
+      ain.wallet.addAndSetDefaultAccount(test_sk);
+      expect(ain.wallet.defaultAccount).not.toBe(null);
+    });
+
     it('addFromHDWallet', function() {
       const seedPhrase = test_seed;
       const beforeLength = ain.wallet.length;
