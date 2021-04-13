@@ -79,7 +79,7 @@ export default class Wallet {
   }
 
   /**
-   * Adds a new account from the given private key and sets the default account as a new account.
+   * Adds a new account from the given private key and sets the new account as the default account.
    * @param {string} privateKey
    * @return {string} address
    */
