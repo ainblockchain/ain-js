@@ -102,6 +102,11 @@ describe('ain-js', function() {
       expect(afterLength).toBe(beforeLength);
     });
 
+    it('addAndSetDefaultAccount', function () {
+      ain.wallet.addAndSetDefaultAccount(test_sk);
+      expect(ain.wallet.defaultAccount!.private_key).toBe(test_sk);
+    });
+
     it('addFromHDWallet', function() {
       const seedPhrase = test_seed;
       const beforeLength = ain.wallet.length;
@@ -250,7 +255,7 @@ describe('ain-js', function() {
     it('sendTransaction', function(done) {
       ain.sendTransaction({ operation: targetTx })
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         targetTxHash = res.tx_hash;
         done();
@@ -265,6 +270,7 @@ describe('ain-js', function() {
       const tx = await ain.getTransaction(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
+
 
     it('sendSignedTransaction', function(done) {
       const tx: TransactionBody = {
@@ -474,7 +480,7 @@ describe('ain-js', function() {
         value: { ".write": "true" }
       })
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         done();
       })
       .catch((error) => {
@@ -488,7 +494,7 @@ describe('ain-js', function() {
         value: "test_user"
       })
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         done();
       })
       .catch((error) => {
@@ -506,7 +512,7 @@ describe('ain-js', function() {
            }
         })
         .then(res => {
-          expect(res.result).toBe(true);
+          expect(res.result.code).toBe(0);
           done();
         })
         .catch((error) => {
@@ -542,7 +548,7 @@ describe('ain-js', function() {
         nonce: -1
       })
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.length).toBe(4);
         done();
       })
       .catch((error) => {
@@ -554,7 +560,7 @@ describe('ain-js', function() {
     it('deleteValue', function(done) {
       ain.db.ref(allowed_path).deleteValue()
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         done();
       })
       .catch((error) => {
