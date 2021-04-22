@@ -296,7 +296,7 @@ describe('ain-js', function() {
 
       ain.sendSignedTransaction(sig, tx)
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
@@ -393,11 +393,11 @@ describe('ain-js', function() {
       .then(res => {
         expect(res[0].result.code).toBe(103);
         expect(res[0].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[1].result).toBe(true);
+        expect(res[1].result[0].code).toBe(0);
         expect(res[1].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[2].result).toBe(true);
+        expect(res[2].result.code).toBe(0);
         expect(res[2].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[3].result).toBe(true);
+        expect(res[3].result.code).toBe(0);
         expect(res[3].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[4].result.code).toBe(103);
         expect(res[4].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
