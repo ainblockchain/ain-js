@@ -179,3 +179,9 @@ export interface MatchInput {
   ref?: string,
   is_global?: boolean
 }
+
+export interface StateUsageInfo {
+  tree_height?: number,
+  tree_size?: number,
+  tree_bytes?: number,
+}
