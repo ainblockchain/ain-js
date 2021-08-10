@@ -1,8 +1,10 @@
 import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
 import request from './request';
-import { Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
-    SetOperation, TransactionInput, ValueOnlyTransactionInput } from './types';
+import {
+  Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
+  SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo
+} from './types';
 import Provider from './provider';
 import Database from './ain-db/db';
 import Reference from './ain-db/ref';
@@ -83,6 +85,15 @@ export default class Ain {
    */
   getTransaction(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
+  }
+
+  /**
+   * Returns the state usage information with the given app name.
+   * @param {string} appName
+   * @return {Promise<StateUsageInfo>}
+   */
+  getStateUsage(appName: string): Promise<StateUsageInfo> {
+    return this.provider.send('ain_getStateUsage', { app_name: appName });
   }
 
   /**
