@@ -6,9 +6,13 @@
   "types": "lib/ain.d.ts",
   "scripts": {
     "test": "jest",
+    "test_he": "./node_modules/.bin/jest he.test.ts",
     "build": "tsc",
     "snapshot": "./node_modules/.bin/jest --updateSnapshot",
     "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=12"
   },
   "repository": {
     "type": "git",
@@ -46,6 +50,7 @@
     "eventemitter3": "^4.0.0",
     "hdkey": "^1.1.1",
     "lodash": "^4.17.20",
+    "node-seal": "^4.5.7",
     "pbkdf2": "^3.0.17",
     "randombytes": "^2.1.0",
     "scryptsy": "^2.1.0",

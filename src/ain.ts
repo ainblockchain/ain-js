@@ -10,12 +10,14 @@ import Database from './ain-db/db';
 import Reference from './ain-db/ref';
 import Wallet from './wallet';
 import Network from './net';
+import HomomorphicEncryption from './he';
 
 export default class Ain {
   public provider: Provider;
   public db: Database;
   public net: Network;
   public wallet: Wallet;
+  public he: HomomorphicEncryption;
 
   /**
    * @param {string} providerUrl
@@ -26,6 +28,7 @@ export default class Ain {
     this.net = new Network(this.provider);
     this.wallet = new Wallet(this);
     this.db = new Database(this, this.provider);
+    this.he = new HomomorphicEncryption();
   }
 
   /**
