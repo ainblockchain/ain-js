@@ -230,6 +230,7 @@ describe('ain-js', function() {
       expect(() => Ain.utils.ecVerifySig(tx, sig, addr, 2)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
       expect(ain.wallet.recover(sig)).toBe(addr);
 
+      // chainId = 2
       ain.setProvider(test_node_2, 2);
       tx = {
         nonce: 17,
