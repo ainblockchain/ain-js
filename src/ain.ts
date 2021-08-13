@@ -12,6 +12,7 @@ import Wallet from './wallet';
 import Network from './net';
 
 export default class Ain {
+  public chainId: number;
   public provider: Provider;
   public db: Database;
   public net: Network;
@@ -21,10 +22,11 @@ export default class Ain {
    * @param {string} providerUrl
    * @constructor
    */
-  constructor(providerUrl: string) {
+  constructor(providerUrl: string, chainId?: number) {
     this.provider = new Provider(this, providerUrl);
+    this.chainId = chainId || 0;
     this.net = new Network(this.provider);
-    this.wallet = new Wallet(this);
+    this.wallet = new Wallet(this, this.chainId);
     this.db = new Database(this, this.provider);
   }
 
@@ -32,10 +34,12 @@ export default class Ain {
    * Sets a new provider
    * @param {string} providerUrl
    */
-  setProvider(providerUrl: string) {
+  setProvider(providerUrl: string, chainId?: number) {
     this.provider = new Provider(this, providerUrl);
+    this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
+    this.wallet.setChainId(this.chainId);
   }
 
   /**

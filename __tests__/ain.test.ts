@@ -3,6 +3,7 @@ import Reference from '../src/ain-db/ref';
 import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperationType } from '../src/types';
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
+import axios from 'axios';
 const TEST_STRING = 'test_string';
 const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 const {
@@ -22,6 +23,14 @@ describe('ain-js', function() {
   let keystoreAddress = '';
 
   describe('Network', function() {
+    it('chainId', function() {
+      expect(ain.chainId).toBe(0);
+      expect(ain.wallet.chainId).toBe(0);
+      ain.setProvider(test_node_1, 2);
+      expect(ain.chainId).toBe(2);
+      expect(ain.wallet.chainId).toBe(2);
+    });
+
     it('sanitize provider urls', function() {
       expect(() => ain.setProvider('')).toThrow('Invalid endpoint received.');
       expect(() => ain.setProvider('localhost:3000')).toThrow('Invalid endpoint received.');
@@ -202,6 +211,42 @@ describe('ain-js', function() {
       const balanceAfter = await ain.wallet.getBalance();
       expect(balanceAfter).toBe(balanceBefore - 100);
     });
+
+    it('chainId', function() {
+      // chainId = 0
+      ain.setProvider(test_node_2, 0);
+      let tx: TransactionBody = {
+        nonce: 17,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_VALUE",
+          ref: "afan/test",
+          value: 100
+        }
+      }
+      let sig = ain.wallet.signTransaction(tx);
+      let addr:string = String(ain.wallet.defaultAccount!.address);
+      expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
+      expect(() => Ain.utils.ecVerifySig(tx, sig, addr, 2)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.recover(sig)).toBe(addr);
+
+      // chainId = 2
+      ain.setProvider(test_node_2, 2);
+      tx = {
+        nonce: 17,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_VALUE",
+          ref: "afan/test",
+          value: 100
+        }
+      }
+      sig = ain.wallet.signTransaction(tx);
+      addr = String(ain.wallet.defaultAccount!.address);
+      expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
+      expect(() => Ain.utils.ecVerifySig(tx, sig, addr, 0)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.recover(sig)).toBe(addr);
+    });
   });
 
   describe('Core', function() {
@@ -216,17 +261,72 @@ describe('ain-js', function() {
               write_owner: true,
               write_rule: true,
               branch_owner: true,
+              write_function: true,
             }
           }
         }
       }
     };
 
-    beforeAll(() => {
+    async function waitUntilTxFinalized(txHash: string) {
+      const MAX_ITERATION = 20;
+      let iterCount = 0;
+      while (true) {
+        if (iterCount >= MAX_ITERATION) {
+          console.log(`Iteration count exceeded its limit before the given tx ${txHash} is finalized!`);
+          return false;
+        }
+        const txStatus = (await axios.get(`${test_node_2}/get_transaction?hash=${txHash}`)).data.result;
+        if (txStatus && txStatus.is_finalized === true) {
+          return true;
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, 3000);
+        });
+        iterCount++;
+      }
+    }
+
+    beforeAll(async () => {
+      ain.setProvider(test_node_2, 0);
       const newAccounts = ain.wallet.create(2);
       defaultAddr = ain.wallet.defaultAccount!.address as string;
       addr1 = newAccounts[0];
       addr2 = newAccounts[1];
+      const nodeAddr = (await axios.get(`${test_node_2}/get_address`)).data.result;
+      const stakeForApps = (await axios.post(`${test_node_2}/set`, {
+        op_list: [
+          {
+            type: 'SET_VALUE',
+            ref: `/staking/test/${nodeAddr}/0/stake/${Date.now()}/value`,
+            value: 1
+          },
+          {
+            type: 'SET_VALUE',
+            ref: `/staking/bfan/${nodeAddr}/0/stake/${Date.now()}/value`,
+            value: 1
+          },
+        ],
+        nonce: -1
+      })).data;
+      await waitUntilTxFinalized(stakeForApps.result.tx_hash);
+
+      const createApps = (await axios.post(`${test_node_2}/set`, {
+        op_list: [
+          {
+            type: 'SET_VALUE',
+            ref: `/manage_app/test/create/${Date.now()}`,
+            value: { admin: { [defaultAddr]: true } }
+          },
+          {
+            type: 'SET_VALUE',
+            ref: `/manage_app/bfan/create/${Date.now()}`,
+            value: { admin: { [defaultAddr]: true } }
+          },
+        ],
+        nonce: -1
+      })).data;
+      await waitUntilTxFinalized(createApps.result.tx_hash);
     });
 
     it('getBlock', async function () {
@@ -281,11 +381,12 @@ describe('ain-js', function() {
           ref: "/apps/bfan",
           value: {
             ".owner": {
-              owners: {
+              "owners": {
                 "*": {
                   write_owner: true,
                   write_rule: true,
-                  branch_owner: true
+                  branch_owner: true,
+                  write_function: true,
                 }
               }
             }
@@ -329,7 +430,8 @@ describe('ain-js', function() {
                     "*": {
                       write_owner: false,
                       write_rule: false,
-                      branch_owner: true
+                      branch_owner: true,
+                      write_function: true,
                     }
                   }
                 }
@@ -344,7 +446,8 @@ describe('ain-js', function() {
                     [defaultAddr]: {
                       write_owner: true,
                       write_rule: true,
-                      branch_owner: true
+                      branch_owner: true,
+                      write_function: true,
                     }
                   }
                 }
@@ -359,7 +462,7 @@ describe('ain-js', function() {
         operation: {
           type: 'SET_RULE',
           ref: `/apps/bfan/users/${defaultAddr}`,
-          value: { ".write": `auth.addr === "${defaultAddr}"` }
+          value: { '.rule': { 'write': `auth.addr === "${defaultAddr}"` } }
         }
       };
 
@@ -384,7 +487,7 @@ describe('ain-js', function() {
         operation: {
           type: 'SET_RULE',
           ref: `/apps/bfan/users/${defaultAddr}`,
-          value: { '.write': 'true' }
+          value: { '.rule': { 'write': 'true' } }
         },
         address: addr2
       }
@@ -393,7 +496,7 @@ describe('ain-js', function() {
       .then(res => {
         expect(res[0].result.code).toBe(103);
         expect(res[0].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[1].result[0].code).toBe(0);
+        expect(res[1].result.result_list[0].code).toBe(0);
         expect(res[1].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[2].result.code).toBe(0);
         expect(res[2].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
@@ -430,7 +533,7 @@ describe('ain-js', function() {
       ain.db.ref(allowed_path).setOwner({
         value: {
           ".owner": {
-              owners: {
+              "owners": {
               "*": {
                 write_owner: true,
                 write_rule: true,
@@ -442,7 +545,7 @@ describe('ain-js', function() {
         }
       })
       .then(res => {
-        expect(res.result).toBe(true);
+        expect(res.result.code).toBe(0);
         done();
       })
       .catch((error) => {
@@ -455,11 +558,12 @@ describe('ain-js', function() {
       ain.db.ref('/consensus').setOwner({
         value: {
           ".owner": {
-              owners: {
+              "owners": {
               "*": {
                 write_owner: true,
                 write_rule: true,
-                branch_owner: true
+                branch_owner: true,
+                write_function: true,
               }
             }
           }
@@ -477,7 +581,7 @@ describe('ain-js', function() {
 
     it('setRule', function(done) {
       ain.db.ref(allowed_path).setRule({
-        value: { ".write": "true" }
+        value: { '.rule': { 'write': "true" } }
       })
       .then(res => {
         expect(res.result.code).toBe(0);
@@ -506,10 +610,15 @@ describe('ain-js', function() {
     it('setFunction', function(done) {
       ain.db.ref(allowed_path).setFunction({
           value: {
-            service_name: "functions.ainetwork.ai",
-            event_listener: "events.ainetwork.ai",
-            function_id: '0xFUNCTION_HASH'
-           }
+            ".function": {
+              '0xFUNCTION_HASH': {
+                service_name: "functions.ainetwork.ai",
+                event_listener: "https://events.ainetwork.ai/trigger",
+                function_id: '0xFUNCTION_HASH',
+                function_type: "REST"
+              }
+            }
+          }
         })
         .then(res => {
           expect(res.result.code).toBe(0);
@@ -527,12 +636,12 @@ describe('ain-js', function() {
           {
             type: 'SET_RULE',
             ref: 'can/write/',
-            value: { ".write": "true" }
+            value: { '.rule': { 'write': "true" } }
           },
           {
             type: 'SET_RULE',
             ref: 'cannot/write',
-            value: { ".write": "false" }
+            value: { '.rule': { 'write': "false" } }
           },
           {
             type: 'INC_VALUE',
@@ -548,7 +657,7 @@ describe('ain-js', function() {
         nonce: -1
       })
       .then(res => {
-        expect(res.result.length).toBe(4);
+        expect(Object.keys(res.result).length).toBe(4);
         done();
       })
       .catch((error) => {
