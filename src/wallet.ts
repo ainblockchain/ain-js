@@ -12,15 +12,17 @@ export default class Wallet {
   public accounts: Accounts;
   public _length: number;
   public ain: Ain;
+  public chainId: number;
 
   /**
    * @constructor
    */
-  constructor(ain: Ain) {
+  constructor(ain: Ain, chainId: number) {
     this.defaultAccount = null;
     this.accounts = {};
     this._length = 0;
     this.ain = ain;
+    this.chainId = chainId;
   }
 
   /**
@@ -28,6 +30,10 @@ export default class Wallet {
    */
   get length() {
     return this._length;
+  }
+
+  setChainId(chainId: number) {
+    this.chainId = chainId;
   }
 
   /**
@@ -228,7 +234,7 @@ export default class Wallet {
    */
   sign(data: string, address?: string): string {
     const addr = this.getImpliedAddress(address);
-    return Ain.utils.ecSignMessage(data, Buffer.from(this.accounts[addr].private_key, 'hex'));
+    return Ain.utils.ecSignMessage(data, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
   }
 
   /**
@@ -240,7 +246,7 @@ export default class Wallet {
    */
   signTransaction(tx: TransactionBody, address?: string): string {
     const addr = this.getImpliedAddress(address);
-    return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'));
+    return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
   }
 
   getHashStrFromSig(signature: string): string {
@@ -264,7 +270,7 @@ export default class Wallet {
     const { r, s, v } = Ain.utils.ecSplitSig(sigBuffer.slice(lenHash, len));
     return Ain.utils.toChecksumAddress(
         Ain.utils.bufferToHex(Ain.utils.pubToAddress(
-        Ain.utils.ecRecoverPub(hashedData, r, s, v).slice(1))));
+        Ain.utils.ecRecoverPub(hashedData, r, s, v, this.chainId).slice(1))));
   }
 
   /**
@@ -275,7 +281,7 @@ export default class Wallet {
    * @return {boolean}
    */
   verifySignature(data: any, signature: string, address: string): boolean {
-    return Ain.utils.ecVerifySig(data, signature, address);
+    return Ain.utils.ecVerifySig(data, signature, address, this.chainId);
   }
 
   /**
