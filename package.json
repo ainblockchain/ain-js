@@ -1,6 +1,6 @@
 {
   "name": "@ainblockchain/ain-js",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "",
   "main": "lib/ain.js",
   "types": "lib/ain.d.ts",
