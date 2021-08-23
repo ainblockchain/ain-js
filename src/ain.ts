@@ -83,7 +83,7 @@ export default class Ain {
   }
 
   /**
-   * Returns the transaction with the given transaaction hash.
+   * Returns the transaction with the given transaction hash.
    * @param {string} transactionHash
    * @return {Promise<TransactionInfo>}
    */
