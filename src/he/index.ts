@@ -1,7 +1,8 @@
-const { DesiloSealFactory } = require('./desilo');
+import { DesiloSealFactory } from './desilo';
 import { CipherText } from 'node-seal/implementation/cipher-text';
+import { HomomorphicEncryptionSecretKey, HomomorphicEncryptionParams } from '../types';
 
-const PARAMS = {
+const DEFAULT_PARAMS: HomomorphicEncryptionParams = {
   polyModulusDegree: 8192,
   coeffModulusArray: Int32Array.from([60, 40, 40, 60]),
   scaleBit: 40
@@ -15,8 +16,8 @@ export default class HomomorphicEncryption {
     this._initialized = false;
   }
 
-  async init(keys?: any) {
-    this.seal = await DesiloSealFactory(keys, PARAMS);
+  async init(keys?: HomomorphicEncryptionSecretKey | null, params?: HomomorphicEncryptionParams | null) {
+    this.seal = await DesiloSealFactory(keys, params ? params : DEFAULT_PARAMS);
     if (!this.seal) {
       this._initialized = false;
       throw new Error('Failed to initialize.');

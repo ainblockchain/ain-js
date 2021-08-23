@@ -3,9 +3,8 @@
   "version": "1.1.8",
   "description": "",
   "main": "lib/ain.js",
-  "types": "lib/ain.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf ./lib && tsc",
     "prepublishOnly": "npm run build",
     "snapshot": "jest --updateSnapshot",
     "test": "jest",
@@ -37,7 +36,7 @@
     "@types/jest": "^24.9.1",
     "jest": "^24.9.0",
     "ts-jest": "^24.3.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.9.10"
   },
   "dependencies": {
     "@ainblockchain/ain-util": "^1.1.6",

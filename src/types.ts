@@ -185,3 +185,13 @@ export interface StateUsageInfo {
   tree_size?: number,
   tree_bytes?: number,
 }
+
+export type HomomorphicEncryptionParams = {
+  polyModulusDegree: number,
+  coeffModulusArray: Int32Array,
+  scaleBit: number
+}
+
+export type HomomorphicEncryptionSecretKey = {
+  secretKey: string
+}
