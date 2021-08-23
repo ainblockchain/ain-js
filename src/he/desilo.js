@@ -114,8 +114,8 @@ class DesiloSeal {
 
   /**
    * gets entire keyset
-     @returns {object} keys
-    */
+   * @returns {object} keys
+   */
   getKeys() {
     // hidden for now, due to memory issue
     // const publicKey = this.keys.publicKey ? this.keys.publicKey.save() : '';
