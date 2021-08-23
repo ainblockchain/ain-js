@@ -7,7 +7,8 @@
     "sourceMap": true,
     "strict": true,
     "resolveJsonModule": true,
-    "noImplicitAny": false // for testing
+    "noImplicitAny": false, // for testing
+    "allowJs": true,
   },
   "include": ["src", "./src/package.alias.json"],
   "exclude": ["node_modules", "**/__tests__/*"]
