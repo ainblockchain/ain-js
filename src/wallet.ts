@@ -32,6 +32,10 @@ export default class Wallet {
     return this._length;
   }
 
+  /**
+   * Sets the chain ID
+   * @param {number} chainId
+   */
   setChainId(chainId: number) {
     this.chainId = chainId;
   }
