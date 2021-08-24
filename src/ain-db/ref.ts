@@ -41,6 +41,10 @@ export default class Reference {
     this._isGlobal = false;
   }
 
+  /**
+   * Sets a global mode
+   * @param {boolean} isGlobal
+   */
   setIsGlobal(isGlobal: boolean) {
     this._isGlobal = isGlobal;
   }
