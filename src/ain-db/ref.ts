@@ -359,7 +359,7 @@ export default class Reference {
   // }
 
   /**
-   * Returns a get request
+   * Returns a get request.
    * @param type
    * @param ref
    */
