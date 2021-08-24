@@ -33,7 +33,7 @@ export default class Wallet {
   }
 
   /**
-   * Sets the chain ID
+   * Sets the chain ID.
    * @param {number} chainId
    */
   setChainId(chainId: number) {
@@ -253,6 +253,10 @@ export default class Wallet {
     return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
   }
 
+  /**
+   * Gets the hash from the signature.
+   * @param {string} signature
+   */
   getHashStrFromSig(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
     const len = sigBuffer.length;
