@@ -18,6 +18,7 @@ export default class Database {
   }
 
   /**
+   * Returns a reference instance of the given path.
    * @param {String} path
    * @return {Reference} A reference instance of the given path.
    */
