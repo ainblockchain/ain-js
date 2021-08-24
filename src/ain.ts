@@ -139,6 +139,10 @@ export default class Ain {
     return result;
   }
 
+  /**
+   * Sends signed transactions to the network
+   * @param {TransactionInput[]} transactionObjects
+   */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     let promises: Promise<any>[] = [];
     for (let tx of transactionObjects) {
