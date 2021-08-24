@@ -42,7 +42,7 @@ export default class Reference {
   }
 
   /**
-   * Sets a global mode
+   * Sets a global mode.
    * @param {boolean} isGlobal
    */
   setIsGlobal(isGlobal: boolean) {
