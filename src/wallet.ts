@@ -308,7 +308,7 @@ export default class Wallet {
   }
 
   /**
-   * Converts an account into a V3 Keystore and encrypts it with a password
+   * Converts an account into a V3 Keystore and encrypts it with a password.
    * @param {TransactionBody} data
    * @param {string} address
    * @param {string} password
