@@ -31,7 +31,7 @@ export default class Network {
   }
 
   /**
-   * Checks the protocol version
+   * Checks the protocol version.
    */
   async checkProtocolVersion(): Promise<any> {
     return this.provider.send('ain_checkProtocolVersion');
