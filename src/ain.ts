@@ -86,7 +86,7 @@ export default class Ain {
   }
 
   /**
-   * Returns the transaction with the given transaaction hash.
+   * Returns the transaction with the given transaction hash.
    * @param {string} transactionHash
    * @return {Promise<TransactionInfo>}
    */
@@ -142,6 +142,10 @@ export default class Ain {
     return result;
   }
 
+  /**
+   * Sends signed transactions to the network.
+   * @param {TransactionInput[]} transactionObjects
+   */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     let promises: Promise<any>[] = [];
     for (let tx of transactionObjects) {

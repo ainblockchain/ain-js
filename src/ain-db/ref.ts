@@ -41,6 +41,10 @@ export default class Reference {
     this._isGlobal = false;
   }
 
+  /**
+   * Sets the global path flag.
+   * @param {boolean} isGlobal
+   */
   setIsGlobal(isGlobal: boolean) {
     this._isGlobal = isGlobal;
   }
@@ -355,7 +359,7 @@ export default class Reference {
   // }
 
   /**
-   * Returns a get request
+   * Builds a get request.
    * @param type
    * @param ref
    */

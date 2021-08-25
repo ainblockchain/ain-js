@@ -32,6 +32,10 @@ export default class Wallet {
     return this._length;
   }
 
+  /**
+   * Sets the chain ID.
+   * @param {number} chainId
+   */
   setChainId(chainId: number) {
     this.chainId = chainId;
   }
@@ -249,6 +253,10 @@ export default class Wallet {
     return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
   }
 
+  /**
+   * Gets the hash from the signature.
+   * @param {string} signature
+   */
   getHashStrFromSig(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
     const len = sigBuffer.length;
@@ -300,7 +308,7 @@ export default class Wallet {
   }
 
   /**
-   * Converts an account into a V3 Keystore and encrypts it with a password
+   * Converts an account into a V3 Keystore and encrypts it with a password.
    * @param {TransactionBody} data
    * @param {string} address
    * @param {string} password

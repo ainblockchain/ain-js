@@ -30,6 +30,9 @@ export default class Network {
     return this.provider.send('net_getNetworkId');
   }
 
+  /**
+   * Checks the protocol version.
+   */
   async checkProtocolVersion(): Promise<any> {
     return this.provider.send('ain_checkProtocolVersion');
   }
