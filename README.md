@@ -101,7 +101,7 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 #### Ain.Database.Reference
 
 `setIsGlobal(isGlobal: boolean)`
-- Sets a global mode.
+- Sets the global path flag.
 
 `get numberOfListeners(): number`
 - A getter for number of listeners.
@@ -164,7 +164,7 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 - Returns the owner configs that are related to the input ref.
 
 `static buildGetRequest(type: GetOperationType, ref: string)`
-- Returns a get request.
+- Builds a get request.
 
 `static extendPath(basePath?: string, extension?: string): string`
 - Returns a path that is the basePath extended with extension.

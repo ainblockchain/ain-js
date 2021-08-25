@@ -140,7 +140,7 @@ export default class Ain {
   }
 
   /**
-   * Sends signed transactions to the network
+   * Sends signed transactions to the network.
    * @param {TransactionInput[]} transactionObjects
    */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {

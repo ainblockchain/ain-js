@@ -42,7 +42,7 @@ export default class Reference {
   }
 
   /**
-   * Sets a global mode.
+   * Sets the global path flag.
    * @param {boolean} isGlobal
    */
   setIsGlobal(isGlobal: boolean) {
@@ -359,7 +359,7 @@ export default class Reference {
   // }
 
   /**
-   * Returns a get request.
+   * Builds a get request.
    * @param type
    * @param ref
    */
