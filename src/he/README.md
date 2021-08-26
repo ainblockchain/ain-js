@@ -1,6 +1,5 @@
 # Homomorphic Encryption
 
-
 ain-js supports basic Homomorphic Encryption (HE) functionalities that can be used in various applications. 
 
 ## APIs
