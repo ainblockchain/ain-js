@@ -58,6 +58,15 @@ export type GetOperationType = "GET_VALUE" | "GET_RULE" | "GET_OWNER" | "GET_FUN
 
 export type OwnerPermission = "branch_owner" | "write_function" | "write_owner" | "write_rule";
 
+export type GetOptions = {
+  is_global?: boolean,
+  is_final?: boolean,
+  is_shallow?: boolean,
+  include_version?: boolean,
+  include_tree_info?: boolean,
+  include_proof?: boolean,
+}
+
 export interface SetOperation {
   type: SetOperationType;
   ref: string;
@@ -70,10 +79,9 @@ export interface SetMultiOperation {
   op_list: SetOperation[];
 }
 
-export interface GetOperation {
+export interface GetOperation extends GetOptions {
   type: GetOperationType;
   ref?: string;
-  is_global?: boolean;
 }
 
 export interface GetMultiOperation {
