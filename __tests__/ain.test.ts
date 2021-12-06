@@ -42,7 +42,7 @@ describe('ain-js', function() {
 
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
-      expect(await ain.net.getNetworkId()).toBe('Testnet');
+      expect(await ain.net.getNetworkId()).toBe(0);
       expect(await ain.net.isListening()).toMatchSnapshot();
       expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
       expect(await ain.net.isSyncing()).toBe(false);
@@ -612,8 +612,7 @@ describe('ain-js', function() {
           value: {
             ".function": {
               '0xFUNCTION_HASH': {
-                service_name: "functions.ainetwork.ai",
-                event_listener: "https://events.ainetwork.ai/trigger",
+                function_url: "https://events.ainetwork.ai/trigger",
                 function_id: '0xFUNCTION_HASH',
                 function_type: "REST"
               }
@@ -666,18 +665,6 @@ describe('ain-js', function() {
       });
     });
 
-    it('deleteValue', function(done) {
-      ain.db.ref(allowed_path).deleteValue()
-      .then(res => {
-        expect(res.result.code).toBe(0);
-        done();
-      })
-      .catch((error) => {
-        console.log("deleteValue error:",error);
-        done();
-      });
-    });
-
     it('getValue', async function() {
       expect(await ain.db.ref(allowed_path).getValue()).toMatchSnapshot();
     });
@@ -710,6 +697,28 @@ describe('ain-js', function() {
             }
           ]
         )).toMatchSnapshot();
+    });
+
+    it('get with options', async function() {
+      expect(await ain.db.ref().getValue(allowed_path, { is_final: true })).toMatchSnapshot();
+      expect(await ain.db.ref().getValue(allowed_path, { is_global: true })).toMatchSnapshot();
+      expect(await ain.db.ref().getValue(allowed_path, { is_shallow: true })).toMatchSnapshot();
+      expect(await ain.db.ref().getValue(allowed_path, { include_proof: true })).toMatchSnapshot();
+      expect(await ain.db.ref().getValue(allowed_path, { include_tree_info: true })).toMatchSnapshot();
+      const getWithVersion = await ain.db.ref().getValue(allowed_path, { include_version: true });
+      expect(getWithVersion['#version']).not.toBeNull();
+    });
+
+    it('deleteValue', function(done) {
+      ain.db.ref(allowed_path).deleteValue()
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        done();
+      })
+      .catch((error) => {
+        console.log("deleteValue error:",error);
+        done();
+      });
     });
 
     it('evalRule: true', function(done) {
