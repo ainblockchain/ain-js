@@ -11,7 +11,8 @@ import {
   SetMultiTransactionInput,
   EvalRuleInput,
   EvalOwnerInput,
-  MatchInput
+  MatchInput,
+  GetOptions,
 } from '../types';
 import Ain from '../ain';
 import { PushId } from './push-id';
@@ -76,8 +77,8 @@ export default class Reference {
    * Returns the value at the path.
    * @param path
    */
-  getValue(path?: string): Promise<any> {
-    const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path));
+  getValue(path?: string, options?: GetOptions): Promise<any> {
+    const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path), options);
     return this._ain.provider.send('ain_get', req);
   }
 
@@ -85,8 +86,8 @@ export default class Reference {
    * Returns the rule at the path.
    * @param path
    */
-  getRule(path?: string): Promise<any> {
-    const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path));
+  getRule(path?: string, options?: GetOptions): Promise<any> {
+    const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
     return this._ain.provider.send('ain_get', req);
   }
 
@@ -94,8 +95,8 @@ export default class Reference {
    * Returns the owner config at the path.
    * @param path
    */
-  getOwner(path?: string): Promise<any> {
-    const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path));
+  getOwner(path?: string, options?: GetOptions): Promise<any> {
+    const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path), options);
     return this._ain.provider.send('ain_get', req);
   }
 
@@ -103,8 +104,8 @@ export default class Reference {
    * Returns the function config at the path.
    * @param path
    */
-  getFunction(path?: string): Promise<any> {
-    const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path));
+  getFunction(path?: string, options?: GetOptions): Promise<any> {
+    const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path), options);
     return this._ain.provider.send('ain_get', req);
   }
 
@@ -363,8 +364,12 @@ export default class Reference {
    * @param type
    * @param ref
    */
-  static buildGetRequest(type: GetOperationType, ref: string) {
-    return { type, ref: Reference.sanitizeRef(ref) };
+  static buildGetRequest(type: GetOperationType, ref: string, options?: GetOptions) {
+    const request = { type, ref: Reference.sanitizeRef(ref) };
+    if (options) {
+      Object.assign(request, options);
+    }
+    return request;
   }
 
   /**
