@@ -8,7 +8,8 @@
     "prepublishOnly": "npm run build",
     "snapshot": "jest --updateSnapshot",
     "test": "jest",
-    "test_he": "jest he.test.ts"
+    "test_he": "jest he.test.ts",
+    "test_eh": "jest event_handler.test.ts"
   },
   "engines": {
     "node": ">=12"
