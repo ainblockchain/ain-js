@@ -26,6 +26,10 @@ export default class EventHandler {
     await this._eventChannelManager.connect();
   }
 
+  disconnect() {
+    this._eventChannelManager.disconnect();
+  }
+
   emitEvent(filterId: string, payload: any) {
     const targetEventEmitter = this._eventEmitters[filterId];
     if (!targetEventEmitter) {

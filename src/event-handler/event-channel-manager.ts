@@ -48,6 +48,11 @@ export default class EventChannelManager {
     })
   }
 
+  disconnect() {
+    this._isConnected = false;
+    this._wsClient.close();
+  }
+
   handleEmitEventMessage(messageData) {
     const filterId = messageData.filter_id;
     if (!filterId) {
