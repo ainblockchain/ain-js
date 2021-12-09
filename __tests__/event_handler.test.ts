@@ -9,16 +9,16 @@ describe('Event Handler', function() {
   let ain = new Ain(test_event_handler_node);
 
   beforeAll(async () => {
-    await ain.eh.connect();
+    await ain.em.connect();
   });
 
   afterAll(() => {
-    ain.eh.disconnect();
+    ain.em.disconnect();
   });
 
   it('Subscribe BLOCK_FINALIZED', async () => {
     const callback = jest.fn();
-    const subscription = ain.eh.subscribe('BLOCK_FINALIZED', {});
+    const subscription = ain.em.subscribe('BLOCK_FINALIZED', {});
     subscription.once('data', (data) => {
       callback(data);
     });

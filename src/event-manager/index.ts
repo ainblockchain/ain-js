@@ -11,7 +11,7 @@ import EventFilter from './event-filter';
 import EventChannelClient from './event-channel-client';
 import { PushId } from '../ain-db/push-id';
 
-export default class EventHandler {
+export default class EventManager {
   private readonly _filters: { [filterId: string]: EventFilter };
   private readonly _eventEmitters: { [filterId: string]: EventEmitter };
   private _ain: Ain;

@@ -1,5 +1,5 @@
 import Ain from '../ain';
-import EventHandler from './index';
+import EventManager from './index';
 import { WebSocket } from 'ws';
 import {
   EventChannelMessageTypes,
@@ -11,14 +11,14 @@ import EventFilter from './event-filter';
 
 export default class EventChannelClient {
   private readonly _ain: Ain;
-  private readonly _eventHandler: EventHandler;
+  private readonly _eventManager: EventManager;
   private _wsClient?: WebSocket;
   private _endpointUrl?: string;
   private _isConnected: boolean;
 
-  constructor(ain: Ain, eventHandler) {
+  constructor(ain: Ain, eventManager: EventManager) {
     this._ain = ain;
-    this._eventHandler = eventHandler;
+    this._eventManager = eventManager;
     this._wsClient = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
@@ -71,7 +71,7 @@ export default class EventChannelClient {
     if (!payload) {
       throw Error(`Can't find payload from message data (${JSON.stringify(messageData, null, 2)})`);
     }
-    this._eventHandler.emitEvent(filterId, payload);
+    this._eventManager.emitEvent(filterId, payload);
   }
 
   handleEmitErrorMessage(messageData) {
@@ -84,7 +84,7 @@ export default class EventChannelClient {
     if (!errorMessage) {
       throw Error(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
     }
-    this._eventHandler.emitError(filterId, errorMessage);
+    this._eventManager.emitError(filterId, errorMessage);
   }
 
   handleMessage(message: string) {
