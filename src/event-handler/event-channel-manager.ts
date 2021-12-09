@@ -123,7 +123,7 @@ export default class EventChannelManager {
 
   registerFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
-    const emitFilterMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
-    this._wsClient.send(JSON.stringify(emitFilterMessage));
+    const registerMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
+    this._wsClient.send(JSON.stringify(registerMessage));
   }
 }
