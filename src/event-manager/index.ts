@@ -10,42 +10,33 @@ import {
 import EventFilter from './event-filter';
 import EventChannelClient from './event-channel-client';
 import { PushId } from '../ain-db/push-id';
+import EventCallbackManager from './event-callback-manager';
 
 export default class EventManager {
+  private _ain: Ain;
   private readonly _filters: { [filterId: string]: EventFilter };
   private readonly _eventEmitters: { [filterId: string]: EventEmitter };
-  private _ain: Ain;
-  private _eventChannelClient: EventChannelClient;
+  private readonly _eventCallbackManager: EventCallbackManager;
+  private readonly _eventChannelClient: EventChannelClient;
 
   constructor(ain: Ain) {
     this._filters = {};
     this._eventEmitters = {};
     this._ain = ain;
-    this._eventChannelClient = new EventChannelClient(ain, this);
+    this._eventCallbackManager = new EventCallbackManager(this);
+    this._eventChannelClient = new EventChannelClient(ain, this._eventCallbackManager);
   }
 
   async connect(connectionOption?: EventChannelConnectionOption) {
     await this._eventChannelClient.connect(connectionOption || {});
   }
 
+   getEventEmitter(filterId: string) {
+    return this._eventEmitters[filterId];
+  }
+
   disconnect() {
     this._eventChannelClient.disconnect();
-  }
-
-  emitEvent(filterId: string, payload: any) {
-    const targetEventEmitter = this._eventEmitters[filterId];
-    if (!targetEventEmitter) {
-      throw Error(`Can't find event emitter by filter id (${filterId})`);
-    }
-    targetEventEmitter.emit('data', payload);
-  }
-
-  emitError(filterId: string, errorMessage: string) {
-    const targetEventEmitter = this._eventEmitters[filterId];
-    if (!targetEventEmitter) {
-      throw Error(`Can't find event emitter by filter id (${filterId})`);
-    }
-    targetEventEmitter.emit('error', errorMessage);
   }
 
   buildFilterId() {
