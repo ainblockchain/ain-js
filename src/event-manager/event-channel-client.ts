@@ -1,5 +1,4 @@
 import Ain from '../ain';
-import EventManager from './index';
 import { WebSocket } from 'ws';
 import {
   EventChannelMessageTypes,
