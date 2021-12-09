@@ -3,6 +3,7 @@ import Ain from '../ain';
 import {
   BlockchainEventTypes,
   BlockFinalizedEventConfig,
+  EventChannelConnectionOption,
   EventConfigType,
   ValueChangedEventConfig,
 } from '../types';
@@ -22,8 +23,8 @@ export default class EventHandler {
     this._eventChannelManager = new EventChannelManager(ain, this);
   }
 
-  async connect() {
-    await this._eventChannelManager.connect();
+  async connect(connectionOption?: EventChannelConnectionOption) {
+    await this._eventChannelManager.connect(connectionOption || {});
   }
 
   disconnect() {

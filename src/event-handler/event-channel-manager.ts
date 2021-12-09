@@ -5,6 +5,7 @@ import {
   EventChannelMessageTypes,
   EventChannelMessage,
   BlockchainEventTypes,
+  EventChannelConnectionOption,
 } from '../types';
 import EventFilter from './event-filter';
 
@@ -27,7 +28,7 @@ export default class EventChannelManager {
     return this._isConnected;
   }
 
-  connect() {
+  connect(connectionOption: EventChannelConnectionOption) {
     return new Promise(async (resolve, reject) => {
       const eventHandlerNetworkInfo = await this._ain.net.getEventHandlerNetworkInfo();
       const url = eventHandlerNetworkInfo.url;
@@ -36,9 +37,12 @@ export default class EventChannelManager {
             `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)}`));
       }
       this._endpointUrl = url;
-      this._wsClient = new WebSocket(url);
+      this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || 30000 });
       this._wsClient.on('message', (message) => {
         this.handleMessage(message);
+      });
+      this._wsClient.on('error', (err) => {
+        reject(err);
       });
       this._wsClient.on('open', () => {
         this._isConnected = true;

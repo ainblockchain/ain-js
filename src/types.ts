@@ -230,3 +230,7 @@ export interface ValueChangedEventConfig {
 }
 
 export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig;
+
+export interface EventChannelConnectionOption {
+  handshakeTimeout?: number;
+}
