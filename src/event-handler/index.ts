@@ -9,6 +9,7 @@ import {
 } from '../types';
 import EventFilter from './event-filter';
 import EventChannelManager from './event-channel-manager';
+import { PushId } from '../ain-db/push-id';
 
 export default class EventHandler {
   private readonly _filters: { [filterId: string]: EventFilter };
@@ -47,6 +48,10 @@ export default class EventHandler {
     targetEventEmitter.emit('error', errorMessage);
   }
 
+  buildFilterId() {
+    return PushId.generate();
+  }
+
   subscribe(
       eventType: 'BLOCK_FINALIZED',
       config: BlockFinalizedEventConfig): EventEmitter;
@@ -61,7 +66,7 @@ export default class EventHandler {
     const eventEmitter = new EventEmitter();
     switch (eventType) {
       case BlockchainEventTypes.BLOCK_FINALIZED:
-        const filterId = `${eventType}_${Date.now()}`;
+        const filterId = this.buildFilterId();
         if (this._filters[filterId]) { // TODO(cshcomcom): Retry logic
           throw Error(`Already exists filter id in filters (${filterId})`);
         }
