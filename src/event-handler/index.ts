@@ -61,7 +61,7 @@ export default class EventHandler {
     switch (eventType) {
       case BlockchainEventTypes.BLOCK_FINALIZED:
         const filterId = `${eventType}_${Date.now()}`;
-        if (this._filters[filterId]) {
+        if (this._filters[filterId]) { // TODO(cshcomcom): Retry logic
           throw Error(`Already exists filter id in filters (${filterId})`);
         }
         if (this._eventEmitters[filterId]) {
