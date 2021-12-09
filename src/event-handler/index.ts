@@ -8,28 +8,28 @@ import {
   ValueChangedEventConfig,
 } from '../types';
 import EventFilter from './event-filter';
-import EventChannelManager from './event-channel-manager';
+import EventChannelClient from './event-channel-client';
 import { PushId } from '../ain-db/push-id';
 
 export default class EventHandler {
   private readonly _filters: { [filterId: string]: EventFilter };
   private readonly _eventEmitters: { [filterId: string]: EventEmitter };
   private _ain: Ain;
-  private _eventChannelManager: EventChannelManager;
+  private _eventChannelClient: EventChannelClient;
 
   constructor(ain: Ain) {
     this._filters = {};
     this._eventEmitters = {};
     this._ain = ain;
-    this._eventChannelManager = new EventChannelManager(ain, this);
+    this._eventChannelClient = new EventChannelClient(ain, this);
   }
 
   async connect(connectionOption?: EventChannelConnectionOption) {
-    await this._eventChannelManager.connect(connectionOption || {});
+    await this._eventChannelClient.connect(connectionOption || {});
   }
 
   disconnect() {
-    this._eventChannelManager.disconnect();
+    this._eventChannelClient.disconnect();
   }
 
   emitEvent(filterId: string, payload: any) {
@@ -59,7 +59,7 @@ export default class EventHandler {
       eventType: 'VALUE_CHANGED',
       config: ValueChangedEventConfig): EventEmitter;
   subscribe(eventTypeStr: string, config: EventConfigType): EventEmitter {
-    if (!this._eventChannelManager.isConnected) {
+    if (!this._eventChannelClient.isConnected) {
       throw Error(`Event channel is not connected! You must call ain.eh.connect() before using subscribe()`);
     }
     const eventType = eventTypeStr as BlockchainEventTypes;
@@ -74,7 +74,7 @@ export default class EventHandler {
           throw Error(`Already existing event emitter (${filterId})`);
         }
         const filter = new EventFilter(filterId, eventType, config);
-        this._eventChannelManager.registerFilter(filter);
+        this._eventChannelClient.registerFilter(filter);
         this._filters[filterId] = filter;
         this._eventEmitters[filterId] = eventEmitter;
         break;

@@ -9,7 +9,7 @@ import {
 } from '../types';
 import EventFilter from './event-filter';
 
-export default class EventChannelManager {
+export default class EventChannelClient {
   private readonly _ain: Ain;
   private readonly _eventHandler: EventHandler;
   private _wsClient?: WebSocket;
