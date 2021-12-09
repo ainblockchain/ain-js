@@ -114,7 +114,7 @@ export default class EventChannelManager {
     }
   }
 
-  makeMessage(messageType: EventChannelMessageTypes, data: any): EventChannelMessage {
+  buildMessage(messageType: EventChannelMessageTypes, data: any): EventChannelMessage {
     return {
       type: messageType,
       data: data,
@@ -123,7 +123,7 @@ export default class EventChannelManager {
 
   registerFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
-    const emitFilterMessage = this.makeMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
+    const emitFilterMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
     this._wsClient.send(JSON.stringify(emitFilterMessage));
   }
 }
