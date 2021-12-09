@@ -9,7 +9,7 @@
     "snapshot": "jest --updateSnapshot",
     "test": "jest",
     "test_he": "jest he.test.ts",
-    "test_eh": "jest event_handler.test.ts"
+    "test_em": "jest event_manager.test.ts"
   },
   "engines": {
     "node": ">=12"
