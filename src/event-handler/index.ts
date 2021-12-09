@@ -56,10 +56,7 @@ export default class EventHandler {
     if (!this._eventChannelManager.isConnected) {
       throw Error(`Event channel is not connected! You must call ain.eh.connect() before using subscribe()`);
     }
-    const eventType = BlockchainEventTypes[eventTypeStr] as BlockchainEventTypes;
-    if (!Object.values(BlockchainEventTypes).includes(eventType)) {
-      throw Error(`Invalid event type (${eventTypeStr})`);
-    }
+    const eventType = eventTypeStr as BlockchainEventTypes;
     const eventEmitter = new EventEmitter();
     switch (eventType) {
       case BlockchainEventTypes.BLOCK_FINALIZED:
