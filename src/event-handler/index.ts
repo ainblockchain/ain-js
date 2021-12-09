@@ -68,10 +68,10 @@ export default class EventHandler {
       case BlockchainEventTypes.BLOCK_FINALIZED:
         const filterId = this.buildFilterId();
         if (this._filters[filterId]) { // TODO(cshcomcom): Retry logic
-          throw Error(`Already exists filter id in filters (${filterId})`);
+          throw Error(`Already existing filter id in filters (${filterId})`);
         }
         if (this._eventEmitters[filterId]) {
-          throw Error(`Already exists event emitter (${filterId})`);
+          throw Error(`Already existing event emitter (${filterId})`);
         }
         const filter = new EventFilter(filterId, eventType, config);
         this._eventChannelManager.registerFilter(filter);
