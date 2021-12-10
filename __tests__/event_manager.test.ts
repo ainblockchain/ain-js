@@ -16,7 +16,7 @@ describe('Event Handler', function() {
     ain.em.disconnect();
   });
 
-  it('Subscribe BLOCK_FINALIZED', async () => {
+  it('Subscribe to BLOCK_FINALIZED', async () => {
     const callback = jest.fn();
     const subscription = ain.em.subscribe('BLOCK_FINALIZED', {});
     subscription.once('data', (data) => {
