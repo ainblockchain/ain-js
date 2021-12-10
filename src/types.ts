@@ -239,3 +239,8 @@ export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfi
 export interface EventChannelConnectionOption {
   handshakeTimeout?: number;
 }
+
+export interface ErrorFirstCallback<T> {
+  (err: any, result?: undefined | null): void;
+  (err: undefined | null, result: T): void;
+}
