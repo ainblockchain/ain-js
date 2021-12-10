@@ -32,7 +32,7 @@ export default class EventManager {
     await this._eventChannelClient.connect(connectionOption || {});
   }
 
-   getEventEmitter(filterId: string) {
+  getEventEmitter(filterId: string) {
     return this._eventEmitters[filterId];
   }
 
