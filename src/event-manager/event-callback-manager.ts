@@ -75,6 +75,7 @@ export default class EventCallbackManager {
       throw Error(`Already existing subscription id in subscriptions (${subscriptionId})`);
     }
     const subscription = new Subscription(subscriptionId, filter);
+    this._subscriptions[subscriptionId] = subscription;
     this._filterIdToSubscriptionId[filter.id] = subscriptionId;
     return subscription;
   }
