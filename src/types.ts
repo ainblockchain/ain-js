@@ -207,6 +207,7 @@ export type HomomorphicEncryptionSecretKey = {
 export enum BlockchainEventTypes {
   BLOCK_FINALIZED = 'BLOCK_FINALIZED',
   VALUE_CHANGED = 'VALUE_CHANGED',
+  TX_STATE_CHANGED = 'TX_STATE_CHANGED',
 }
 
 export enum EventChannelMessageTypes {
@@ -229,7 +230,11 @@ export interface ValueChangedEventConfig {
   path: string;
 }
 
-export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig;
+export interface TxStateChangedEventConfig {
+  tx_hash: string;
+}
+
+export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
 
 export interface EventChannelConnectionOption {
   handshakeTimeout?: number;

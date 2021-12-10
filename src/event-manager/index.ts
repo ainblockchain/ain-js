@@ -5,6 +5,7 @@ import {
   BlockFinalizedEventConfig,
   EventChannelConnectionOption,
   EventConfigType,
+  TxStateChangedEventConfig,
   ValueChangedEventConfig,
 } from '../types';
 import EventFilter from './event-filter';
@@ -49,6 +50,9 @@ export default class EventManager {
   subscribe(
       eventType: 'VALUE_CHANGED',
       config: ValueChangedEventConfig): EventEmitter;
+  subscribe(
+      eventType: 'TX_STATE_CHANGED',
+      config: TxStateChangedEventConfig): EventEmitter;
   subscribe(eventTypeStr: string, config: EventConfigType): EventEmitter {
     if (!this._eventChannelClient.isConnected) {
       throw Error(`Event channel is not connected! You must call ain.eh.connect() before using subscribe()`);
@@ -70,6 +74,8 @@ export default class EventManager {
         this._eventEmitters[filterId] = eventEmitter;
         break;
       case BlockchainEventTypes.VALUE_CHANGED: // TODO(cshcomcom): Implement
+        throw Error(`Not implemented`);
+      case BlockchainEventTypes.TX_STATE_CHANGED: // TODO(cshcomcom): Implement
         throw Error(`Not implemented`);
       default:
         throw Error(`Invalid event type (${eventType})`);
