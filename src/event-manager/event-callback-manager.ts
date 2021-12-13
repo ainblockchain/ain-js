@@ -4,14 +4,14 @@ import { BlockchainEventTypes, EventConfigType } from '../types';
 import { PushId } from '../ain-db/push-id';
 
 export default class EventCallbackManager {
-  private readonly _filters: { [filterId: string]: EventFilter };
-  private readonly _filterIdToSubscriptionId: { [filterId: string]: string };
-  private readonly _subscriptions: { [subscriptionId: string]: Subscription };
+  private readonly _filters: Map<string, EventFilter>;
+  private readonly _filterIdToSubscriptionId: Map<string, string>;
+  private readonly _subscriptions: Map<string, Subscription>;
 
   constructor() {
-    this._filters = {};
-    this._filterIdToSubscriptionId = {};
-    this._subscriptions = {};
+    this._filters = new Map<string, EventFilter>();
+    this._filterIdToSubscriptionId = new Map<string, string>();
+    this._subscriptions = new Map<string, Subscription>();
   }
 
   buildFilterId() {
@@ -23,11 +23,11 @@ export default class EventCallbackManager {
   }
 
   emitEvent(filterId: string, payload: any) {
-    const subscriptionId = this._filterIdToSubscriptionId[filterId];
+    const subscriptionId = this._filterIdToSubscriptionId.get(filterId);
     if (!subscriptionId) {
       throw Error(`Can't find subscription id by filter id (${filterId})`);
     }
-    const subscription = this._subscriptions[subscriptionId];
+    const subscription = this._subscriptions.get(subscriptionId);
     if (!subscription) {
       throw Error(`Can't find subscription by subscription id (${subscriptionId})`);
     }
@@ -35,11 +35,11 @@ export default class EventCallbackManager {
   }
 
   emitError(filterId: string, errorMessage: string) {
-    const subscriptionId = this._filterIdToSubscriptionId[filterId];
+    const subscriptionId = this._filterIdToSubscriptionId.get(filterId);
     if (!subscriptionId) {
       throw Error(`Can't find subscription id by filter id (${filterId})`);
     }
-    const subscription = this._subscriptions[subscriptionId];
+    const subscription = this._subscriptions.get(subscriptionId);
     if (!subscription) {
       throw Error(`Can't find subscription by subscription id (${subscriptionId})`);
     }
@@ -51,11 +51,11 @@ export default class EventCallbackManager {
     switch (eventType) {
       case BlockchainEventTypes.BLOCK_FINALIZED:
         const filterId = this.buildFilterId();
-        if (this._filters[filterId]) { // TODO(cshcomcom): Retry logic
+        if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic
           throw Error(`Already existing filter id in filters (${filterId})`);
         }
         const filter = new EventFilter(filterId, eventType, config);
-        this._filters[filterId] = filter;
+        this._filters.set(filterId, filter);
         return filter;
       case BlockchainEventTypes.VALUE_CHANGED: // TODO(cshcomcom): Implement
         throw Error(`Not implemented`);
@@ -67,16 +67,16 @@ export default class EventCallbackManager {
   }
 
   createSubscription(filter: EventFilter) {
-    if (this._filterIdToSubscriptionId[filter.id]) {
+    if (this._filterIdToSubscriptionId.get(filter.id)) {
       throw Error(`Already existing filter id in filterIdToSubscriptionId (${filter.id})`);
     }
     const subscriptionId = this.buildSubscriptionId();
-    if (this._subscriptions[subscriptionId]) { // TODO(cshcomcom): Retry logic
+    if (this._subscriptions.get(subscriptionId)) { // TODO(cshcomcom): Retry logic
       throw Error(`Already existing subscription id in subscriptions (${subscriptionId})`);
     }
     const subscription = new Subscription(subscriptionId, filter);
-    this._subscriptions[subscriptionId] = subscription;
-    this._filterIdToSubscriptionId[filter.id] = subscriptionId;
+    this._subscriptions.set(subscriptionId, subscription);
+    this._filterIdToSubscriptionId.set(filter.id, subscriptionId);
     return subscription;
   }
 }
