@@ -3,12 +3,10 @@ import { ErrorFirstCallback } from '../types';
 import EventFilter from './event-filter';
 
 export default class Subscription extends EventEmitter {
-  private readonly _id: string;
   private readonly _filter: EventFilter;
 
-  constructor(id: string, filter: EventFilter) {
+  constructor(filter: EventFilter) {
     super();
-    this._id = id;
     this._filter = filter;
   }
 

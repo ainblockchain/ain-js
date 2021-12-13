@@ -5,13 +5,11 @@ import { PushId } from '../ain-db/push-id';
 
 export default class EventCallbackManager {
   private readonly _filters: Map<string, EventFilter>;
-  private readonly _filterIdToSubscriptionId: Map<string, string>;
-  private readonly _subscriptions: Map<string, Subscription>;
+  private readonly _filterIdToSubscription: Map<string, Subscription>;
 
   constructor() {
     this._filters = new Map<string, EventFilter>();
-    this._filterIdToSubscriptionId = new Map<string, string>();
-    this._subscriptions = new Map<string, Subscription>();
+    this._filterIdToSubscription = new Map<string, Subscription>();
   }
 
   buildFilterId() {
@@ -23,25 +21,17 @@ export default class EventCallbackManager {
   }
 
   emitEvent(filterId: string, payload: any) {
-    const subscriptionId = this._filterIdToSubscriptionId.get(filterId);
-    if (!subscriptionId) {
-      throw Error(`Can't find subscription id by filter id (${filterId})`);
-    }
-    const subscription = this._subscriptions.get(subscriptionId);
+    const subscription = this._filterIdToSubscription.get(filterId);
     if (!subscription) {
-      throw Error(`Can't find subscription by subscription id (${subscriptionId})`);
+      throw Error(`Can't find subscription by filter id (${filterId})`);
     }
     subscription.emit('data', payload);
   }
 
   emitError(filterId: string, errorMessage: string) {
-    const subscriptionId = this._filterIdToSubscriptionId.get(filterId);
-    if (!subscriptionId) {
-      throw Error(`Can't find subscription id by filter id (${filterId})`);
-    }
-    const subscription = this._subscriptions.get(subscriptionId);
+    const subscription = this._filterIdToSubscription.get(filterId);
     if (!subscription) {
-      throw Error(`Can't find subscription by subscription id (${subscriptionId})`);
+      throw Error(`Can't find subscription by filter id (${filterId})`);
     }
     subscription.emit('error', errorMessage);
   }
@@ -67,16 +57,8 @@ export default class EventCallbackManager {
   }
 
   createSubscription(filter: EventFilter) {
-    if (this._filterIdToSubscriptionId.get(filter.id)) {
-      throw Error(`Already existing filter id in filterIdToSubscriptionId (${filter.id})`);
-    }
-    const subscriptionId = this.buildSubscriptionId();
-    if (this._subscriptions.get(subscriptionId)) { // TODO(cshcomcom): Retry logic
-      throw Error(`Already existing subscription id in subscriptions (${subscriptionId})`);
-    }
-    const subscription = new Subscription(subscriptionId, filter);
-    this._subscriptions.set(subscriptionId, subscription);
-    this._filterIdToSubscriptionId.set(filter.id, subscriptionId);
+    const subscription = new Subscription(filter);
+    this._filterIdToSubscription.set(filter.id, subscription);
     return subscription;
   }
 }
