@@ -31,21 +31,22 @@ export default class EventManager {
 
   subscribe(
       eventType: 'BLOCK_FINALIZED', config: BlockFinalizedEventConfig,
-      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): Subscription;
+      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): string;
   subscribe(
       eventType: 'VALUE_CHANGED', config: ValueChangedEventConfig,
-      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): Subscription;
+      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): string;
   subscribe(
       eventType: 'TX_STATE_CHANGED', config: TxStateChangedEventConfig,
-      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): Subscription;
+      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): string;
   subscribe(
       eventTypeStr: string, config: EventConfigType,
-      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): Subscription {
+      dataCallback?: (data: any) => void, errorCallback?: (error: any) => void): string {
     if (!this._eventChannelClient.isConnected) {
       throw Error(`Event channel is not connected! You must call ain.eh.connect() before using subscribe()`);
     }
     const filter = this._eventCallbackManager.createFilter(eventTypeStr, config);
     this._eventChannelClient.registerFilter(filter);
-    return this._eventCallbackManager.createSubscription(filter, dataCallback, errorCallback);
+    this._eventCallbackManager.createSubscription(filter, dataCallback, errorCallback);
+    return filter.id;
   }
 }
