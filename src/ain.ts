@@ -10,6 +10,7 @@ import Database from './ain-db/db';
 import Reference from './ain-db/ref';
 import Wallet from './wallet';
 import Network from './net';
+import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
 
 export default class Ain {
@@ -19,6 +20,7 @@ export default class Ain {
   public net: Network;
   public wallet: Wallet;
   public he: HomomorphicEncryption;
+  public em: EventManager;
 
   /**
    * @param {string} providerUrl
@@ -31,6 +33,7 @@ export default class Ain {
     this.wallet = new Wallet(this, this.chainId);
     this.db = new Database(this, this.provider);
     this.he = new HomomorphicEncryption();
+    this.em = new EventManager(this);
   }
 
   /**

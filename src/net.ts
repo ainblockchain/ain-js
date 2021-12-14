@@ -59,4 +59,11 @@ export default class Network {
   isSyncing(): Promise<boolean> {
     return this.provider.send('net_syncing');
   }
+
+  /**
+   * Returns the event handler network information.
+   */
+  getEventHandlerNetworkInfo(): Promise<any> {
+    return this.provider.send('net_getEventHandlerNetworkInfo');
+  }
 }

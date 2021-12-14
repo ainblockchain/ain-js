@@ -1,6 +1,6 @@
 {
   "name": "@ainblockchain/ain-js",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "",
   "main": "lib/ain.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "prepublishOnly": "npm run build",
     "snapshot": "jest --updateSnapshot",
     "test": "jest",
-    "test_he": "jest he.test.ts"
+    "test_he": "jest he.test.ts",
+    "test_em": "jest event_manager.test.ts"
   },
   "engines": {
     "node": ">=12"
@@ -33,9 +34,9 @@
     "lib/**/*"
   ],
   "devDependencies": {
-    "@types/jest": "^24.9.1",
-    "jest": "^24.9.0",
-    "ts-jest": "^24.3.0",
+    "@types/jest": "^27.0.2",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
     "typescript": "^3.9.10"
   },
   "dependencies": {
@@ -43,7 +44,7 @@
     "@types/node": "^12.7.3",
     "@types/randombytes": "^2.0.0",
     "@types/semver": "^7.3.4",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "bip39": "^3.0.2",
     "browserify-cipher": "^1.0.1",
     "eventemitter3": "^4.0.0",
@@ -55,6 +56,7 @@
     "scryptsy": "^2.1.0",
     "semver": "^6.3.0",
     "url-parse": "^1.4.7",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "ws": "^8.2.3"
   }
 }

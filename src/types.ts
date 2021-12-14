@@ -204,3 +204,44 @@ export type HomomorphicEncryptionParams = {
 export type HomomorphicEncryptionSecretKey = {
   secretKey: string
 }
+
+export enum BlockchainEventTypes {
+  BLOCK_FINALIZED = 'BLOCK_FINALIZED',
+  VALUE_CHANGED = 'VALUE_CHANGED',
+  TX_STATE_CHANGED = 'TX_STATE_CHANGED',
+}
+
+export enum EventChannelMessageTypes {
+  REGISTER_FILTER = 'REGISTER_FILTER',
+  DEREGISTER_FILTER = 'DEREGISTER_FILTER',
+  EMIT_EVENT = 'EMIT_EVENT',
+  EMIT_ERROR = 'EMIT_ERROR',
+}
+
+export interface EventChannelMessage {
+  type: EventChannelMessageTypes;
+  data: any;
+}
+
+export interface BlockFinalizedEventConfig {
+  block_number?: number;
+}
+
+export interface ValueChangedEventConfig {
+  path: string;
+}
+
+export interface TxStateChangedEventConfig {
+  tx_hash: string;
+}
+
+export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
+
+export interface EventChannelConnectionOption {
+  handshakeTimeout?: number;
+}
+
+export interface ErrorFirstCallback<T> {
+  (err: any, result?: undefined | null): void;
+  (err: undefined | null, result: T): void;
+}
