@@ -56,8 +56,15 @@ export default class EventCallbackManager {
     }
   }
 
-  createSubscription(filter: EventFilter) {
+  createSubscription(filter: EventFilter, dataCallback?: (data: any) => void,
+      errorCallback?: (error: any) => void) {
     const subscription = new Subscription(filter);
+    if (dataCallback) {
+      subscription.on('data', dataCallback);
+    }
+    if (errorCallback) {
+      subscription.on('error', errorCallback);
+    }
     this._filterIdToSubscription.set(filter.id, subscription);
     return subscription;
   }
