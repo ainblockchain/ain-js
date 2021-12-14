@@ -242,7 +242,8 @@ export default class Ain {
       nonce = await this.getNonce({address, from: "pending"});
     }
     const timestamp = transactionInput.timestamp ? transactionInput.timestamp : Date.now();
-    return Object.assign(tx, { nonce, timestamp });
+    const gasPrice = transactionInput.gas_price || 0;
+    return Object.assign(tx, { nonce, timestamp, gas_price: gasPrice });
   }
 
   /**
