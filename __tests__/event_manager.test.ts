@@ -18,11 +18,10 @@ describe('Event Handler', function() {
 
   it('Subscribe to BLOCK_FINALIZED', async () => {
     const callback = jest.fn();
-    const subscription = ain.em.subscribe('BLOCK_FINALIZED', {});
-    subscription.once('data', (data) => {
+    ain.em.subscribe('BLOCK_FINALIZED', {}, (data) => {
       callback(data);
     });
     await delayMs(10000);
-    expect(callback).toBeCalledTimes(1);
+    expect(callback).toBeCalled();
   });
 });
