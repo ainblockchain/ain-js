@@ -1,6 +1,7 @@
 import Ain from '../ain';
 import {
   BlockFinalizedEventConfig,
+  ErrorFirstCallback,
   EventChannelConnectionOption,
   EventConfigType,
   TxStateChangedEventConfig,
@@ -48,5 +49,10 @@ export default class EventManager {
     this._eventChannelClient.registerFilter(filter);
     this._eventCallbackManager.createSubscription(filter, dataCallback, errorCallback);
     return filter.id;
+  }
+
+  unsubscribe(filterId: string, callback: ErrorFirstCallback<boolean>) {
+    // TODO(cshcomcom): Implement logic
+    callback(new Error(`Not implemented!`));
   }
 }
