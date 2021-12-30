@@ -221,12 +221,12 @@ export default class Wallet {
    * Sends a transfer transaction to the network.
    * @param input
    */
-  transfer(input: {to: string, value: number, from?: string, nonce?: number}): Promise<any> {
+  transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}): Promise<any> {
     const address = this.getImpliedAddress(input.from);
     const toAddress = Ain.utils.toChecksumAddress(input.to);
     const transferRef = this.ain.db.ref(`/transfer/${address}/${toAddress}`).push() as Reference;
     return transferRef.setValue({
-        ref: '/value', address, value: input.value, nonce: input.nonce });
+        ref: '/value', address, value: input.value, nonce: input.nonce, gas_price: input.gas_price });
   }
 
   /**
