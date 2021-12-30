@@ -1,1 +1,1 @@
-export const BLOCKCHAIN_PROTOCOL_VERSION = '0.9.0';
+export const BLOCKCHAIN_PROTOCOL_VERSION = '1.0.0';
