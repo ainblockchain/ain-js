@@ -246,7 +246,8 @@ export default class Ain {
     }
     const timestamp = transactionInput.timestamp ? transactionInput.timestamp : Date.now();
     const gasPrice = transactionInput.gas_price || 0;
-    return Object.assign(tx, { nonce, timestamp, gas_price: gasPrice });
+    const billing = transactionInput.billing;
+    return Object.assign(tx, { nonce, timestamp, gas_price: gasPrice, billing });
   }
 
   /**
