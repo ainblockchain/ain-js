@@ -106,11 +106,14 @@ export interface TransactionInputBase {
   address?: string;
   timestamp?: number;
   gas_price?: number;
+  billing?: string;
 }
 
 export interface TransactionBody extends TransactionBodyBase {
   nonce: number;
   timestamp: number;
+  gas_price?: number;
+  billing?: string;
 }
 
 export interface TransactionInput extends TransactionBodyBase, TransactionInputBase {}
