@@ -112,7 +112,7 @@ export interface TransactionInputBase {
 export interface TransactionBody extends TransactionBodyBase {
   nonce: number;
   timestamp: number;
-  gas_price: number;
+  gas_price?: number;
   billing?: string;
 }
 
