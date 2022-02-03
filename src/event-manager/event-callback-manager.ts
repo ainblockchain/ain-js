@@ -38,22 +38,18 @@ export default class EventCallbackManager {
 
   createFilter(eventTypeStr: string, config: EventConfigType): EventFilter {
     const eventType = eventTypeStr as BlockchainEventTypes;
-    switch (eventType) {
-      case BlockchainEventTypes.BLOCK_FINALIZED:
-        const filterId = this.buildFilterId();
-        if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic
-          throw Error(`Already existing filter id in filters (${filterId})`);
-        }
-        const filter = new EventFilter(filterId, eventType, config);
-        this._filters.set(filterId, filter);
-        return filter;
-      case BlockchainEventTypes.VALUE_CHANGED: // TODO(cshcomcom): Implement
-        throw Error(`Not implemented`);
-      case BlockchainEventTypes.TX_STATE_CHANGED: // TODO(cshcomcom): Implement
-        throw Error(`Not implemented`);
-      default:
-        throw Error(`Invalid event type (${eventType})`);
+    if (!Object.values(BlockchainEventTypes).includes(eventType)) {
+      throw Error(`Invalid event type (${eventType})`);
+    } else if (eventType === BlockchainEventTypes.TX_STATE_CHANGED) {
+      throw Error(`Not implemented`); // TODO(isak): Implement
     }
+    const filterId = this.buildFilterId();
+    if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic
+      throw Error(`Already existing filter id in filters (${filterId})`);
+    }
+    const filter = new EventFilter(filterId, eventType, config);
+    this._filters.set(filterId, filter);
+    return filter;
   }
 
   createSubscription(filter: EventFilter, dataCallback?: (data: any) => void,
