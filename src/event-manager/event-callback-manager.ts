@@ -41,10 +41,10 @@ export default class EventCallbackManager {
     if (!Object.values(BlockchainEventTypes).includes(eventType)) {
       throw Error(`Invalid event type (${eventType})`);
     } else if (eventType === BlockchainEventTypes.TX_STATE_CHANGED) {
-      throw Error(`Not implemented`); // TODO(isak): Implement
+      throw Error(`Not implemented`); // TODO(isak): Implement.
     }
     const filterId = this.buildFilterId();
-    if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic
+    if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic.
       throw Error(`Already existing filter id in filters (${filterId})`);
     }
     const filter = new EventFilter(filterId, eventType, config);
