@@ -172,6 +172,7 @@ describe('ain-js', function() {
     it('signTransaction', function() {
       const tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -187,6 +188,7 @@ describe('ain-js', function() {
     it('recover', function() {
       const tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -217,6 +219,7 @@ describe('ain-js', function() {
       ain.setProvider(test_node_2, 0);
       let tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -375,6 +378,7 @@ describe('ain-js', function() {
     it('sendSignedTransaction', function(done) {
       const tx: TransactionBody = {
         nonce: -1,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_OWNER",
