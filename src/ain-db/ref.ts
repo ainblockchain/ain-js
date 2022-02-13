@@ -252,7 +252,7 @@ export default class Reference {
    * false if not.
    * @param params
    */
-  evalRule(params: EvalRuleInput): Promise<boolean> {
+  evalRule(params: EvalRuleInput): Promise<any> {
     const address = this._ain.wallet.getImpliedAddress(params.address);
     const request = {
       address,

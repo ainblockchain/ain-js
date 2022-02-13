@@ -15,7 +15,7 @@ const {
   test_node_2
 } = require('./test_data');
 
-jest.setTimeout(60000);
+jest.setTimeout(180000);
 
 // TODO (lia): Create more test cases
 describe('ain-js', function() {
@@ -172,6 +172,7 @@ describe('ain-js', function() {
     it('signTransaction', function() {
       const tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -187,6 +188,7 @@ describe('ain-js', function() {
     it('recover', function() {
       const tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -217,6 +219,7 @@ describe('ain-js', function() {
       ain.setProvider(test_node_2, 0);
       let tx: TransactionBody = {
         nonce: 17,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_VALUE",
@@ -281,7 +284,7 @@ describe('ain-js', function() {
           return true;
         }
         await new Promise((resolve) => {
-          setTimeout(resolve, 3000);
+          setTimeout(resolve, 5000);
         });
         iterCount++;
       }
@@ -375,6 +378,7 @@ describe('ain-js', function() {
     it('sendSignedTransaction', function(done) {
       const tx: TransactionBody = {
         nonce: -1,
+        gas_price: 500,
         timestamp: Date.now(),
         operation: {
           type: "SET_OWNER",
@@ -494,7 +498,7 @@ describe('ain-js', function() {
 
       ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
       .then(res => {
-        expect(res[0].result.code).toBe(103);
+        expect(res[0].result.code).toBe(12103);
         expect(res[0].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[1].result.result_list[0].code).toBe(0);
         expect(res[1].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
@@ -502,9 +506,9 @@ describe('ain-js', function() {
         expect(res[2].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[3].result.code).toBe(0);
         expect(res[3].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[4].result.code).toBe(103);
+        expect(res[4].result.code).toBe(12103);
         expect(res[4].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        expect(res[5].result.code).toBe(503);
+        expect(res[5].result.code).toBe(12302);
         expect(res[5].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         done();
       })
@@ -570,7 +574,7 @@ describe('ain-js', function() {
         }
       })
       .then(res => {
-        expect(res.result.code).toBe(603);
+        expect(res.result.code).toBe(12501);
         done();
       })
       .catch((error) => {
@@ -710,7 +714,7 @@ describe('ain-js', function() {
     });
 
     it('deleteValue', function(done) {
-      ain.db.ref(allowed_path).deleteValue()
+      ain.db.ref(`${allowed_path}/can/write`).deleteValue()
       .then(res => {
         expect(res.result.code).toBe(0);
         done();
@@ -724,7 +728,7 @@ describe('ain-js', function() {
     it('evalRule: true', function(done) {
       ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
       .then(res => {
-        expect(res).toBe(true);
+        expect(res).toStrictEqual({"code": 0, "matched": {"state": {"closestRule": {"config": null, "path": []}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}}, "write": {"closestRule": {"config": {"write": "true"}, "path": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"]}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}, "subtreeRules": []}}});
         done();
       })
       .catch(error => {
@@ -736,7 +740,7 @@ describe('ain-js', function() {
     it('evalRule: false', function(done) {
       ain.db.ref(allowed_path).evalRule({ ref: '/cannot/write', value: 'hi' })
       .then(res => {
-        expect(res).toBe(false);
+        expect(res.code).toBe(12103);
         done();
       })
       .catch(error => {

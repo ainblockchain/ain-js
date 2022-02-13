@@ -2,7 +2,7 @@ import Ain from '../src/ain';
 import { HomomorphicEncryptionParams } from '../src/types';
 const { test_node_1 } = require('./test_data');
 
-jest.setTimeout(60000);
+jest.setTimeout(180000);
 
 describe('Homomorphic Encryption', function() {
   let ain = new Ain(test_node_1);

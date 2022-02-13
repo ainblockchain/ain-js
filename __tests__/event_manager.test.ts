@@ -3,7 +3,7 @@ import Ain from '../src/ain';
 const { test_event_handler_node } = require('./test_data');
 const delayMs = (time) => new Promise(resolve => setTimeout(resolve, time));
 
-jest.setTimeout(60000);
+jest.setTimeout(180000);
 
 describe('Event Handler', function() {
   let ain = new Ain(test_event_handler_node);
@@ -21,7 +21,7 @@ describe('Event Handler', function() {
     ain.em.subscribe('BLOCK_FINALIZED', {}, (data) => {
       callback(data);
     });
-    await delayMs(10000);
+    await delayMs(60000);
     expect(callback).toBeCalled();
   });
 });
