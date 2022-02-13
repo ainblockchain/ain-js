@@ -15,7 +15,7 @@ const {
   test_node_2
 } = require('./test_data');
 
-jest.setTimeout(60000);
+jest.setTimeout(180000);
 
 // TODO (lia): Create more test cases
 describe('ain-js', function() {
@@ -281,7 +281,7 @@ describe('ain-js', function() {
           return true;
         }
         await new Promise((resolve) => {
-          setTimeout(resolve, 3000);
+          setTimeout(resolve, 5000);
         });
         iterCount++;
       }
