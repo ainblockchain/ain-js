@@ -714,7 +714,7 @@ describe('ain-js', function() {
     });
 
     it('deleteValue', function(done) {
-      ain.db.ref(allowed_path).deleteValue()
+      ain.db.ref(`${allowed_path}/can/write`).deleteValue()
       .then(res => {
         expect(res.result.code).toBe(0);
         done();
