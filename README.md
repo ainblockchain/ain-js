@@ -271,6 +271,13 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 `static fromPrivateKey(privateKey: Buffer): Account`
 - Imports an account from a private key.
 
+## Test
+- To pass the event manager test, you need to enable ENABLE_EVENT_HANLDER on the node and set its endpoint to test_event_handler_node in test_data.ts.
+```
+npm run snapshot
+```
+
+
 ## LICENSE
 
 MPL-2.0
