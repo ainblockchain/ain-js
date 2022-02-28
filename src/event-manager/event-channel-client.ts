@@ -122,9 +122,19 @@ export default class EventChannelClient {
     };
   }
 
+  sendMessage(message: EventChannelMessage) {
+    this._wsClient.send(JSON.stringify(message));
+  }
+
   registerFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
     const registerMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
-    this._wsClient.send(JSON.stringify(registerMessage));
+    this.sendMessage(registerMessage);
+  }
+
+  deregisterFilter(filter: EventFilter) {
+    const filterObj = filter.toObject();
+    const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
+    this.sendMessage(deregisterMessage);
   }
 }
