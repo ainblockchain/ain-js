@@ -52,6 +52,14 @@ export default class EventCallbackManager {
     return filter;
   }
 
+  getFilter(filterId): EventFilter {
+    const filter = this._filters.get(filterId);
+    if (!filter) {
+      throw Error(`Can't find filter by filter id (${filterId})`);
+    }
+    return filter;
+  }
+
   createSubscription(filter: EventFilter, dataCallback?: (data: any) => void,
       errorCallback?: (error: any) => void) {
     const subscription = new Subscription(filter);
