@@ -85,6 +85,7 @@ export default class EventChannelClient {
       throw Error(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
     }
     this._eventCallbackManager.emitError(filterId, errorMessage);
+    this._eventCallbackManager.deleteFilter(filterId);
   }
 
   handleMessage(message: string) {

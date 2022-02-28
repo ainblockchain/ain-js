@@ -64,4 +64,9 @@ export default class EventCallbackManager {
     this._filterIdToSubscription.set(filter.id, subscription);
     return subscription;
   }
+
+  deleteFilter(filterId: string) {
+    this._filterIdToSubscription.delete(filterId);
+    this._filters.delete(filterId);
+  }
 }
