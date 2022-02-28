@@ -74,7 +74,11 @@ export default class EventCallbackManager {
   }
 
   deleteFilter(filterId: string) {
-    this._filterIdToSubscription.delete(filterId);
-    this._filters.delete(filterId);
+    if (!this._filterIdToSubscription.delete(filterId)) {
+      throw Error(`Can't remove the subscription because it can't be found. (${filterId})`);
+    }
+    if (!this._filters.delete(filterId)) {
+      throw Error(`Can't remove the filter because it can't be found. (${filterId})`);
+    }
   }
 }
