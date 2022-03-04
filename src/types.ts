@@ -242,6 +242,7 @@ export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfi
 
 export interface EventChannelConnectionOption {
   handshakeTimeout?: number;
+  heartbeatIntervalMs?: number;
 }
 
 export interface ErrorFirstCallback<T> {
