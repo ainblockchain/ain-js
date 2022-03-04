@@ -128,7 +128,6 @@ export default class EventChannelClient {
       }
     } catch (err) {
       console.error(err);
-      // TODO(cshcomcom): Error handling
     }
   }
 
