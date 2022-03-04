@@ -52,6 +52,9 @@ export default class EventChannelClient {
         resolve();
       });
       this._wsClient.on('ping', () => {
+        if (this._heartbeatTimeout) {
+          clearTimeout(this._heartbeatTimeout);
+        }
         this._heartbeatTimeout = setTimeout(() => {
           console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
           this._wsClient.terminate();
