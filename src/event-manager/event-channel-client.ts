@@ -15,6 +15,7 @@ export default class EventChannelClient {
   private _wsClient?: WebSocket;
   private _endpointUrl?: string;
   private _isConnected: boolean;
+  private _heartbeatTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(ain: Ain, eventCallbackManager: EventCallbackManager) {
     this._ain = ain;
@@ -22,6 +23,7 @@ export default class EventChannelClient {
     this._wsClient = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
+    this._heartbeatTimeout = undefined;
   }
 
   get isConnected(): boolean {
@@ -42,19 +44,31 @@ export default class EventChannelClient {
         this.handleMessage(message);
       });
       this._wsClient.on('error', (err) => {
-        reject(err);
+        console.error(err);
+        this.disconnect();
       });
       this._wsClient.on('open', () => {
         this._isConnected = true;
         resolve();
       });
-      // TODO(cshcomcom): Handle close connection (w/ ping-pong)
+      this._wsClient.on('ping', () => {
+        this._heartbeatTimeout = setTimeout(() => {
+          console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
+          this._wsClient.terminate();
+        }, connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+      });
+      this._wsClient.on('close', () => {
+        this.disconnect();
+      });
     })
   }
 
   disconnect() {
     this._isConnected = false;
-    this._wsClient.close();
+    this._wsClient.terminate();
+    if (this._heartbeatTimeout) {
+      clearTimeout(this._heartbeatTimeout);
+    }
   }
 
   handleEmitEventMessage(messageData) {
@@ -123,6 +137,9 @@ export default class EventChannelClient {
   }
 
   sendMessage(message: EventChannelMessage) {
+    if (!this._isConnected) {
+      throw Error(`Failed to send message. Event channel is not connected!`);
+    }
     this._wsClient.send(JSON.stringify(message));
   }
 
