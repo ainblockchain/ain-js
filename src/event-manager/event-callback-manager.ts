@@ -28,12 +28,15 @@ export default class EventCallbackManager {
     subscription.emit('data', payload);
   }
 
-  emitError(filterId: string, errorMessage: string) {
+  emitError(filterId: string, code: number, errorMessage: string) {
     const subscription = this._filterIdToSubscription.get(filterId);
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
-    subscription.emit('error', errorMessage);
+    subscription.emit('error', {
+      code: code,
+      message: errorMessage,
+    });
   }
 
   createFilter(eventTypeStr: string, config: EventConfigType): EventFilter {

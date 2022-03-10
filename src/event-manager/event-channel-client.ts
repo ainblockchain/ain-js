@@ -94,15 +94,20 @@ export default class EventChannelClient {
   handleEmitErrorMessage(messageData) {
     const filterId = messageData.filter_id;
     if (!filterId) {
-      throw Error(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
+      console.log(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
     }
-    // TODO(cshcomcom): error codes
-    const errorMessage = messageData.error_message;
+    const code = messageData.code;
+    if (!code) {
+      console.log(`Can't find code from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
+    }
+    const errorMessage = messageData.message;
     if (!errorMessage) {
-      throw Error(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      console.log(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
     }
-    this._eventCallbackManager.emitError(filterId, errorMessage);
-    this._eventCallbackManager.deleteFilter(filterId);
+    this._eventCallbackManager.emitError(filterId, code, errorMessage);
   }
 
   handleMessage(message: string) {
