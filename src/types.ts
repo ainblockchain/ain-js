@@ -227,7 +227,7 @@ export interface EventChannelMessage {
 }
 
 export interface BlockFinalizedEventConfig {
-  block_number?: number;
+  block_number: number | null;
 }
 
 export interface ValueChangedEventConfig {
