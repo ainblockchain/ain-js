@@ -23,4 +23,13 @@ describe('Event Handler', function() {
       done();
     });
   });
+
+  it('Subscribe to BLOCK_FINALIZED with wrong config', (done) => {
+    ain.em.subscribe('BLOCK_FINALIZED', {
+      block_number: -1,
+    }, (data) => {
+    }, (err) => {
+      done();
+    });
+  });
 });
