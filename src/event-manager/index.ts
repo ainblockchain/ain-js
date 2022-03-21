@@ -53,9 +53,12 @@ export default class EventManager {
 
   unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>) {
     try {
+      if (!this._eventChannelClient.isConnected) {
+        throw Error(`Event channel is not connected! You must call ain.eh.connect() before using unsubscribe()`);
+      }
       const filter = this._eventCallbackManager.getFilter(filterId);
-      this._eventChannelClient.deregisterFilter(filter);
       this._eventCallbackManager.deleteFilter(filter.id);
+      this._eventChannelClient.deregisterFilter(filter);
       callback(null, filter);
     } catch (err) {
       callback(err, null);
