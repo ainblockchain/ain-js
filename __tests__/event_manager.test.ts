@@ -16,12 +16,20 @@ describe('Event Handler', function() {
     ain.em.disconnect();
   });
 
-  it('Subscribe to BLOCK_FINALIZED', async () => {
-    const callback = jest.fn();
-    ain.em.subscribe('BLOCK_FINALIZED', {}, (data) => {
-      callback(data);
+  it('Subscribe to BLOCK_FINALIZED', (done) => {
+    ain.em.subscribe('BLOCK_FINALIZED', {
+      block_number: null,
+    }, (data) => {
+      done();
     });
-    await delayMs(60000);
-    expect(callback).toBeCalled();
+  });
+
+  it('Subscribe to BLOCK_FINALIZED with wrong config', (done) => {
+    ain.em.subscribe('BLOCK_FINALIZED', {
+      block_number: -1,
+    }, (data) => {
+    }, (err) => {
+      done();
+    });
   });
 });

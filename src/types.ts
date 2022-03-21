@@ -227,7 +227,7 @@ export interface EventChannelMessage {
 }
 
 export interface BlockFinalizedEventConfig {
-  block_number?: number;
+  block_number: number | null;
 }
 
 export interface ValueChangedEventConfig {
@@ -242,6 +242,7 @@ export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfi
 
 export interface EventChannelConnectionOption {
   handshakeTimeout?: number;
+  heartbeatIntervalMs?: number;
 }
 
 export interface ErrorFirstCallback<T> {

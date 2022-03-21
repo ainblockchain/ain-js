@@ -9,7 +9,7 @@ import {
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
-import Subscription from './subscription';
+import EventFilter from './event-filter';
 
 export default class EventManager {
   private _ain: Ain;
@@ -51,8 +51,17 @@ export default class EventManager {
     return filter.id;
   }
 
-  unsubscribe(filterId: string, callback: ErrorFirstCallback<boolean>) {
-    // TODO(cshcomcom): Implement logic
-    callback(new Error(`Not implemented!`));
+  unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>) {
+    try {
+      if (!this._eventChannelClient.isConnected) {
+        throw Error(`Event channel is not connected! You must call ain.eh.connect() before using unsubscribe()`);
+      }
+      const filter = this._eventCallbackManager.getFilter(filterId);
+      this._eventCallbackManager.deleteFilter(filter.id);
+      this._eventChannelClient.deregisterFilter(filter);
+      callback(null, filter);
+    } catch (err) {
+      callback(err, null);
+    }
   }
 }

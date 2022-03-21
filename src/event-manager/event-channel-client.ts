@@ -15,6 +15,7 @@ export default class EventChannelClient {
   private _wsClient?: WebSocket;
   private _endpointUrl?: string;
   private _isConnected: boolean;
+  private _heartbeatTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(ain: Ain, eventCallbackManager: EventCallbackManager) {
     this._ain = ain;
@@ -22,6 +23,7 @@ export default class EventChannelClient {
     this._wsClient = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
+    this._heartbeatTimeout = undefined;
   }
 
   get isConnected(): boolean {
@@ -42,19 +44,34 @@ export default class EventChannelClient {
         this.handleMessage(message);
       });
       this._wsClient.on('error', (err) => {
-        reject(err);
+        console.error(err);
+        this.disconnect();
       });
       this._wsClient.on('open', () => {
         this._isConnected = true;
         resolve();
       });
-      // TODO(cshcomcom): Handle close connection (w/ ping-pong)
+      this._wsClient.on('ping', () => {
+        if (this._heartbeatTimeout) {
+          clearTimeout(this._heartbeatTimeout);
+        }
+        this._heartbeatTimeout = setTimeout(() => {
+          console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
+          this._wsClient.terminate();
+        }, connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+      });
+      this._wsClient.on('close', () => {
+        this.disconnect();
+      });
     })
   }
 
   disconnect() {
     this._isConnected = false;
-    this._wsClient.close();
+    this._wsClient.terminate();
+    if (this._heartbeatTimeout) {
+      clearTimeout(this._heartbeatTimeout);
+    }
   }
 
   handleEmitEventMessage(messageData) {
@@ -77,14 +94,20 @@ export default class EventChannelClient {
   handleEmitErrorMessage(messageData) {
     const filterId = messageData.filter_id;
     if (!filterId) {
-      throw Error(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
+      console.log(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
     }
-    // TODO(cshcomcom): error codes
-    const errorMessage = messageData.error_message;
+    const code = messageData.code;
+    if (!code) {
+      console.log(`Can't find code from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
+    }
+    const errorMessage = messageData.message;
     if (!errorMessage) {
-      throw Error(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      console.log(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
     }
-    this._eventCallbackManager.emitError(filterId, errorMessage);
+    this._eventCallbackManager.emitError(filterId, code, errorMessage);
   }
 
   handleMessage(message: string) {
@@ -110,7 +133,6 @@ export default class EventChannelClient {
       }
     } catch (err) {
       console.error(err);
-      // TODO(cshcomcom): Error handling
     }
   }
 
@@ -121,9 +143,22 @@ export default class EventChannelClient {
     };
   }
 
+  sendMessage(message: EventChannelMessage) {
+    if (!this._isConnected) {
+      throw Error(`Failed to send message. Event channel is not connected!`);
+    }
+    this._wsClient.send(JSON.stringify(message));
+  }
+
   registerFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
     const registerMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
-    this._wsClient.send(JSON.stringify(registerMessage));
+    this.sendMessage(registerMessage);
+  }
+
+  deregisterFilter(filter: EventFilter) {
+    const filterObj = filter.toObject();
+    const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
+    this.sendMessage(deregisterMessage);
   }
 }

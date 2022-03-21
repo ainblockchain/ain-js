@@ -28,12 +28,15 @@ export default class EventCallbackManager {
     subscription.emit('data', payload);
   }
 
-  emitError(filterId: string, errorMessage: string) {
+  emitError(filterId: string, code: number, errorMessage: string) {
     const subscription = this._filterIdToSubscription.get(filterId);
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
-    subscription.emit('error', errorMessage);
+    subscription.emit('error', {
+      code: code,
+      message: errorMessage,
+    });
   }
 
   createFilter(eventTypeStr: string, config: EventConfigType): EventFilter {
@@ -52,6 +55,14 @@ export default class EventCallbackManager {
     return filter;
   }
 
+  getFilter(filterId): EventFilter {
+    const filter = this._filters.get(filterId);
+    if (!filter) {
+      throw Error(`Can't find filter by filter id (${filterId})`);
+    }
+    return filter;
+  }
+
   createSubscription(filter: EventFilter, dataCallback?: (data: any) => void,
       errorCallback?: (error: any) => void) {
     const subscription = new Subscription(filter);
@@ -63,5 +74,14 @@ export default class EventCallbackManager {
     }
     this._filterIdToSubscription.set(filter.id, subscription);
     return subscription;
+  }
+
+  deleteFilter(filterId: string) {
+    if (!this._filterIdToSubscription.delete(filterId)) {
+      console.log(`Can't remove the subscription because it can't be found. (${filterId})`);
+    }
+    if (!this._filters.delete(filterId)) {
+      console.log(`Can't remove the filter because it can't be found. (${filterId})`);
+    }
   }
 }
