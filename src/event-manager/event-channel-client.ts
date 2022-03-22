@@ -15,7 +15,7 @@ export default class EventChannelClient {
   private _wsClient?: WebSocket;
   private _endpointUrl?: string;
   private _isConnected: boolean;
-  private _heartbeatTimeout?: ReturnType<typeof setTimeout>;
+  private _heartbeatTimeout?: ReturnType<typeof setTimeout> | null;
 
   constructor(ain: Ain, eventCallbackManager: EventCallbackManager) {
     this._ain = ain;
@@ -71,6 +71,7 @@ export default class EventChannelClient {
     this._wsClient.terminate();
     if (this._heartbeatTimeout) {
       clearTimeout(this._heartbeatTimeout);
+      this._heartbeatTimeout = null;
     }
   }
 
