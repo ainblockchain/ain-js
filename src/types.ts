@@ -249,3 +249,37 @@ export interface ErrorFirstCallback<T> {
   (err: any, result?: undefined | null): void;
   (err: undefined | null, result: T): void;
 }
+
+export interface BlockFinalizedEvent {
+  block_number: number;
+  block_hash: string;
+}
+
+export interface ValueChangedEventAuth {
+  addr?: string;
+  fid?: string;
+}
+
+export interface ValueChangedEventValues {
+  before: any;
+  after: any;
+}
+
+export interface ValueChangedEvent {
+  filter_path: string;
+  matched_path: string;
+  params: any;
+  transaction: Transaction;
+  auth: ValueChangedEventAuth;
+  values: ValueChangedEventValues;
+}
+
+export interface TxStateChangedEvent {
+  // TODO(2sakchoi): Add event type.
+}
+
+export interface BlockchainEventCallback {
+  (event: BlockFinalizedEvent): void;
+  (event: ValueChangedEvent): void;
+  (event: TxStateChangedEvent): void;
+}

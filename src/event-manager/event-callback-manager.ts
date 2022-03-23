@@ -1,6 +1,6 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, EventConfigType } from '../types';
+import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback } from '../types';
 import { PushId } from '../ain-db/push-id';
 
 export default class EventCallbackManager {
@@ -25,7 +25,7 @@ export default class EventCallbackManager {
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
-    subscription.emit('data', payload);
+    subscription.emit('event', payload);
   }
 
   emitError(filterId: string, code: number, errorMessage: string) {
@@ -63,11 +63,11 @@ export default class EventCallbackManager {
     return filter;
   }
 
-  createSubscription(filter: EventFilter, dataCallback?: (data: any) => void,
+  createSubscription(filter: EventFilter, eventCallback?: BlockchainEventCallback,
       errorCallback?: (error: any) => void) {
     const subscription = new Subscription(filter);
-    if (dataCallback) {
-      subscription.on('data', dataCallback);
+    if (eventCallback) {
+      subscription.on('event', eventCallback);
     }
     if (errorCallback) {
       subscription.on('error', errorCallback);
