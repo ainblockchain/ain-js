@@ -36,8 +36,26 @@ export default class EventChannelClient {
       const url = eventHandlerNetworkInfo.url;
       if (!url) {
         reject(new Error(`Can't get url from eventHandlerNetworkInfo ` +
-            `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)}`));
+            `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)})`));
+        return;
       }
+      const eventChannelLimit = eventHandlerNetworkInfo.eventChannelLimit;
+      if (eventChannelLimit === undefined) {
+        reject(new Error(`Can't get eventChannelLimit limit from eventHandlerNetworkInfo ` +
+            `(${eventChannelLimit})`));
+        return;
+      }
+      const numberOfEventChannels = eventHandlerNetworkInfo.numberOfEventChannels;
+      if (numberOfEventChannels === undefined) {
+        reject(new Error(`Can't get numberOfEventChannels from eventHandlerNetworkInfo ` +
+            `(${numberOfEventChannels})`));
+        return;
+      }
+      if (eventChannelLimit - numberOfEventChannels <= 0) {
+        reject(new Error(`Exceed event channel limit! (node:${url})`));
+        return;
+      }
+
       this._endpointUrl = url;
       this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || 30000 });
       this._wsClient.on('message', (message) => {
