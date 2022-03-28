@@ -5,7 +5,7 @@ import {
   EventChannelConnectionOption,
   EventConfigType, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
-  ValueChangedEventConfig, ValueChangedEvent,
+  ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback,
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
@@ -22,8 +22,8 @@ export default class EventManager {
     this._eventChannelClient = new EventChannelClient(ain, this._eventCallbackManager);
   }
 
-  async connect(connectionOption?: EventChannelConnectionOption) {
-    await this._eventChannelClient.connect(connectionOption || {});
+  async connect(connectionOption?: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
+    await this._eventChannelClient.connect(connectionOption || {}, disconnectCallback);
   }
 
   disconnect() {

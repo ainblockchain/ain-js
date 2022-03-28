@@ -5,6 +5,7 @@ import {
   EventChannelMessage,
   BlockchainEventTypes,
   EventChannelConnectionOption,
+  DisconnectCallback,
 } from '../types';
 import EventFilter from './event-filter';
 import EventCallbackManager from './event-callback-manager';
@@ -30,7 +31,7 @@ export default class EventChannelClient {
     return this._isConnected;
   }
 
-  connect(connectionOption: EventChannelConnectionOption) {
+  connect(connectionOption: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
     return new Promise(async (resolve, reject) => {
       const eventHandlerNetworkInfo = await this._ain.net.getEventHandlerNetworkInfo();
       const url = eventHandlerNetworkInfo.url;
@@ -80,6 +81,9 @@ export default class EventChannelClient {
       });
       this._wsClient.on('close', () => {
         this.disconnect();
+        if (disconnectCallback) {
+          disconnectCallback(this._wsClient);
+        }
       });
     })
   }
