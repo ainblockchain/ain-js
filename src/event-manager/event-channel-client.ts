@@ -52,7 +52,7 @@ export default class EventChannelClient {
             `(${numberOfEventChannels})`));
         return;
       }
-      if (maxNumEventChannels - numberOfEventChannels <= 0) {
+      if (numberOfEventChannels >= maxNumEventChannels) {
         reject(new Error(`Exceed event channel limit! (node:${url})`));
         return;
       }
