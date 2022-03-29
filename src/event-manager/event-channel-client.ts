@@ -42,17 +42,17 @@ export default class EventChannelClient {
       }
       const maxNumEventChannels = eventHandlerNetworkInfo.maxNumEventChannels;
       if (maxNumEventChannels === undefined) {
-        reject(new Error(`Can't get eventChannelLimit limit from eventHandlerNetworkInfo ` +
+        reject(new Error(`Can't get maxNumEventChannels limit from eventHandlerNetworkInfo ` +
             `(${maxNumEventChannels})`));
         return;
       }
-      const numberOfEventChannels = eventHandlerNetworkInfo.numberOfEventChannels;
-      if (numberOfEventChannels === undefined) {
-        reject(new Error(`Can't get numberOfEventChannels from eventHandlerNetworkInfo ` +
-            `(${numberOfEventChannels})`));
+      const numEventChannels = eventHandlerNetworkInfo.numEventChannels;
+      if (numEventChannels === undefined) {
+        reject(new Error(`Can't get numEventChannels from eventHandlerNetworkInfo ` +
+            `(${numEventChannels})`));
         return;
       }
-      if (numberOfEventChannels >= maxNumEventChannels) {
+      if (numEventChannels >= maxNumEventChannels) {
         reject(new Error(`Exceed event channel limit! (node:${url})`));
         return;
       }
