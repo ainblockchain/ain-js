@@ -40,10 +40,10 @@ export default class EventChannelClient {
             `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)})`));
         return;
       }
-      const eventChannelLimit = eventHandlerNetworkInfo.eventChannelLimit;
-      if (eventChannelLimit === undefined) {
+      const maxNumEventChannels = eventHandlerNetworkInfo.maxNumEventChannels;
+      if (maxNumEventChannels === undefined) {
         reject(new Error(`Can't get eventChannelLimit limit from eventHandlerNetworkInfo ` +
-            `(${eventChannelLimit})`));
+            `(${maxNumEventChannels})`));
         return;
       }
       const numberOfEventChannels = eventHandlerNetworkInfo.numberOfEventChannels;
@@ -52,7 +52,7 @@ export default class EventChannelClient {
             `(${numberOfEventChannels})`));
         return;
       }
-      if (eventChannelLimit - numberOfEventChannels <= 0) {
+      if (maxNumEventChannels - numberOfEventChannels <= 0) {
         reject(new Error(`Exceed event channel limit! (node:${url})`));
         return;
       }
