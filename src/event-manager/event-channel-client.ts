@@ -5,6 +5,7 @@ import {
   EventChannelMessage,
   BlockchainEventTypes,
   EventChannelConnectionOption,
+  DisconnectCallback,
 } from '../types';
 import EventFilter from './event-filter';
 import EventCallbackManager from './event-callback-manager';
@@ -30,14 +31,32 @@ export default class EventChannelClient {
     return this._isConnected;
   }
 
-  connect(connectionOption: EventChannelConnectionOption) {
+  connect(connectionOption: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
     return new Promise(async (resolve, reject) => {
       const eventHandlerNetworkInfo = await this._ain.net.getEventHandlerNetworkInfo();
       const url = eventHandlerNetworkInfo.url;
       if (!url) {
         reject(new Error(`Can't get url from eventHandlerNetworkInfo ` +
-            `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)}`));
+            `(${JSON.stringify(eventHandlerNetworkInfo, null, 2)})`));
+        return;
       }
+      const maxNumEventChannels = eventHandlerNetworkInfo.maxNumEventChannels;
+      if (maxNumEventChannels === undefined) {
+        reject(new Error(`Can't get maxNumEventChannels limit from eventHandlerNetworkInfo ` +
+            `(${maxNumEventChannels})`));
+        return;
+      }
+      const numEventChannels = eventHandlerNetworkInfo.numEventChannels;
+      if (numEventChannels === undefined) {
+        reject(new Error(`Can't get numEventChannels from eventHandlerNetworkInfo ` +
+            `(${numEventChannels})`));
+        return;
+      }
+      if (numEventChannels >= maxNumEventChannels) {
+        reject(new Error(`Exceed event channel limit! (node:${url})`));
+        return;
+      }
+
       this._endpointUrl = url;
       this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || 30000 });
       this._wsClient.on('message', (message) => {
@@ -62,6 +81,9 @@ export default class EventChannelClient {
       });
       this._wsClient.on('close', () => {
         this.disconnect();
+        if (disconnectCallback) {
+          disconnectCallback(this._wsClient);
+        }
       });
     })
   }

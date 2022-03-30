@@ -283,3 +283,5 @@ export interface BlockchainEventCallback {
   (event: ValueChangedEvent): void;
   (event: TxStateChangedEvent): void;
 }
+
+export type DisconnectCallback = (webSocket) => void;
