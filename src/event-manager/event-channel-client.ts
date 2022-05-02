@@ -33,6 +33,10 @@ export default class EventChannelClient {
 
   connect(connectionOption: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
     return new Promise(async (resolve, reject) => {
+      if (this.isConnected) {
+        reject(new Error(`Can't connect multiple channels`));
+        return;
+      }
       const eventHandlerNetworkInfo = await this._ain.net.getEventHandlerNetworkInfo();
       const url = eventHandlerNetworkInfo.url;
       if (!url) {
