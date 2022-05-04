@@ -6,8 +6,8 @@
   "scripts": {
     "build": "rm -rf ./lib && tsc",
     "prepublishOnly": "npm run build",
-    "snapshot": "jest --updateSnapshot",
     "test": "jest",
+    "test_snapshot": "jest --updateSnapshot",
     "test_ain": "jest ain.test.ts",
     "test_he": "jest he.test.ts",
     "test_em": "jest event_manager.test.ts"
