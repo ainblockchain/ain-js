@@ -198,6 +198,12 @@ export interface StateUsageInfo {
   tree_bytes?: number,
 }
 
+export interface AppNameValidationInfo {
+  is_valid: boolean,
+  code: number,
+  message?: string,
+}
+
 export type HomomorphicEncryptionParams = {
   polyModulusDegree: number,
   coeffModulusArray: Int32Array,

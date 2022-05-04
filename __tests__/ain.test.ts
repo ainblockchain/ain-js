@@ -355,6 +355,18 @@ describe('ain-js', function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
+    it('validateAppName', async function () {
+      expect(await ain.validateAppName('test')).toStrictEqual({
+        "is_valid": false,
+        "code": 30703,
+        "message": "App name already in use: test",
+      });
+      expect(await ain.validateAppName('test_new')).toStrictEqual({
+        "is_valid": true,
+        "code": 0,
+      });
+    });
+
     it('sendTransaction', function(done) {
       ain.sendTransaction({ operation: targetTx })
       .then(res => {

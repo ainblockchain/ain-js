@@ -3,7 +3,7 @@ import * as AinUtil from "@ainblockchain/ain-util";
 import request from './request';
 import {
   Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
-  SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo
+  SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo, AppNameValidationInfo
 } from './types';
 import Provider from './provider';
 import Database from './ain-db/db';
@@ -113,6 +113,15 @@ export default class Ain {
    */
   // TODO (lia): implement this function
   // getTransactionResult(transactionHash: string): Promise<TransactionResult> {}
+
+  /**
+   * Validate the given app name.
+   * @param {string} appName
+   * @return {Promise<AppNameValidationInfo>}
+   */
+  validateAppName(appName: string): Promise<AppNameValidationInfo> {
+    return this.provider.send('ain_validateAppName', { app_name: appName });
+  }
 
   /**
    * Signs and sends a transaction to the network

@@ -4,7 +4,7 @@ AI Network Client Library for Node.js
 
 ## Installation
 ```
-npm install @ainblockchain/ain-js
+yarn add @ainblockchain/ain-js
 ```
 
 ## Examples
@@ -271,10 +271,22 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 `static fromPrivateKey(privateKey: Buffer): Account`
 - Imports an account from a private key.
 
-## Test
-- To pass the event manager test, you need to enable ENABLE_EVENT_HANLDER on the node and set its endpoint to test_event_handler_node in test_data.ts.
+## Test How-To
+1. Clone AIN Blockchain and install
 ```
-npm run snapshot
+git clone git@github.com:ainblockchain/ain-blockchain.git
+yarn install
+```
+
+2. Start blockchain locally
+```
+bash start_local_blockchain.sh
+```
+   * Note that the node 2 of the blockchain needs to be started with ENABLE_EVENT_HANDLER=true env variable for the event manager test cases.
+
+3. Run tests
+```
+yarn run test_snapshot
 ```
 
 
