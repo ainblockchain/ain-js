@@ -3,3 +3,5 @@ __snapshots__
 lib
 .DS_Store
 test_data.ts
+test_he_keys_custom_params.json
+test_he_keys_default_params.json
