@@ -271,6 +271,20 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 `static fromPrivateKey(privateKey: Buffer): Account`
 - Imports an account from a private key.
 
+### Ain.eh
+`connect(connectionOption?: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback)`
+- Connect to event handler node. Must be called before subscribing.
+
+`disconnect()`
+- Disconnect from the event handler node and unsubscribe all subscriptions.
+
+`subscribe(eventTypeStr: string, config: EventConfigType,
+eventCallback?: BlockchainEventCallback, errorCallback?: (error: any) => void): string`
+- Subscribe to specific blockchain events in the blockchain.
+
+`unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>)`
+- Unsubscribe from a previously subscribed event.
+
 ## Test How-To
 1. Clone AIN Blockchain and install
 ```
