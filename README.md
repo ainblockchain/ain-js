@@ -276,7 +276,7 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 - Connect to event handler node. Must be called before subscribing.
 
 `disconnect()`
-- Disconnect from the event handler node and unsubscribe from all subscriptions.
+- Disconnect from the event handler node and unsubscribe all subscriptions.
 
 `subscribe(eventTypeStr: string, config: EventConfigType,
 eventCallback?: BlockchainEventCallback, errorCallback?: (error: any) => void): string`
