@@ -58,7 +58,7 @@ export default class EventCallbackManager {
   getFilter(filterId): EventFilter {
     const filter = this._filters.get(filterId);
     if (!filter) {
-      throw Error(`Can't find filter by filter id (${filterId})`);
+      throw Error(`Non-existent filter ID (${filterId})`);
     }
     return filter;
   }
