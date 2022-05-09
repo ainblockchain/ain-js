@@ -72,16 +72,14 @@ export default class EventChannelClient {
       });
       this._wsClient.on('open', () => {
         this._isConnected = true;
+        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
         resolve();
       });
       this._wsClient.on('ping', () => {
         if (this._heartbeatTimeout) {
           clearTimeout(this._heartbeatTimeout);
         }
-        this._heartbeatTimeout = setTimeout(() => {
-          console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
-          this._wsClient.terminate();
-        }, connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
       });
       this._wsClient.on('close', () => {
         this.disconnect();
@@ -99,6 +97,13 @@ export default class EventChannelClient {
       clearTimeout(this._heartbeatTimeout);
       this._heartbeatTimeout = null;
     }
+  }
+
+  startHeartbeatTimer(timeoutMs: number) {
+    this._heartbeatTimeout = setTimeout(() => {
+      console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
+      this._wsClient.terminate();
+    }, timeoutMs);
   }
 
   handleEmitEventMessage(messageData) {
