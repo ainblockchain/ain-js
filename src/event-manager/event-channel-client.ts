@@ -11,6 +11,7 @@ import EventFilter from './event-filter';
 import EventCallbackManager from './event-callback-manager';
 
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 15000 + 1000; // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+const DEFAULT_HANDSHAKE_TIMEOUT_MS = 30000;
 
 export default class EventChannelClient {
   private readonly _ain: Ain;
@@ -64,7 +65,7 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
-      this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || 30000 });
+      this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
       this._wsClient.on('message', (message) => {
         this.handleMessage(message);
       });
