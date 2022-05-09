@@ -10,6 +10,8 @@ import {
 import EventFilter from './event-filter';
 import EventCallbackManager from './event-callback-manager';
 
+const DEFAULT_HEARTBEAT_INTERVAL_MS = 15000 + 1000; // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+
 export default class EventChannelClient {
   private readonly _ain: Ain;
   private readonly _eventCallbackManager: EventCallbackManager;
@@ -72,14 +74,14 @@ export default class EventChannelClient {
       });
       this._wsClient.on('open', () => {
         this._isConnected = true;
-        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve();
       });
       this._wsClient.on('ping', () => {
         if (this._heartbeatTimeout) {
           clearTimeout(this._heartbeatTimeout);
         }
-        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || (15000 + 1000)); // NOTE: This time must be longer than blockchain event handler heartbeat interval.
+        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
       });
       this._wsClient.on('close', () => {
         this.disconnect();
