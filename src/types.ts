@@ -236,8 +236,14 @@ export interface BlockFinalizedEventConfig {
   block_number: number | null;
 }
 
+export enum ValueChangedEventSource {
+  BLOCK = 'BLOCK',
+  USER = 'USER',
+}
+
 export interface ValueChangedEventConfig {
   path: string;
+  event_source: ValueChangedEventSource | null;
 }
 
 export interface TxStateChangedEventConfig {
