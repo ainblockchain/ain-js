@@ -282,6 +282,7 @@ export interface ValueChangedEvent {
   matched_path: string;
   params: any;
   transaction: Transaction;
+  event_source: ValueChangedEventSource;
   auth: ValueChangedEventAuth;
   values: ValueChangedEventValues;
 }
