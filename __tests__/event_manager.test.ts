@@ -40,7 +40,7 @@ describe('Event Handler', function() {
     const testAppName = `test_${Date.now()}`;
     const testAppPath = `/apps/${testAppName}`;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Create test app
       ain.wallet.setDefaultAccount(testAccount);
       await ain.db.ref(`/manage_app/${testAppName}/create/${Date.now()}`).setValue({
@@ -48,7 +48,7 @@ describe('Event Handler', function() {
       });
     });
 
-    it('Subscribe to VALUE_CHANGED', (done) => {
+    it('Subscribe to VALUE_CHANGED with event_source = null', (done) => {
       let blockEventCheck = false;
       let userEventCheck = false;
 
@@ -67,6 +67,34 @@ describe('Event Handler', function() {
         if (blockEventCheck && userEventCheck) {
           done();
         }
+      });
+
+      ain.db.ref(testAppPath).setValue({
+        value: 'Dummy',
+      });
+    });
+
+    it('Subscribe to VALUE_CHANGED with event_source = BLOCK', (done) => {
+      ain.em.subscribe('VALUE_CHANGED', {
+        path: testAppPath,
+        event_source: 'BLOCK',
+      }, (event) => {
+        expect(event.event_source).toBe('BLOCK');
+        done();
+      });
+
+      ain.db.ref(testAppPath).setValue({
+        value: 'Dummy',
+      });
+    });
+
+    it('Subscribe to VALUE_CHANGED with event_source = USER', (done) => {
+      ain.em.subscribe('VALUE_CHANGED', {
+        path: testAppPath,
+        event_source: 'USER',
+      }, (event) => {
+        expect(event.event_source).toBe('USER');
+        done();
       });
 
       ain.db.ref(testAppPath).setValue({
