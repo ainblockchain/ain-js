@@ -236,10 +236,7 @@ export interface BlockFinalizedEventConfig {
   block_number: number | null;
 }
 
-export enum ValueChangedEventSource {
-  BLOCK = 'BLOCK',
-  USER = 'USER',
-}
+export type ValueChangedEventSource = 'BLOCK' | 'USER';
 
 export interface ValueChangedEventConfig {
   path: string;
