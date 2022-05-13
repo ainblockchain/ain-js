@@ -49,8 +49,8 @@ describe('Event Handler', function() {
     });
 
     it('Subscribe to VALUE_CHANGED with event_source = null', (done) => {
-      let blockEventCheck = false;
-      let userEventCheck = false;
+      let blockEventCount = 0;
+      let userEventCount = 0;
 
       ain.em.subscribe('VALUE_CHANGED', {
         path: testAppPath,
@@ -58,13 +58,15 @@ describe('Event Handler', function() {
       }, (event) => {
         switch (event.event_source) {
           case 'BLOCK':
-            blockEventCheck = true;
+            blockEventCount++;
             break;
           case 'USER':
-            userEventCheck = true;
+            userEventCount++;
             break;
         }
-        if (blockEventCheck && userEventCheck) {
+        if (blockEventCount + userEventCount === 2) {
+          expect(blockEventCount).toBe(1);
+          expect(userEventCount).toBe(1);
           done();
         }
       });
