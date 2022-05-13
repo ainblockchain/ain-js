@@ -236,8 +236,11 @@ export interface BlockFinalizedEventConfig {
   block_number: number | null;
 }
 
+export type ValueChangedEventSource = 'BLOCK' | 'USER';
+
 export interface ValueChangedEventConfig {
   path: string;
+  event_source: ValueChangedEventSource | null;
 }
 
 export interface TxStateChangedEventConfig {
@@ -276,6 +279,7 @@ export interface ValueChangedEvent {
   matched_path: string;
   params: any;
   transaction: Transaction;
+  event_source: ValueChangedEventSource;
   auth: ValueChangedEventAuth;
   values: ValueChangedEventValues;
 }
