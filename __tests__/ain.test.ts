@@ -358,7 +358,7 @@ describe('ain-js', function() {
     it('validateAppName', async function () {
       expect(await ain.validateAppName('test')).toStrictEqual({
         "is_valid": false,
-        "code": 30703,
+        "code": 30603,
         "message": "App name already in use: test",
       });
       expect(await ain.validateAppName('test_new')).toStrictEqual({
