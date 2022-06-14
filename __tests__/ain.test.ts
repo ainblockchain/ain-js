@@ -423,6 +423,42 @@ describe('ain-js', function() {
       })
     });
 
+    it('sendSignedTransaction: invalid signature', function(done) {
+      const tx: TransactionBody = {
+        nonce: -1,
+        gas_price: 500,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_OWNER",
+          ref: "/apps/bfan",
+          value: {
+            ".owner": {
+              "owners": {
+                "*": {
+                  write_owner: true,
+                  write_rule: true,
+                  branch_owner: true,
+                  write_function: true,
+                }
+              }
+            }
+          }
+        }
+      }
+      const sig = '';
+
+      ain.sendSignedTransaction(sig, tx)
+      .then(res => {
+        expect(res.code).toBe(30302);
+        expect(res.message).toEqual('Missing properties.');
+        done();
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        done();
+      })
+    });
+
     it('sendTransactionBatch', function(done) {
       const tx1: TransactionInput = {
         operation: {
