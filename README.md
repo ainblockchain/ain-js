@@ -55,6 +55,9 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 `getStateUsage(appName: string): Promise<StateUsageInfo>`
 - Returns the state usage information with the given app name.
 
+`async validateAppName(appName: string): Promise<AppNameValidationInfo>`
+- Validates an app name.
+
 `async sendTransaction(transactionObject: TransactionInput): Promise<any>`
 - Signs and sends a transaction to the network.
 
