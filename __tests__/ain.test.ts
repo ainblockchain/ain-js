@@ -358,7 +358,7 @@ describe('ain-js', function() {
     it('validateAppName', async function () {
       expect(await ain.validateAppName('test')).toStrictEqual({
         "is_valid": false,
-        "code": 30703,
+        "code": 30603,
         "message": "App name already in use: test",
       });
       expect(await ain.validateAppName('test_new')).toStrictEqual({
@@ -415,6 +415,42 @@ describe('ain-js', function() {
       .then(res => {
         expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        done();
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        done();
+      })
+    });
+
+    it('sendSignedTransaction: invalid signature', function(done) {
+      const tx: TransactionBody = {
+        nonce: -1,
+        gas_price: 500,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_OWNER",
+          ref: "/apps/bfan",
+          value: {
+            ".owner": {
+              "owners": {
+                "*": {
+                  write_owner: true,
+                  write_rule: true,
+                  branch_owner: true,
+                  write_function: true,
+                }
+              }
+            }
+          }
+        }
+      }
+      const sig = '';  // Invalid signature value
+
+      ain.sendSignedTransaction(sig, tx)
+      .then(res => {
+        expect(res.code).toBe(30302);
+        expect(res.message).toEqual('Missing properties.');
         done();
       })
       .catch(e => {
