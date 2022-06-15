@@ -445,7 +445,7 @@ describe('ain-js', function() {
           }
         }
       }
-      const sig = '';
+      const sig = '';  // Invalid signature value
 
       ain.sendSignedTransaction(sig, tx)
       .then(res => {
