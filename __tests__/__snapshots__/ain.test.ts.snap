@@ -1,0 +1,291 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ain-js Database evalOwner 1`] = `
+Object {
+  "code": 0,
+  "matched": Object {
+    "closestOwner": Object {
+      "config": Object {
+        "owners": Object {
+          "*": Object {
+            "branch_owner": true,
+            "write_function": true,
+            "write_owner": true,
+            "write_rule": true,
+          },
+          "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
+            "branch_owner": true,
+            "write_function": true,
+            "write_owner": true,
+            "write_rule": true,
+          },
+        },
+      },
+      "path": Array [
+        "apps",
+        "bfan",
+        "users",
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+      ],
+    },
+    "matchedOwnerPath": Array [
+      "apps",
+      "bfan",
+      "users",
+      "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+    ],
+    "subtreeOwners": Array [],
+  },
+}
+`;
+
+exports[`ain-js Database get 1`] = `
+Array [
+  Object {
+    ".rule": Object {
+      "write": "true",
+    },
+    "can": Object {
+      "write": Object {
+        ".rule": Object {
+          "write": "true",
+        },
+      },
+    },
+    "cannot": Object {
+      "write": Object {
+        ".rule": Object {
+          "write": "false",
+        },
+      },
+    },
+  },
+  Object {
+    "can": Object {
+      "write": -5,
+    },
+    "username": "test_user",
+  },
+  null,
+]
+`;
+
+exports[`ain-js Database get with options 1`] = `null`;
+
+exports[`ain-js Database get with options 2`] = `
+Object {
+  "can": Object {
+    "write": -5,
+  },
+  "username": "test_user",
+}
+`;
+
+exports[`ain-js Database get with options 3`] = `
+Object {
+  "can": Object {
+    "#state_ph": "0xaf1e44f55da6d7e1aa784dd38372c2c2939570254c6b3f36f80b4878590a9efa",
+  },
+  "username": "test_user",
+}
+`;
+
+exports[`ain-js Database get with options 4`] = `
+Object {
+  "#state_ph": "0x3c067fd41205e87fcead2107a0f346881ea7d95249cdbe34d3d72e28e7c9ecd5",
+  "#state_ph:username": "0xe9acb84e18d9ec64c66358f53c4fec3945eb065a3e98de907d8d80dc1361c82f",
+  "can": Object {
+    "#state_ph": "0xaf1e44f55da6d7e1aa784dd38372c2c2939570254c6b3f36f80b4878590a9efa",
+    "#state_ph:write": "0x60ae6f7084539f2137ca3b45aa2e0e3b6d786a17c8de32110a884e285ea6a00c",
+    "write": -5,
+  },
+  "username": "test_user",
+}
+`;
+
+exports[`ain-js Database get with options 5`] = `
+Object {
+  "#num_children": 2,
+  "#num_children:username": 0,
+  "#num_parents": 1,
+  "#num_parents:username": 2,
+  "#tree_bytes": 698,
+  "#tree_bytes:username": 178,
+  "#tree_height": 2,
+  "#tree_height:username": 0,
+  "#tree_size": 4,
+  "#tree_size:username": 1,
+  "can": Object {
+    "#num_children": 1,
+    "#num_children:write": 0,
+    "#num_parents": 1,
+    "#num_parents:write": 1,
+    "#tree_bytes": 338,
+    "#tree_bytes:write": 168,
+    "#tree_height": 1,
+    "#tree_height:write": 0,
+    "#tree_size": 2,
+    "#tree_size:write": 1,
+    "write": -5,
+  },
+  "username": "test_user",
+}
+`;
+
+exports[`ain-js Database getFunction 1`] = `
+Object {
+  ".function": Object {
+    "0xFUNCTION_HASH": Object {
+      "function_id": "0xFUNCTION_HASH",
+      "function_type": "REST",
+      "function_url": "https://events.ainetwork.ai/trigger",
+    },
+  },
+}
+`;
+
+exports[`ain-js Database getOwner 1`] = `
+Object {
+  ".owner": Object {
+    "owners": Object {
+      "*": Object {
+        "branch_owner": true,
+        "write_function": true,
+        "write_owner": true,
+        "write_rule": true,
+      },
+      "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
+        "branch_owner": true,
+        "write_function": true,
+        "write_owner": true,
+        "write_rule": true,
+      },
+    },
+  },
+}
+`;
+
+exports[`ain-js Database getRule 1`] = `
+Object {
+  ".rule": Object {
+    "write": "true",
+  },
+  "can": Object {
+    "write": Object {
+      ".rule": Object {
+        "write": "true",
+      },
+    },
+  },
+  "cannot": Object {
+    "write": Object {
+      ".rule": Object {
+        "write": "false",
+      },
+    },
+  },
+}
+`;
+
+exports[`ain-js Database getValue 1`] = `
+Object {
+  "can": Object {
+    "write": -5,
+  },
+  "username": "test_user",
+}
+`;
+
+exports[`ain-js Database matchFunction 1`] = `
+Object {
+  "matched_config": Object {
+    "config": Object {
+      "0xFUNCTION_HASH": Object {
+        "function_id": "0xFUNCTION_HASH",
+        "function_type": "REST",
+        "function_url": "https://events.ainetwork.ai/trigger",
+      },
+    },
+    "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+  },
+  "matched_path": Object {
+    "path_vars": Object {},
+    "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+    "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+  },
+  "subtree_configs": Array [],
+}
+`;
+
+exports[`ain-js Database matchOwner 1`] = `
+Object {
+  "matched_config": Object {
+    "config": Object {
+      "owners": Object {
+        "*": Object {
+          "branch_owner": true,
+          "write_function": true,
+          "write_owner": true,
+          "write_rule": true,
+        },
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
+          "branch_owner": true,
+          "write_function": true,
+          "write_owner": true,
+          "write_rule": true,
+        },
+      },
+    },
+    "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+  },
+  "matched_path": Object {
+    "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+  },
+  "subtree_configs": Array [],
+}
+`;
+
+exports[`ain-js Database matchRule 1`] = `
+Object {
+  "state": Object {
+    "matched_config": Object {
+      "config": null,
+      "path": "/",
+    },
+    "matched_path": Object {
+      "path_vars": Object {},
+      "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+      "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+    },
+  },
+  "write": Object {
+    "matched_config": Object {
+      "config": Object {
+        "write": "true",
+      },
+      "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+    },
+    "matched_path": Object {
+      "path_vars": Object {},
+      "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+      "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+    },
+    "subtree_configs": Array [
+      Object {
+        "config": Object {
+          "write": "true",
+        },
+        "path": "/can/write",
+      },
+      Object {
+        "config": Object {
+          "write": "false",
+        },
+        "path": "/cannot/write",
+      },
+    ],
+  },
+}
+`;
+
+exports[`ain-js Network should set provider 1`] = `true`;
