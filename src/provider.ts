@@ -33,16 +33,8 @@ export default class Provider {
    * @return {Promise<any>}
    */
   async send(rpcMethod: string, params?: any): Promise<any> {
-    const data = {
-      jsonrpc: "2.0",
-      method: rpcMethod,
-      params: Object.assign(params || {}, { protoVer: this.ain.net.protoVer }),
-      id: 0
-    };
-    const response = await this.httpClient.post(this.apiEndpoint, data);
-    const result = get(response, 'data.result.result', null);
-    const code = get(response, 'data.result.code');
-    return code !== undefined ? get(response, 'data.result') : result;
+    const rawResult = await this.sendForRawResult(rpcMethod, params);
+    return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
   }
 
   /**

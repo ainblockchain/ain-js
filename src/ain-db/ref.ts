@@ -100,7 +100,7 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except returning raw result.
+   * The same as getRule() except returning raw result.
    */
   getRuleRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
@@ -117,7 +117,7 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except returning raw result.
+   * The same as getOwner() except returning raw result.
    */
   getOwnerRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path), options);
@@ -134,7 +134,7 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except returning raw result.
+   * The same as getFunction() except returning raw result.
    */
   getFunctionRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path), options);
@@ -156,7 +156,7 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except returning raw result.
+   * The same as get() except returning raw result.
    */
   getRawResult(gets: GetOperation[]): Promise<any> {
     let request = { type: 'GET', op_list: gets }
