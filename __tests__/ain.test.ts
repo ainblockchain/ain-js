@@ -717,38 +717,217 @@ describe('ain-js', function() {
       });
     });
 
-    it('getValue', async function() {
-      expect(await ain.db.ref(allowed_path).getValue()).toMatchSnapshot();
+    it('getValue / getValueV2', async function() {
+      expect(await ain.db.ref(allowed_path).getValue()).toMatchObject({
+        "can": {
+          "write": -5,
+        },
+        "username": "test_user",
+      });
+      expect(await ain.db.ref(allowed_path).getValueV2()).toMatchObject({
+        "result": {
+          "can": {
+            "write": -5,
+          },
+          "username": "test_user",
+        },
+      });
     });
 
-    it('getRule', async function() {
-      expect(await ain.db.ref(allowed_path).getRule()).toMatchSnapshot();
+    it('getRule / getRuleV2', async function() {
+      expect(await ain.db.ref(allowed_path).getRule()).toMatchObject({
+        ".rule": {
+          "write": "true",
+        },
+        "can": {
+          "write": {
+            ".rule": {
+              "write": "true",
+            },
+          },
+        },
+        "cannot": {
+          "write": {
+            ".rule": {
+              "write": "false",
+            },
+          },
+        },
+      });
+      expect(await ain.db.ref(allowed_path).getRuleV2()).toMatchObject({
+        "result": {
+          ".rule": {
+            "write": "true",
+          },
+          "can": {
+            "write": {
+              ".rule": {
+                "write": "true",
+              },
+            },
+          },
+          "cannot": {
+            "write": {
+              ".rule": {
+                "write": "false",
+              },
+            },
+          },
+        },
+      });
     });
 
-    it('getOwner', async function() {
-      expect(await ain.db.ref(allowed_path).getOwner()).toMatchSnapshot();
+    it('getOwner / getOwnerV2', async function() {
+      expect(await ain.db.ref(allowed_path).getOwner()).toMatchObject({
+        ".owner": {
+          "owners": {
+            "*": {
+              "branch_owner": true,
+              "write_function": true,
+              "write_owner": true,
+              "write_rule": true,
+            },
+            "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
+              "branch_owner": true,
+              "write_function": true,
+              "write_owner": true,
+              "write_rule": true,
+            },
+          },
+        },
+      });
+      expect(await ain.db.ref(allowed_path).getOwnerV2()).toMatchObject({
+        "result": {
+          ".owner": {
+            "owners": {
+              "*": {
+                "branch_owner": true,
+                "write_function": true,
+                "write_owner": true,
+                "write_rule": true,
+              },
+              "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
+                "branch_owner": true,
+                "write_function": true,
+                "write_owner": true,
+                "write_rule": true,
+              },
+            },
+          },
+        },
+      });
     });
 
-    it('getFunction', async function() {
-      expect(await ain.db.ref(allowed_path).getFunction()).toMatchSnapshot();
+    it('getFunction / getFunctionV2', async function() {
+      expect(await ain.db.ref(allowed_path).getFunction()).toMatchObject({
+        ".function": {
+          "0xFUNCTION_HASH": {
+            "function_id": "0xFUNCTION_HASH",
+            "function_type": "REST",
+            "function_url": "https://events.ainetwork.ai/trigger",
+          },
+        },
+      });
+      expect(await ain.db.ref(allowed_path).getFunctionV2()).toMatchObject({
+        "result": {
+          ".function": {
+            "0xFUNCTION_HASH": {
+              "function_id": "0xFUNCTION_HASH",
+              "function_type": "REST",
+              "function_url": "https://events.ainetwork.ai/trigger",
+            },
+          },
+        },
+      });
     });
 
-    it('get', async function() {
+    it('get / getV2', async function() {
       expect(await ain.db.ref(allowed_path).get(
-          [
-            {
-              type: 'GET_RULE',
-              ref: ''
-            },
-            {
-              type: 'GET_VALUE',
-            },
-            {
-              type: 'GET_VALUE',
-              ref: 'deeper/path/'
+        [
+          {
+            type: 'GET_RULE',
+            ref: ''
+          },
+          {
+            type: 'GET_VALUE',
+          },
+          {
+            type: 'GET_VALUE',
+            ref: 'deeper/path/'
+          }
+        ]
+      )).toMatchObject([
+        {
+          ".rule": {
+            "write": "true"
+          },
+          "can": {
+            "write": {
+              ".rule": {
+                "write": "true"
+              }
             }
-          ]
-        )).toMatchSnapshot();
+          },
+          "cannot": {
+            "write": {
+              ".rule": {
+                "write": "false"
+              }
+            }
+          }
+        },
+        {
+          "can": {
+            "write": -5
+          },
+          "username": "test_user"
+        },
+        null
+      ]);
+      expect(await ain.db.ref(allowed_path).getV2(
+        [
+          {
+            type: 'GET_RULE',
+            ref: ''
+          },
+          {
+            type: 'GET_VALUE',
+          },
+          {
+            type: 'GET_VALUE',
+            ref: 'deeper/path/'
+          }
+        ]
+      )).toMatchObject({
+        "result": [
+          {
+            ".rule": {
+              "write": "true"
+            },
+            "can": {
+              "write": {
+                ".rule": {
+                  "write": "true"
+                }
+              }
+            },
+            "cannot": {
+              "write": {
+                ".rule": {
+                  "write": "false"
+                }
+              }
+            }
+          },
+          {
+            "can": {
+              "write": -5
+            },
+            "username": "test_user"
+          },
+          null
+        ]
+      });
     });
 
     it('get with options', async function() {

@@ -39,37 +39,6 @@ Object {
 }
 `;
 
-exports[`ain-js Database get 1`] = `
-Array [
-  Object {
-    ".rule": Object {
-      "write": "true",
-    },
-    "can": Object {
-      "write": Object {
-        ".rule": Object {
-          "write": "true",
-        },
-      },
-    },
-    "cannot": Object {
-      "write": Object {
-        ".rule": Object {
-          "write": "false",
-        },
-      },
-    },
-  },
-  Object {
-    "can": Object {
-      "write": -5,
-    },
-    "username": "test_user",
-  },
-  null,
-]
-`;
-
 exports[`ain-js Database get with options 1`] = `null`;
 
 exports[`ain-js Database get with options 2`] = `
@@ -126,70 +95,6 @@ Object {
     "#tree_height:write": 0,
     "#tree_size": 2,
     "#tree_size:write": 1,
-    "write": -5,
-  },
-  "username": "test_user",
-}
-`;
-
-exports[`ain-js Database getFunction 1`] = `
-Object {
-  ".function": Object {
-    "0xFUNCTION_HASH": Object {
-      "function_id": "0xFUNCTION_HASH",
-      "function_type": "REST",
-      "function_url": "https://events.ainetwork.ai/trigger",
-    },
-  },
-}
-`;
-
-exports[`ain-js Database getOwner 1`] = `
-Object {
-  ".owner": Object {
-    "owners": Object {
-      "*": Object {
-        "branch_owner": true,
-        "write_function": true,
-        "write_owner": true,
-        "write_rule": true,
-      },
-      "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
-        "branch_owner": true,
-        "write_function": true,
-        "write_owner": true,
-        "write_rule": true,
-      },
-    },
-  },
-}
-`;
-
-exports[`ain-js Database getRule 1`] = `
-Object {
-  ".rule": Object {
-    "write": "true",
-  },
-  "can": Object {
-    "write": Object {
-      ".rule": Object {
-        "write": "true",
-      },
-    },
-  },
-  "cannot": Object {
-    "write": Object {
-      ".rule": Object {
-        "write": "false",
-      },
-    },
-  },
-}
-`;
-
-exports[`ain-js Database getValue 1`] = `
-Object {
-  "can": Object {
     "write": -5,
   },
   "username": "test_user",
