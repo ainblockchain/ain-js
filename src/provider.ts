@@ -46,6 +46,20 @@ export default class Provider {
   }
 
   /**
+   * The same as getValue() except returning raw result.
+   */
+  async sendForRawResult(rpcMethod: string, params?: any): Promise<any> {
+    const data = {
+      jsonrpc: "2.0",
+      method: rpcMethod,
+      params: Object.assign(params || {}, { protoVer: this.ain.net.protoVer }),
+      id: 0
+    };
+    const response = await this.httpClient.post(this.apiEndpoint, data);
+    return get(response, 'data.result');
+  }
+
+  /**
    * Sets the httpClient's default timeout time
    * @param {number} time (in milliseconds)
    */

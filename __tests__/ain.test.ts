@@ -717,14 +717,14 @@ describe('ain-js', function() {
       });
     });
 
-    it('getValue / getValueV2', async function() {
+    it('getValue / getValueRawResult', async function() {
       expect(await ain.db.ref(allowed_path).getValue()).toMatchObject({
         "can": {
           "write": -5,
         },
         "username": "test_user",
       });
-      expect(await ain.db.ref(allowed_path).getValueV2()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getValueRawResult()).toMatchObject({
         "result": {
           "can": {
             "write": -5,
@@ -734,7 +734,7 @@ describe('ain-js', function() {
       });
     });
 
-    it('getRule / getRuleV2', async function() {
+    it('getRule / getRuleRawResult', async function() {
       expect(await ain.db.ref(allowed_path).getRule()).toMatchObject({
         ".rule": {
           "write": "true",
@@ -754,7 +754,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getRuleV2()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getRuleRawResult()).toMatchObject({
         "result": {
           ".rule": {
             "write": "true",
@@ -777,7 +777,7 @@ describe('ain-js', function() {
       });
     });
 
-    it('getOwner / getOwnerV2', async function() {
+    it('getOwner / getOwnerRawResult', async function() {
       expect(await ain.db.ref(allowed_path).getOwner()).toMatchObject({
         ".owner": {
           "owners": {
@@ -796,7 +796,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getOwnerV2()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getOwnerRawResult()).toMatchObject({
         "result": {
           ".owner": {
             "owners": {
@@ -818,7 +818,7 @@ describe('ain-js', function() {
       });
     });
 
-    it('getFunction / getFunctionV2', async function() {
+    it('getFunction / getFunctionRawResult', async function() {
       expect(await ain.db.ref(allowed_path).getFunction()).toMatchObject({
         ".function": {
           "0xFUNCTION_HASH": {
@@ -828,7 +828,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getFunctionV2()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getFunctionRawResult()).toMatchObject({
         "result": {
           ".function": {
             "0xFUNCTION_HASH": {
@@ -841,7 +841,7 @@ describe('ain-js', function() {
       });
     });
 
-    it('get / getV2', async function() {
+    it('get / getRawResult', async function() {
       expect(await ain.db.ref(allowed_path).get(
         [
           {
@@ -884,7 +884,7 @@ describe('ain-js', function() {
         },
         null
       ]);
-      expect(await ain.db.ref(allowed_path).getV2(
+      expect(await ain.db.ref(allowed_path).getRawResult(
         [
           {
             type: 'GET_RULE',

@@ -83,11 +83,11 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except using blockchain API v2 (ain_getV2) for result-error separation.
+   * The same as getValue() except returning raw result.
    */
-  getValueV2(path?: string, options?: GetOptions): Promise<any> {
+  getValueRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.send('ain_getV2', req);
+    return this._ain.provider.sendForRawResult('ain_get', req);
   }
 
   /**
@@ -100,11 +100,11 @@ export default class Reference {
   }
 
   /**
-   * The same as getRule() except using blockchain API v2 (ain_getV2) for result-error separation.
+   * The same as getValue() except returning raw result.
    */
-  getRuleV2(path?: string, options?: GetOptions): Promise<any> {
+  getRuleRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.send('ain_getV2', req);
+    return this._ain.provider.sendForRawResult('ain_get', req);
   }
 
   /**
@@ -117,11 +117,11 @@ export default class Reference {
   }
 
   /**
-   * The same as getOwner() except using blockchain API v2 (ain_getV2) for result-error separation.
+   * The same as getValue() except returning raw result.
    */
-  getOwnerV2(path?: string, options?: GetOptions): Promise<any> {
+  getOwnerRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.send('ain_getV2', req);
+    return this._ain.provider.sendForRawResult('ain_get', req);
   }
 
   /**
@@ -134,11 +134,11 @@ export default class Reference {
   }
 
   /**
-   * The same as getFunction() except using blockchain API v2 (ain_getV2) for result-error separation.
+   * The same as getValue() except returning raw result.
    */
-  getFunctionV2(path?: string, options?: GetOptions): Promise<any> {
+  getFunctionRawResult(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.send('ain_getV2', req);
+    return this._ain.provider.sendForRawResult('ain_get', req);
   }
 
   /**
@@ -156,14 +156,14 @@ export default class Reference {
   }
 
   /**
-   * The same as get() except using blockchain API v2 (ain_getV2) for result-error separation.
+   * The same as getValue() except returning raw result.
    */
-  getV2(gets: GetOperation[]): Promise<any> {
+  getRawResult(gets: GetOperation[]): Promise<any> {
     let request = { type: 'GET', op_list: gets }
     for (let i = 0; i < gets.length; i++) {
       request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
     }
-    return this._ain.provider.send('ain_getV2', request);
+    return this._ain.provider.sendForRawResult('ain_get', request);
   }
 
   /**
