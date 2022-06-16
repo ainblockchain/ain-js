@@ -17,6 +17,11 @@ const {
 
 jest.setTimeout(180000);
 
+function eraseProtoVer(retVal) {
+  retVal.protoVer = 'erased';
+  return retVal;
+}
+
 // TODO (lia): Create more test cases
 describe('ain-js', function() {
   let ain = new Ain(test_node_1);
@@ -718,24 +723,25 @@ describe('ain-js', function() {
     });
 
     it('getValue / getValueRawResult', async function() {
-      expect(await ain.db.ref(allowed_path).getValue()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getValue()).toEqual({
         "can": {
           "write": -5,
         },
         "username": "test_user",
       });
-      expect(await ain.db.ref(allowed_path).getValueRawResult()).toMatchObject({
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getValueRawResult())).toEqual({
         "result": {
           "can": {
             "write": -5,
           },
           "username": "test_user",
         },
+        "protoVer": "erased",
       });
     });
 
     it('getRule / getRuleRawResult', async function() {
-      expect(await ain.db.ref(allowed_path).getRule()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getRule()).toEqual({
         ".rule": {
           "write": "true",
         },
@@ -754,7 +760,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getRuleRawResult()).toMatchObject({
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRuleRawResult())).toEqual({
         "result": {
           ".rule": {
             "write": "true",
@@ -774,11 +780,12 @@ describe('ain-js', function() {
             },
           },
         },
+        "protoVer": "erased",
       });
     });
 
     it('getOwner / getOwnerRawResult', async function() {
-      expect(await ain.db.ref(allowed_path).getOwner()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getOwner()).toEqual({
         ".owner": {
           "owners": {
             "*": {
@@ -796,7 +803,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getOwnerRawResult()).toMatchObject({
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getOwnerRawResult())).toEqual({
         "result": {
           ".owner": {
             "owners": {
@@ -815,11 +822,12 @@ describe('ain-js', function() {
             },
           },
         },
+        "protoVer": "erased",
       });
     });
 
     it('getFunction / getFunctionRawResult', async function() {
-      expect(await ain.db.ref(allowed_path).getFunction()).toMatchObject({
+      expect(await ain.db.ref(allowed_path).getFunction()).toEqual({
         ".function": {
           "0xFUNCTION_HASH": {
             "function_id": "0xFUNCTION_HASH",
@@ -828,7 +836,7 @@ describe('ain-js', function() {
           },
         },
       });
-      expect(await ain.db.ref(allowed_path).getFunctionRawResult()).toMatchObject({
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getFunctionRawResult())).toEqual({
         "result": {
           ".function": {
             "0xFUNCTION_HASH": {
@@ -838,6 +846,7 @@ describe('ain-js', function() {
             },
           },
         },
+        "protoVer": "erased",
       });
     });
 
@@ -856,7 +865,7 @@ describe('ain-js', function() {
             ref: 'deeper/path/'
           }
         ]
-      )).toMatchObject([
+      )).toEqual([
         {
           ".rule": {
             "write": "true"
@@ -884,7 +893,7 @@ describe('ain-js', function() {
         },
         null
       ]);
-      expect(await ain.db.ref(allowed_path).getRawResult(
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRawResult(
         [
           {
             type: 'GET_RULE',
@@ -898,7 +907,7 @@ describe('ain-js', function() {
             ref: 'deeper/path/'
           }
         ]
-      )).toMatchObject({
+      ))).toEqual({
         "result": [
           {
             ".rule": {
@@ -926,7 +935,31 @@ describe('ain-js', function() {
             "username": "test_user"
           },
           null
-        ]
+        ],
+        "protoVer": "erased",
+      });
+    });
+
+    it('get / getRawResult with error', async function() {
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).get([ // empty op_list
+      ]))).toEqual({
+        "code": 30006,
+        "error": {
+          "code": 30006,
+          "message": "Invalid op_list given",
+        },
+        "protoVer": "erased",
+        "result": null,
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRawResult([ // empty op_list
+      ]))).toEqual({
+        "code": 30006,
+        "error": {
+          "code": 30006,
+          "message": "Invalid op_list given",
+        },
+        "protoVer": "erased",
+        "result": null,
       });
     });
 
