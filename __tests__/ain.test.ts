@@ -17,6 +17,11 @@ const {
 
 jest.setTimeout(180000);
 
+function eraseProtoVer(retVal) {
+  retVal.protoVer = 'erased';
+  return retVal;
+}
+
 // TODO (lia): Create more test cases
 describe('ain-js', function() {
   let ain = new Ain(test_node_1);
@@ -717,38 +722,245 @@ describe('ain-js', function() {
       });
     });
 
-    it('getValue', async function() {
-      expect(await ain.db.ref(allowed_path).getValue()).toMatchSnapshot();
+    it('getValue / getValueRawResult', async function() {
+      expect(await ain.db.ref(allowed_path).getValue()).toEqual({
+        "can": {
+          "write": -5,
+        },
+        "username": "test_user",
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getValueRawResult())).toEqual({
+        "result": {
+          "can": {
+            "write": -5,
+          },
+          "username": "test_user",
+        },
+        "protoVer": "erased",
+      });
     });
 
-    it('getRule', async function() {
-      expect(await ain.db.ref(allowed_path).getRule()).toMatchSnapshot();
+    it('getRule / getRuleRawResult', async function() {
+      expect(await ain.db.ref(allowed_path).getRule()).toEqual({
+        ".rule": {
+          "write": "true",
+        },
+        "can": {
+          "write": {
+            ".rule": {
+              "write": "true",
+            },
+          },
+        },
+        "cannot": {
+          "write": {
+            ".rule": {
+              "write": "false",
+            },
+          },
+        },
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRuleRawResult())).toEqual({
+        "result": {
+          ".rule": {
+            "write": "true",
+          },
+          "can": {
+            "write": {
+              ".rule": {
+                "write": "true",
+              },
+            },
+          },
+          "cannot": {
+            "write": {
+              ".rule": {
+                "write": "false",
+              },
+            },
+          },
+        },
+        "protoVer": "erased",
+      });
     });
 
-    it('getOwner', async function() {
-      expect(await ain.db.ref(allowed_path).getOwner()).toMatchSnapshot();
+    it('getOwner / getOwnerRawResult', async function() {
+      expect(await ain.db.ref(allowed_path).getOwner()).toEqual({
+        ".owner": {
+          "owners": {
+            "*": {
+              "branch_owner": true,
+              "write_function": true,
+              "write_owner": true,
+              "write_rule": true,
+            },
+            "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
+              "branch_owner": true,
+              "write_function": true,
+              "write_owner": true,
+              "write_rule": true,
+            },
+          },
+        },
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getOwnerRawResult())).toEqual({
+        "result": {
+          ".owner": {
+            "owners": {
+              "*": {
+                "branch_owner": true,
+                "write_function": true,
+                "write_owner": true,
+                "write_rule": true,
+              },
+              "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
+                "branch_owner": true,
+                "write_function": true,
+                "write_owner": true,
+                "write_rule": true,
+              },
+            },
+          },
+        },
+        "protoVer": "erased",
+      });
     });
 
-    it('getFunction', async function() {
-      expect(await ain.db.ref(allowed_path).getFunction()).toMatchSnapshot();
+    it('getFunction / getFunctionRawResult', async function() {
+      expect(await ain.db.ref(allowed_path).getFunction()).toEqual({
+        ".function": {
+          "0xFUNCTION_HASH": {
+            "function_id": "0xFUNCTION_HASH",
+            "function_type": "REST",
+            "function_url": "https://events.ainetwork.ai/trigger",
+          },
+        },
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getFunctionRawResult())).toEqual({
+        "result": {
+          ".function": {
+            "0xFUNCTION_HASH": {
+              "function_id": "0xFUNCTION_HASH",
+              "function_type": "REST",
+              "function_url": "https://events.ainetwork.ai/trigger",
+            },
+          },
+        },
+        "protoVer": "erased",
+      });
     });
 
-    it('get', async function() {
+    it('get / getRawResult', async function() {
       expect(await ain.db.ref(allowed_path).get(
-          [
-            {
-              type: 'GET_RULE',
-              ref: ''
-            },
-            {
-              type: 'GET_VALUE',
-            },
-            {
-              type: 'GET_VALUE',
-              ref: 'deeper/path/'
+        [
+          {
+            type: 'GET_RULE',
+            ref: ''
+          },
+          {
+            type: 'GET_VALUE',
+          },
+          {
+            type: 'GET_VALUE',
+            ref: 'deeper/path/'
+          }
+        ]
+      )).toEqual([
+        {
+          ".rule": {
+            "write": "true"
+          },
+          "can": {
+            "write": {
+              ".rule": {
+                "write": "true"
+              }
             }
-          ]
-        )).toMatchSnapshot();
+          },
+          "cannot": {
+            "write": {
+              ".rule": {
+                "write": "false"
+              }
+            }
+          }
+        },
+        {
+          "can": {
+            "write": -5
+          },
+          "username": "test_user"
+        },
+        null
+      ]);
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRawResult(
+        [
+          {
+            type: 'GET_RULE',
+            ref: ''
+          },
+          {
+            type: 'GET_VALUE',
+          },
+          {
+            type: 'GET_VALUE',
+            ref: 'deeper/path/'
+          }
+        ]
+      ))).toEqual({
+        "result": [
+          {
+            ".rule": {
+              "write": "true"
+            },
+            "can": {
+              "write": {
+                ".rule": {
+                  "write": "true"
+                }
+              }
+            },
+            "cannot": {
+              "write": {
+                ".rule": {
+                  "write": "false"
+                }
+              }
+            }
+          },
+          {
+            "can": {
+              "write": -5
+            },
+            "username": "test_user"
+          },
+          null
+        ],
+        "protoVer": "erased",
+      });
+    });
+
+    it('get / getRawResult with error', async function() {
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).get([ // empty op_list
+      ]))).toEqual({
+        "code": 30006,
+        "error": {
+          "code": 30006,
+          "message": "Invalid op_list given",
+        },
+        "protoVer": "erased",
+        "result": null,
+      });
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRawResult([ // empty op_list
+      ]))).toEqual({
+        "code": 30006,
+        "error": {
+          "code": 30006,
+          "message": "Invalid op_list given",
+        },
+        "protoVer": "erased",
+        "result": null,
+      });
     });
 
     it('get with options', async function() {
