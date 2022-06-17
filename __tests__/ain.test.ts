@@ -944,20 +944,14 @@ describe('ain-js', function() {
       expect(eraseProtoVer(await ain.db.ref(allowed_path).get([ // empty op_list
       ]))).toEqual({
         "code": 30006,
-        "error": {
-          "code": 30006,
-          "message": "Invalid op_list given",
-        },
+        "message": "Invalid op_list given",
         "protoVer": "erased",
         "result": null,
       });
       expect(eraseProtoVer(await ain.db.ref(allowed_path).getRawResult([ // empty op_list
       ]))).toEqual({
         "code": 30006,
-        "error": {
-          "code": 30006,
-          "message": "Invalid op_list given",
-        },
+        "message": "Invalid op_list given",
         "protoVer": "erased",
         "result": null,
       });
