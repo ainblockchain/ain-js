@@ -83,28 +83,12 @@ export default class Reference {
   }
 
   /**
-   * The same as getValue() except returning raw result.
-   */
-  getValueRawResult(path?: string, options?: GetOptions): Promise<any> {
-    const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.sendForRawResult('ain_get', req);
-  }
-
-  /**
    * Returns the rule at the path.
    * @param path
    */
   getRule(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
     return this._ain.provider.send('ain_get', req);
-  }
-
-  /**
-   * The same as getRule() except returning raw result.
-   */
-  getRuleRawResult(path?: string, options?: GetOptions): Promise<any> {
-    const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.sendForRawResult('ain_get', req);
   }
 
   /**
@@ -117,14 +101,6 @@ export default class Reference {
   }
 
   /**
-   * The same as getOwner() except returning raw result.
-   */
-  getOwnerRawResult(path?: string, options?: GetOptions): Promise<any> {
-    const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.sendForRawResult('ain_get', req);
-  }
-
-  /**
    * Returns the function config at the path.
    * @param path
    */
@@ -134,36 +110,18 @@ export default class Reference {
   }
 
   /**
-   * The same as getFunction() except returning raw result.
-   */
-  getFunctionRawResult(path?: string, options?: GetOptions): Promise<any> {
-    const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path), options);
-    return this._ain.provider.sendForRawResult('ain_get', req);
-  }
-
-  /**
    * Returns the value / write rule / owner rule / function hash at multiple paths.
    * @param {Array<GetOperation>} requests - Array of get requests
    * Could be any one from "VALUE", "RULE", "OWNER", "FUNC" or a combination of them as an array.
    * @return {Promise<any>}
    */
-  get(gets: GetOperation[]): Promise<any> {
-    let request = { type: 'GET', op_list: gets }
+  // TODO(platfowner): Remove isRawResultRequest param once migration is completed.
+  get(gets: GetOperation[], isRawResultRequest: boolean = false): Promise<any> {
+    const request = { type: 'GET', op_list: gets, is_raw_result_request: isRawResultRequest };
     for (let i = 0; i < gets.length; i++) {
       request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
     }
     return this._ain.provider.send('ain_get', request);
-  }
-
-  /**
-   * The same as get() except returning raw result.
-   */
-  getRawResult(gets: GetOperation[]): Promise<any> {
-    let request = { type: 'GET', op_list: gets }
-    for (let i = 0; i < gets.length; i++) {
-      request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
-    }
-    return this._ain.provider.sendForRawResult('ain_get', request);
   }
 
   /**

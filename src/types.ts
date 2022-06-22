@@ -62,6 +62,8 @@ export type GetOptions = {
   is_global?: boolean,
   is_final?: boolean,
   is_shallow?: boolean,
+  // TODO(platfowner): Remove this option once migration is completed.
+  is_raw_result_request?: boolean,
   include_version?: boolean,
   include_tree_info?: boolean,
   include_proof?: boolean,
