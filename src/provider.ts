@@ -33,14 +33,6 @@ export default class Provider {
    * @return {Promise<any>}
    */
   async send(rpcMethod: string, params?: any): Promise<any> {
-    const rawResult = await this.sendForRawResult(rpcMethod, params);
-    return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
-  }
-
-  /**
-   * The same as getValue() except returning raw result.
-   */
-  async sendForRawResult(rpcMethod: string, params?: any): Promise<any> {
     const data = {
       jsonrpc: "2.0",
       method: rpcMethod,
@@ -48,7 +40,12 @@ export default class Provider {
       id: 0
     };
     const response = await this.httpClient.post(this.apiEndpoint, data);
-    return get(response, 'data.result');
+    const rawResult = get(response, 'data.result');
+    // TODO(platfowner): Remove this block once migration is completed.
+    if (!data.params.is_raw_result_request) {
+      return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
+    }
+    return rawResult;
   }
 
   /**
