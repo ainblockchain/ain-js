@@ -69,14 +69,14 @@ describe('ain-js', function() {
       ain.net.checkProtocolVersion()
       .then(res => {
         expect(res.code).toBe(0);
-        expect(res.result).toBe('Success');
+        expect(res.result).toBe(true);
         done();
       })
       .catch(e => {
         console.log("ERROR:", e)
         done();
       })
-    })
+    });
   });
 
   describe('Wallet', function() {
@@ -360,16 +360,19 @@ describe('ain-js', function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
-    it('validateAppName', async function () {
-      expect(await ain.validateAppName('test')).toStrictEqual({
-        "is_valid": false,
-        "code": 30603,
-        "message": "App name already in use: test",
-      });
-      expect(await ain.validateAppName('test_new')).toStrictEqual({
+    it('validateAppName returns true', async function () {
+      expect(eraseProtoVer(await ain.validateAppName('test_new'))).toStrictEqual({
         "is_valid": true,
+        "result": true,
         "code": 0,
+        "protoVer": "erased",
       });
+    });
+
+    it('validateAppName returns false', async function () {
+      await expect(() => ain.validateAppName('app/path'))
+          .rejects
+          .toThrow(/"is_valid":false,"result":false,"code":30601,"message":"Invalid app name for state label: app\/path"/);
     });
 
     it('sendTransaction', function(done) {
