@@ -115,9 +115,8 @@ export default class Reference {
    * Could be any one from "VALUE", "RULE", "OWNER", "FUNC" or a combination of them as an array.
    * @return {Promise<any>}
    */
-  // TODO(platfowner): Remove isRawResultRequest param once migration is completed.
-  get(gets: GetOperation[], isRawResultRequest: boolean = false): Promise<any> {
-    const request = { type: 'GET', op_list: gets, is_raw_result_request: isRawResultRequest };
+  get(gets: GetOperation[]): Promise<any> {
+    const request = { type: 'GET', op_list: gets };
     for (let i = 0; i < gets.length; i++) {
       request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
     }

@@ -41,11 +41,10 @@ export default class Provider {
     };
     const response = await this.httpClient.post(this.apiEndpoint, data);
     const rawResult = get(response, 'data.result');
-    // TODO(platfowner): Remove this block once migration is completed.
-    if (!data.params.is_raw_result_request) {
-      return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
+    if (typeof rawResult !== 'object' || !(rawResult.code === undefined || rawResult.code === 0)) {
+      throw new Error(JSON.stringify(rawResult));
     }
-    return rawResult;
+    return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
   }
 
   /**
