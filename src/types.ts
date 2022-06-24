@@ -1,39 +1,39 @@
 export interface Account {
-  address: string,
-  private_key: string,
-  public_key: string
+  address: string;
+  private_key: string;
+  public_key: string;
 }
 
 export interface Accounts {[address: string]: Account}
 
 export interface KdfParams {
-  dklen: number,
-  salt: string,
-  prf?: string,
-  c?: number,
-  n?: number,
-  r?: number,
-  p?: number
+  dklen: number;
+  salt: string;
+  prf?: string;
+  c?: number;
+  n?: number;
+  r?: number;
+  p?: number;
 }
 
 export interface V3KeystoreOptions {
-  salt?: string,
-  iv?: Buffer,
-  kdf?: string,
-  dklen?: number,
-  c?: number,
-  n?: number,
-  r?: number,
-  p?: number,
-  prf?: string,
-  cipher?: string,
-  uuid?: Buffer
+  salt?: string;
+  iv?: Buffer;
+  kdf?: string;
+  dklen?: number;
+  c?: number;
+  n?: number;
+  r?: number;
+  p?: number;
+  prf?: string;
+  cipher?: string;
+  uuid?: Buffer;
 }
 
 export interface V3Keystore {
-  version: 3,
-  id: string,
-  address: string,
+  version: 3;
+  id: string;
+  address: string;
   crypto: {
     ciphertext: string,
     cipherparams: {
@@ -43,7 +43,7 @@ export interface V3Keystore {
     kdf: string,
     kdfparams: KdfParams,
     mac: string
-  }
+  };
 }
 
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";

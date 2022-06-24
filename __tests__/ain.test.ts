@@ -370,9 +370,14 @@ describe('ain-js', function() {
     });
 
     it('validateAppName returns false', async function () {
-      await expect(() => ain.validateAppName('app/path'))
-          .rejects
-          .toThrow(/"is_valid":false,"result":false,"code":30601,"message":"Invalid app name for state label: app\/path"/);
+      let thrownError;
+      try {
+        await ain.validateAppName('app/path');
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30601);
+      expect(thrownError.message).toEqual('Invalid app name for state label: app/path');
     });
 
     it('sendTransaction', function(done) {
@@ -455,9 +460,14 @@ describe('ain-js', function() {
       }
       const sig = '';  // Invalid signature value
 
-      await expect(() => ain.sendSignedTransaction(sig, tx))
-          .rejects
-          .toThrow(/"result":null,"code":30302,"message":"Missing properties."/);
+      let thrownError;
+      try {
+        await ain.sendSignedTransaction(sig, tx);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30302);
+      expect(thrownError.message).toEqual('Missing properties.');
     });
 
     it('sendTransactionBatch', function(done) {
@@ -568,9 +578,14 @@ describe('ain-js', function() {
     });
 
     it('sendTransactionBatch with empty tx_list', async function() {
-      await expect(() => ain.sendTransactionBatch([]))
-          .rejects
-          .toThrow(/"result":null,"code":30401,"message":"Invalid batch transaction format."/);
+      let thrownError;
+      try {
+        await ain.sendTransactionBatch([]);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30401);
+      expect(thrownError.message).toEqual('Invalid batch transaction format.');
     });
   });
 
@@ -834,9 +849,14 @@ describe('ain-js', function() {
     });
 
     it('get with empty op_list', async function() {
-      await expect(() => ain.db.ref(allowed_path).get([]))
-          .rejects
-          .toThrow(/"result":null,"code":30006,"message":"Invalid op_list given"/);
+      let thrownError;
+      try {
+        await ain.db.ref(allowed_path).get([]);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30006);
+      expect(thrownError.message).toEqual('Invalid op_list given');
     });
 
     it('get with options', async function() {
