@@ -4,6 +4,7 @@ import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperat
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
 import axios from 'axios';
+import { fail, eraseProtoVer } from './test_util';
 const {
   test_keystore,
   test_pw,
@@ -18,12 +19,7 @@ const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 
 jest.setTimeout(180000);
 
-function eraseProtoVer(retVal) {
-  retVal.protoVer = 'erased';
-  return retVal;
-}
-
-// TODO (lia): Create more test cases
+// TODO (liayoo): Create more test cases
 describe('ain-js', function() {
   let ain = new Ain(test_node_1);
   let keystoreAddress = '';
@@ -61,7 +57,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -73,7 +69,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
   });
@@ -354,7 +350,7 @@ describe('ain-js', function() {
       expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
-    // TODO (lia): add getTransactionResult method and test case for it
+    // TODO (liayoo): add getTransactionResult method and test case for it
     // it('getTransactionResult', async function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
@@ -388,7 +384,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -424,12 +420,13 @@ describe('ain-js', function() {
 
       await ain.sendSignedTransaction(sig, tx)
       .then(res => {
-        expect(res.result.code).toBe(0);
+        expect(res.code).toBe(undefined);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.code).toBe(0);
       })
       .catch(e => {
         console.log("ERROR:", e);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -569,7 +566,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -619,7 +616,7 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("setOwner error:", error);
-        fail();
+        fail('should not happen');
       });
     });
 
@@ -643,7 +640,7 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("setOwner error:", error);
-        fail();
+        fail('should not happen');
       });
     });
 
@@ -656,7 +653,7 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("setRule error:", error);
-        fail();
+        fail('should not happen');
       });
     });
 
@@ -669,7 +666,7 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("setValue error:", error);
-        fail();
+        fail('should not happen');
       });
     });
 
@@ -690,7 +687,7 @@ describe('ain-js', function() {
         })
         .catch((error) => {
           console.log("setFunction error:", error);
-          fail();
+          fail('should not happen');
         })
     });
 
@@ -725,7 +722,7 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("set error:",error);
-        fail();
+        fail('should not happen');
       });
     });
 
@@ -866,18 +863,78 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("deleteValue error:",error);
-        fail();
+        fail('should not happen');
       });
     });
 
     it('evalRule: true', async function() {
       await ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
       .then(res => {
-        expect(res).toStrictEqual({"code": 0, "matched": {"state": {"closestRule": {"config": null, "path": []}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}}, "write": {"closestRule": {"config": {"write": "true"}, "path": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"]}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}, "subtreeRules": []}}});
+        expect(res).toStrictEqual({
+          "code": 0,
+          "matched": {
+            "state": {
+              "closestRule": {
+                "config": null,
+                "path": []
+              },
+              "matchedRulePath": [
+                "apps",
+                "bfan",
+                "users",
+                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+                "can",
+                "write"
+              ],
+              "matchedValuePath": [
+                "apps",
+                "bfan",
+                "users",
+                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+                "can",
+                "write"
+              ],
+              "pathVars": {}
+            },
+            "write": {
+              "closestRule": {
+                "config": {
+                  "write": "true"
+                },
+                "path": [
+                  "apps",
+                  "bfan",
+                  "users",
+                  "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+                  "can",
+                  "write"
+                ]
+              },
+              "matchedRulePath": [
+                "apps",
+                "bfan",
+                "users",
+                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+                "can",
+                "write"
+              ],
+              "matchedValuePath": [
+                "apps",
+                "bfan",
+                "users",
+                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+                "can",
+                "write"
+              ],
+              "pathVars": {},
+              "subtreeRules": []
+            }
+          }
+        });
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -888,7 +945,7 @@ describe('ain-js', function() {
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -899,7 +956,7 @@ describe('ain-js', function() {
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -910,7 +967,7 @@ describe('ain-js', function() {
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -921,7 +978,7 @@ describe('ain-js', function() {
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -932,7 +989,7 @@ describe('ain-js', function() {
       })
       .catch(error => {
         console.log("error:", error);
-        fail();
+        fail('should not happen');
       })
     });
 

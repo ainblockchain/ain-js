@@ -1,6 +1,7 @@
 import Ain from '../src/ain';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
+import { fail, eraseProtoVer } from './test_util';
 const {
   test_sk,
   test_node_1,
@@ -11,14 +12,8 @@ const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 
 jest.setTimeout(180000);
 
-function eraseProtoVer(retVal) {
-  retVal.protoVer = 'erased';
-  return retVal;
-}
-
 describe('ain-js', function() {
-  let ain = new Ain(test_node_1);
-  ain.setRawResultMode(true);
+  let ain = new Ain(test_node_1, 0, { isRawResultMode: true });
 
   beforeAll(() => {
     try {
@@ -158,36 +153,13 @@ describe('ain-js', function() {
 
       await ain.sendSignedTransaction(sig, tx)
       .then(res => {
-        expect(eraseProtoVer(res)).toStrictEqual({
-          "protoVer": "erased",
-          "result": {
-            "result": {
-              "bandwidth_gas_amount": 1,
-              "code": 0,
-              "gas_amount_charged": 0,
-              "gas_amount_total": {
-                "bandwidth": {
-                  "app": {
-                    "bfan_raw": 1,
-                  },
-                  "service": 0,
-                },
-                "state": {
-                  "app": {
-                    "bfan_raw": 912,
-                  },
-                  "service": 0,
-                },
-              },
-              "gas_cost_total": 0,
-            },
-            "tx_hash": "0xdf776dd3771f6b9a55f5183f2d2015417d7860bea3719fc1286a4e08520da271",
-          },
-        });
+        expect(res.code).toBe(undefined);
+        expect(res.result.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.result.code).toBe(0);
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -226,7 +198,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -332,7 +304,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
 
@@ -348,7 +320,7 @@ describe('ain-js', function() {
       })
       .catch(e => {
         console.log("ERROR:", e)
-        fail();
+        fail('should not happen');
       })
     });
   });
