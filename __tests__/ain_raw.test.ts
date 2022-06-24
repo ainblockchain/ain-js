@@ -3,12 +3,13 @@ import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
 import { fail, eraseProtoVer } from './test_util';
 const {
-  test_sk,
   test_node_1,
   test_node_2
 } = require('./test_data');
 
 const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
+const TEST_SK = '9fad756c0bd0d3a42643973f36e61d4d76e01cbb41371fa3046bcced6926e1b2"';
+const TEST_ADDR = '0x08Aed7AF9354435c38d52143EE50ac839D20696b';
 
 jest.setTimeout(180000);
 
@@ -16,16 +17,8 @@ describe('ain-js', function() {
   let ain = new Ain(test_node_1, 0, { isRawResultMode: true });
 
   beforeAll(() => {
-    try {
-      ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-    } catch(e) {
-      expect(e.message).toBe('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
-    }
-    ain.wallet.add(test_sk);
-    ain.wallet.setDefaultAccount(('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1'.toLowerCase()));
-    expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-    ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-    expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+    ain.wallet.add(TEST_SK);
+    ain.wallet.setDefaultAccount(TEST_ADDR);
   });
 
   describe('Core', function() {
@@ -361,7 +354,7 @@ describe('ain-js', function() {
         "result": [
           {
             ".rule": {
-              "write": "auth.addr === \"0x09A0d53FDf1c36A131938eb379b98910e55EEfe1\"",
+              "write": "auth.addr === \"0x08Aed7AF9354435c38d52143EE50ac839D20696b\"",
             },
           },
           false,

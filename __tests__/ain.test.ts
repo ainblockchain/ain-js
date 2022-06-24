@@ -9,13 +9,13 @@ const {
   test_keystore,
   test_pw,
   test_seed,
-  test_sk,
   test_node_1,
   test_node_2
 } = require('./test_data');
 
-const TEST_STRING = 'test_string';
 const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
+const TEST_SK = 'ee0b1315d446e5318eb6eb4e9d071cd12ef42d2956d546f9acbdc3b75c469640';
+const TEST_ADDR = '0x09A0d53FDf1c36A131938eb379b98910e55EEfe1';
 
 jest.setTimeout(180000);
 
@@ -97,7 +97,7 @@ describe('ain-js', function() {
 
     it('add', function() {
       let beforeLength = ain.wallet.length;
-      ain.wallet.add(test_sk);
+      ain.wallet.add(TEST_SK);
       let afterLength = ain.wallet.length;
       expect(afterLength).toBe(beforeLength + 1);
 
@@ -112,8 +112,8 @@ describe('ain-js', function() {
     });
 
     it('addAndSetDefaultAccount', function () {
-      ain.wallet.addAndSetDefaultAccount(test_sk);
-      expect(ain.wallet.defaultAccount!.private_key).toBe(test_sk);
+      ain.wallet.addAndSetDefaultAccount(TEST_SK);
+      expect(ain.wallet.defaultAccount!.private_key).toBe(TEST_SK);
     });
 
     it('addFromHDWallet', function() {
@@ -139,15 +139,15 @@ describe('ain-js', function() {
 
     it('setDefaultAccount', function() {
       try {
-        ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+        ain.wallet.setDefaultAccount(TEST_ADDR);
       } catch(e) {
         expect(e.message).toBe('[ain-js.wallet.setDefaultAccount] Add the account first before setting it to defaultAccount.');
       }
-      ain.wallet.add(test_sk);
-      ain.wallet.setDefaultAccount(('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1'.toLowerCase()));
-      expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-      ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
-      expect(ain.wallet.defaultAccount!.address).toBe('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      ain.wallet.add(TEST_SK);
+      ain.wallet.setDefaultAccount((TEST_ADDR.toLowerCase()));
+      expect(ain.wallet.defaultAccount!.address).toBe(TEST_ADDR);
+      ain.wallet.setDefaultAccount(TEST_ADDR);
+      expect(ain.wallet.defaultAccount!.address).toBe(TEST_ADDR);
     });
 
     it('removeDefaultAccount', function() {
@@ -163,7 +163,7 @@ describe('ain-js', function() {
       } catch(e) {
         expect(e.message).toBe('You need to specify the address or set defaultAccount.');
       }
-      ain.wallet.setDefaultAccount('0x09A0d53FDf1c36A131938eb379b98910e55EEfe1');
+      ain.wallet.setDefaultAccount(TEST_ADDR);
       const sig = ain.wallet.sign(message);
       const addr:string = String(ain.wallet.defaultAccount!.address);
       expect(Ain.utils.ecVerifySig(message, sig, addr)).toBe(true);
