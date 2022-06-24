@@ -19,7 +19,7 @@ const TEST_ADDR = '0x09A0d53FDf1c36A131938eb379b98910e55EEfe1';
 
 jest.setTimeout(180000);
 
-// TODO (liayoo): Create more test cases
+// TODO(liayoo): Create more test cases.
 describe('ain-js', function() {
   let ain = new Ain(test_node_1);
   let keystoreAddress = '';
@@ -350,7 +350,7 @@ describe('ain-js', function() {
       expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
-    // TODO (liayoo): add getTransactionResult method and test case for it
+    // TODO(liayoo): add getTransactionResult method and test case for it.
     // it('getTransactionResult', async function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });

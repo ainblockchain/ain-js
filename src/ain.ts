@@ -113,7 +113,7 @@ export default class Ain {
    * @param {string} transactionHash
    * @return {Promise<Transaction>}
    */
-  // TODO (lia): implement this function
+  // TODO(liayoo): implement this function.
   // getTransactionResult(transactionHash: string): Promise<TransactionResult> {}
 
   /**

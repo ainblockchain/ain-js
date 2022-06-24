@@ -57,7 +57,7 @@ export default class Wallet {
    */
   create(numberOfAccounts: number): Array<string> {
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
-    // TODO (lia): set maximum limit for numberOfAccounts?
+    // TODO(liayoo): set maximum limit for numberOfAccounts?
     let newAccounts: Array<string> = [];
     for (let i = 0; i < numberOfAccounts; i++) {
       let account = Ain.utils.createAccount();
