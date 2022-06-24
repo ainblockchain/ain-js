@@ -4,8 +4,6 @@ import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperat
 import { createSecretKey } from 'crypto';
 import { anyTypeAnnotation } from '@babel/types';
 import axios from 'axios';
-const TEST_STRING = 'test_string';
-const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 const {
   test_keystore,
   test_pw,
@@ -14,6 +12,9 @@ const {
   test_node_1,
   test_node_2
 } = require('./test_data');
+
+const TEST_STRING = 'test_string';
+const TX_PATTERN = /^0x([A-Fa-f0-9]{64})$/;
 
 jest.setTimeout(180000);
 
@@ -53,28 +54,26 @@ describe('ain-js', function() {
       expect(await ain.net.isSyncing()).toBe(false);
     });
 
-    it('getProtocolVersion', function(done) {
-      ain.net.getProtocolVersion()
+    it('getProtocolVersion', async function() {
+      await ain.net.getProtocolVersion()
       .then(res => {
         expect(res).not.toBeNull();
-        done();
       })
       .catch(e => {
         console.log("ERROR:", e);
-        done();
+        fail();
       })
     });
 
-    it('checkProtocolVersion', function(done) {
-      ain.net.checkProtocolVersion()
+    it('checkProtocolVersion', async function() {
+      await ain.net.checkProtocolVersion()
       .then(res => {
         expect(res.code).toBe(0);
         expect(res.result).toBe(true);
-        done();
       })
       .catch(e => {
         console.log("ERROR:", e)
-        done();
+        fail();
       })
     });
   });
@@ -380,17 +379,16 @@ describe('ain-js', function() {
       expect(thrownError.message).toEqual('Invalid app name for state label: app/path');
     });
 
-    it('sendTransaction', function(done) {
-      ain.sendTransaction({ operation: targetTx })
+    it('sendTransaction', async function() {
+      await ain.sendTransaction({ operation: targetTx })
       .then(res => {
         expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         targetTxHash = res.tx_hash;
-        done();
       })
       .catch(e => {
         console.log("ERROR:", e)
-        done();
+        fail();
       })
     });
 
@@ -400,7 +398,7 @@ describe('ain-js', function() {
     });
 
 
-    it('sendSignedTransaction', function(done) {
+    it('sendSignedTransaction', async function() {
       const tx: TransactionBody = {
         nonce: -1,
         gas_price: 500,
@@ -424,15 +422,14 @@ describe('ain-js', function() {
       }
       const sig = ain.wallet.signTransaction(tx);
 
-      ain.sendSignedTransaction(sig, tx)
+      await ain.sendSignedTransaction(sig, tx)
       .then(res => {
         expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        done();
       })
       .catch(e => {
-        console.log("ERROR:", e)
-        done();
+        console.log("ERROR:", e);
+        fail();
       })
     });
 
@@ -470,7 +467,7 @@ describe('ain-js', function() {
       expect(thrownError.message).toEqual('Missing properties.');
     });
 
-    it('sendTransactionBatch', function(done) {
+    it('sendTransactionBatch', async function() {
       const tx1: TransactionInput = {
         operation: {
           type: 'SET_VALUE',
@@ -555,7 +552,7 @@ describe('ain-js', function() {
         address: addr2
       }
 
-      ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
+      await ain.sendTransactionBatch([ tx1, tx2, tx3, tx4, tx5, tx6 ])
       .then(res => {
         expect(res[0].result.code).toBe(12103);
         expect(res[0].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
@@ -569,11 +566,10 @@ describe('ain-js', function() {
         expect(res[4].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res[5].result.code).toBe(12302);
         expect(res[5].tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
-        done();
       })
       .catch(e => {
-        console.log("ERROR:", e)
-        done();
+        console.log("ERROR:", e);
+        fail();
       })
     });
 
@@ -603,8 +599,8 @@ describe('ain-js', function() {
       expect(ain.db.ref(test_path).path).toBe('/' + test_path);
     });
 
-    it('setOwner', function(done) {
-      ain.db.ref(allowed_path).setOwner({
+    it('setOwner', async function() {
+      await ain.db.ref(allowed_path).setOwner({
         value: {
           ".owner": {
               "owners": {
@@ -620,16 +616,15 @@ describe('ain-js', function() {
       })
       .then(res => {
         expect(res.result.code).toBe(0);
-        done();
       })
       .catch((error) => {
         console.log("setOwner error:", error);
-        done();
+        fail();
       });
     });
 
-    it('should fail to setOwner', function(done) {
-      ain.db.ref('/consensus').setOwner({
+    it('should fail to setOwner', async function() {
+      await ain.db.ref('/consensus').setOwner({
         value: {
           ".owner": {
               "owners": {
@@ -645,44 +640,41 @@ describe('ain-js', function() {
       })
       .then(res => {
         expect(res.result.code).toBe(12501);
-        done();
       })
       .catch((error) => {
         console.log("setOwner error:", error);
-        done();
+        fail();
       });
     });
 
-    it('setRule', function(done) {
-      ain.db.ref(allowed_path).setRule({
+    it('setRule', async function() {
+      await ain.db.ref(allowed_path).setRule({
         value: { '.rule': { 'write': "true" } }
       })
       .then(res => {
         expect(res.result.code).toBe(0);
-        done();
       })
       .catch((error) => {
         console.log("setRule error:", error);
-        done();
+        fail();
       });
     });
 
-    it('setValue', function(done) {
-      ain.db.ref(allowed_path + '/username').setValue({
+    it('setValue', async function() {
+      await ain.db.ref(allowed_path + '/username').setValue({
         value: "test_user"
       })
       .then(res => {
         expect(res.result.code).toBe(0);
-        done();
       })
       .catch((error) => {
         console.log("setValue error:", error);
-        done();
+        fail();
       });
     });
 
-    it('setFunction', function(done) {
-      ain.db.ref(allowed_path).setFunction({
+    it('setFunction', async function() {
+      await ain.db.ref(allowed_path).setFunction({
           value: {
             ".function": {
               '0xFUNCTION_HASH': {
@@ -695,16 +687,15 @@ describe('ain-js', function() {
         })
         .then(res => {
           expect(res.result.code).toBe(0);
-          done();
         })
         .catch((error) => {
           console.log("setFunction error:", error);
-          done();
+          fail();
         })
     });
 
-    it('set', function(done) {
-      ain.db.ref(allowed_path).set({
+    it('set', async function() {
+      await ain.db.ref(allowed_path).set({
         op_list: [
           {
             type: 'SET_RULE',
@@ -731,11 +722,10 @@ describe('ain-js', function() {
       })
       .then(res => {
         expect(Object.keys(res.result).length).toBe(4);
-        done();
       })
       .catch((error) => {
         console.log("set error:",error);
-        done();
+        fail();
       });
     });
 
@@ -869,87 +859,80 @@ describe('ain-js', function() {
       expect(getWithVersion['#version']).not.toBeNull();
     });
 
-    it('deleteValue', function(done) {
-      ain.db.ref(`${allowed_path}/can/write`).deleteValue()
+    it('deleteValue', async function() {
+      await ain.db.ref(`${allowed_path}/can/write`).deleteValue()
       .then(res => {
         expect(res.result.code).toBe(0);
-        done();
       })
       .catch((error) => {
         console.log("deleteValue error:",error);
-        done();
+        fail();
       });
     });
 
-    it('evalRule: true', function(done) {
-      ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
+    it('evalRule: true', async function() {
+      await ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
       .then(res => {
         expect(res).toStrictEqual({"code": 0, "matched": {"state": {"closestRule": {"config": null, "path": []}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}}, "write": {"closestRule": {"config": {"write": "true"}, "path": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"]}, "matchedRulePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "matchedValuePath": ["apps", "bfan", "users", "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1", "can", "write"], "pathVars": {}, "subtreeRules": []}}});
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
-    it('evalRule: false', function(done) {
-      ain.db.ref(allowed_path).evalRule({ ref: '/cannot/write', value: 'hi' })
+    it('evalRule: false', async function() {
+      await ain.db.ref(allowed_path).evalRule({ ref: '/cannot/write', value: 'hi' })
       .then(res => {
         expect(res.code).toBe(12103);
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
-    it('evalOwner', function(done) {
-      ain.db.ref(allowed_path).evalOwner({ permission: "branch_owner" })
+    it('evalOwner', async function() {
+      await ain.db.ref(allowed_path).evalOwner({ permission: "branch_owner" })
       .then(res => {
         expect(res).toMatchSnapshot();
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
-    it('matchFunction', function(done) {
-      ain.db.ref(allowed_path).matchFunction()
+    it('matchFunction', async function() {
+      await ain.db.ref(allowed_path).matchFunction()
       .then(res => {
         expect(res).toMatchSnapshot();
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
-    it('matchRule', function(done) {
-      ain.db.ref(allowed_path).matchRule()
+    it('matchRule', async function() {
+      await ain.db.ref(allowed_path).matchRule()
       .then(res => {
         expect(res).toMatchSnapshot();
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
-    it('matchOwner', function(done) {
-      ain.db.ref(allowed_path).matchOwner()
+    it('matchOwner', async function() {
+      await ain.db.ref(allowed_path).matchOwner()
       .then(res => {
         expect(res).toMatchSnapshot();
-        done();
       })
       .catch(error => {
         console.log("error:", error);
-        done();
+        fail();
       })
     });
 
