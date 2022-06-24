@@ -1,39 +1,39 @@
 export interface Account {
-  address: string,
-  private_key: string,
-  public_key: string
+  address: string;
+  private_key: string;
+  public_key: string;
 }
 
 export interface Accounts {[address: string]: Account}
 
 export interface KdfParams {
-  dklen: number,
-  salt: string,
-  prf?: string,
-  c?: number,
-  n?: number,
-  r?: number,
-  p?: number
+  dklen: number;
+  salt: string;
+  prf?: string;
+  c?: number;
+  n?: number;
+  r?: number;
+  p?: number;
 }
 
 export interface V3KeystoreOptions {
-  salt?: string,
-  iv?: Buffer,
-  kdf?: string,
-  dklen?: number,
-  c?: number,
-  n?: number,
-  r?: number,
-  p?: number,
-  prf?: string,
-  cipher?: string,
-  uuid?: Buffer
+  salt?: string;
+  iv?: Buffer;
+  kdf?: string;
+  dklen?: number;
+  c?: number;
+  n?: number;
+  r?: number;
+  p?: number;
+  prf?: string;
+  cipher?: string;
+  uuid?: Buffer;
 }
 
 export interface V3Keystore {
-  version: 3,
-  id: string,
-  address: string,
+  version: 3;
+  id: string;
+  address: string;
   crypto: {
     ciphertext: string,
     cipherparams: {
@@ -43,7 +43,7 @@ export interface V3Keystore {
     kdf: string,
     kdfparams: KdfParams,
     mac: string
-  }
+  };
 }
 
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
@@ -59,14 +59,12 @@ export type GetOperationType = "GET_VALUE" | "GET_RULE" | "GET_OWNER" | "GET_FUN
 export type OwnerPermission = "branch_owner" | "write_function" | "write_owner" | "write_rule";
 
 export type GetOptions = {
-  is_global?: boolean,
-  is_final?: boolean,
-  is_shallow?: boolean,
-  // TODO(platfowner): Remove this option once migration is completed.
-  is_raw_result_request?: boolean,
-  include_version?: boolean,
-  include_tree_info?: boolean,
-  include_proof?: boolean,
+  is_global?: boolean;
+  is_final?: boolean;
+  is_shallow?: boolean;
+  include_version?: boolean;
+  include_tree_info?: boolean;
+  include_proof?: boolean;
 }
 
 export interface SetOperation {
@@ -141,79 +139,79 @@ export interface TransactionInfo {
   index: number;
   timestamp: number;
   is_finalized: boolean;
-  finalized_at: number
+  finalized_at: number;
 }
 
 export interface TransactionResult {
-  status: boolean,
-  block_hash?: string,
-  block_number?: number,
-  hash: string,
-  index?: number,
-  address: string,
-  parent_tx_hash?: string
+  status: boolean;
+  block_hash?: string;
+  block_number?: number;
+  hash: string;
+  index?: number;
+  address: string;
+  parent_tx_hash?: string;
 }
 
 export interface Block {
-  number: number,
-  epoch: number,
-  hash: string,
-  last_hash: string,
-  proposer: string,
-  validators: any,
-  size: number,
-  timestamp: number,
-  transactions: Transaction[],
-  last_votes: Transaction[],
-  stateProofHash: string,
-  last_votes_hash: string,
-  transactions_hash: string
+  number: number;
+  epoch: number;
+  hash: string;
+  last_hash: string;
+  proposer: string;
+  validators: any;
+  size: number;
+  timestamp: number;
+  transactions: Transaction[];
+  last_votes: Transaction[];
+  stateProofHash: string;
+  last_votes_hash: string;
+  transactions_hash: string;
 }
 
 export interface ListenerMap {
-  [key: string]: Function[]
+  [key: string]: Function[];
 }
 
 export interface EvalRuleInput {
-  value: any,
-  ref?: string,
-  address?: string,
-  timestamp?: number,
-  is_global?: boolean
+  value: any;
+  ref?: string;
+  address?: string;
+  timestamp?: number;
+  is_global?: boolean;
 }
 
 export interface EvalOwnerInput {
-  ref?: string,
-  address?: string,
-  permission: OwnerPermission,
-  is_global?: boolean
+  ref?: string;
+  address?: string;
+  permission: OwnerPermission;
+  is_global?: boolean;
 }
 
 export interface MatchInput {
-  ref?: string,
-  is_global?: boolean
+  ref?: string;
+  is_global?: boolean;
 }
 
 export interface StateUsageInfo {
-  tree_height?: number,
-  tree_size?: number,
-  tree_bytes?: number,
+  tree_height?: number;
+  tree_size?: number;
+  tree_bytes?: number;
 }
 
 export interface AppNameValidationInfo {
-  is_valid: boolean,
-  code: number,
-  message?: string,
+  is_valid: boolean;
+  code: number;
+  message?: string;
 }
 
 export type HomomorphicEncryptionParams = {
-  polyModulusDegree: number,
-  coeffModulusArray: Int32Array,
-  scaleBit: number
+  polyModulusDegree: number;
+  coeffModulusArray: Int32Array;
+  scaleBit: number;
 }
 
 export type HomomorphicEncryptionSecretKey = {
-  secretKey: string
+  secretKey: string;
 }
 
 export enum BlockchainEventTypes {

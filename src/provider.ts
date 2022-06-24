@@ -2,6 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 import * as parseUrl from 'url-parse';
 import { get } from 'lodash';
 import Ain from './ain';
+import { BlockchainError } from './errors';
+
 const JSON_RPC_ENDPOINT = 'json-rpc';
 
 export default class Provider {
@@ -41,11 +43,10 @@ export default class Provider {
     };
     const response = await this.httpClient.post(this.apiEndpoint, data);
     const rawResult = get(response, 'data.result');
-    // TODO(platfowner): Remove this block once migration is completed.
-    if (!data.params.is_raw_result_request) {
-      return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
+    if (typeof rawResult !== 'object' || !(rawResult.code === undefined || rawResult.code === 0)) {
+      throw new BlockchainError(rawResult.code, rawResult.message);
     }
-    return rawResult;
+    return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
   }
 
   /**

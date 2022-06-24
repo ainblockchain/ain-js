@@ -69,14 +69,14 @@ describe('ain-js', function() {
       ain.net.checkProtocolVersion()
       .then(res => {
         expect(res.code).toBe(0);
-        expect(res.result).toBe('Success');
+        expect(res.result).toBe(true);
         done();
       })
       .catch(e => {
         console.log("ERROR:", e)
         done();
       })
-    })
+    });
   });
 
   describe('Wallet', function() {
@@ -360,16 +360,24 @@ describe('ain-js', function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
-    it('validateAppName', async function () {
-      expect(await ain.validateAppName('test')).toStrictEqual({
-        "is_valid": false,
-        "code": 30603,
-        "message": "App name already in use: test",
-      });
-      expect(await ain.validateAppName('test_new')).toStrictEqual({
+    it('validateAppName returns true', async function () {
+      expect(eraseProtoVer(await ain.validateAppName('test_new'))).toStrictEqual({
         "is_valid": true,
+        "result": true,
         "code": 0,
+        "protoVer": "erased",
       });
+    });
+
+    it('validateAppName returns false', async function () {
+      let thrownError;
+      try {
+        await ain.validateAppName('app/path');
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30601);
+      expect(thrownError.message).toEqual('Invalid app name for state label: app/path');
     });
 
     it('sendTransaction', function(done) {
@@ -428,7 +436,7 @@ describe('ain-js', function() {
       })
     });
 
-    it('sendSignedTransaction: invalid signature', function(done) {
+    it('sendSignedTransaction with invalid signature', async function() {
       const tx: TransactionBody = {
         nonce: -1,
         gas_price: 500,
@@ -452,16 +460,14 @@ describe('ain-js', function() {
       }
       const sig = '';  // Invalid signature value
 
-      ain.sendSignedTransaction(sig, tx)
-      .then(res => {
-        expect(res.code).toBe(30302);
-        expect(res.message).toEqual('Missing properties.');
-        done();
-      })
-      .catch(e => {
-        console.log("ERROR:", e)
-        done();
-      })
+      let thrownError;
+      try {
+        await ain.sendSignedTransaction(sig, tx);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30302);
+      expect(thrownError.message).toEqual('Missing properties.');
     });
 
     it('sendTransactionBatch', function(done) {
@@ -569,6 +575,17 @@ describe('ain-js', function() {
         console.log("ERROR:", e)
         done();
       })
+    });
+
+    it('sendTransactionBatch with empty tx_list', async function() {
+      let thrownError;
+      try {
+        await ain.sendTransactionBatch([]);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30401);
+      expect(thrownError.message).toEqual('Invalid batch transaction format.');
     });
   });
 
@@ -729,16 +746,6 @@ describe('ain-js', function() {
         },
         "username": "test_user",
       });
-      // with is_raw_result_request = true
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).getValue('', { is_raw_result_request: true }))).toEqual({
-        "result": {
-          "can": {
-            "write": -5,
-          },
-          "username": "test_user",
-        },
-        "protoVer": "erased",
-      });
     });
 
     it('getRule', async function() {
@@ -761,29 +768,6 @@ describe('ain-js', function() {
           },
         },
       });
-      // with is_raw_result_request = true
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).getRule('', { is_raw_result_request: true }))).toEqual({
-        "result": {
-          ".rule": {
-            "write": "true",
-          },
-          "can": {
-            "write": {
-              ".rule": {
-                "write": "true",
-              },
-            },
-          },
-          "cannot": {
-            "write": {
-              ".rule": {
-                "write": "false",
-              },
-            },
-          },
-        },
-        "protoVer": "erased",
-      });
     });
 
     it('getOwner', async function() {
@@ -805,28 +789,6 @@ describe('ain-js', function() {
           },
         },
       });
-      // with is_raw_result_request = true
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).getOwner('', { is_raw_result_request: true }))).toEqual({
-        "result": {
-          ".owner": {
-            "owners": {
-              "*": {
-                "branch_owner": true,
-                "write_function": true,
-                "write_owner": true,
-                "write_rule": true,
-              },
-              "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
-                "branch_owner": true,
-                "write_function": true,
-                "write_owner": true,
-                "write_rule": true,
-              },
-            },
-          },
-        },
-        "protoVer": "erased",
-      });
     });
 
     it('getFunction', async function() {
@@ -838,19 +800,6 @@ describe('ain-js', function() {
             "function_url": "https://events.ainetwork.ai/trigger",
           },
         },
-      });
-      // with is_raw_result_request = true
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).getFunction('', { is_raw_result_request: true }))).toEqual({
-        "result": {
-          ".function": {
-            "0xFUNCTION_HASH": {
-              "function_id": "0xFUNCTION_HASH",
-              "function_type": "REST",
-              "function_url": "https://events.ainetwork.ai/trigger",
-            },
-          },
-        },
-        "protoVer": "erased",
       });
     });
 
@@ -897,70 +846,17 @@ describe('ain-js', function() {
         },
         null
       ]);
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).get(
-        [
-          {
-            type: 'GET_RULE',
-            ref: ''
-          },
-          {
-            type: 'GET_VALUE',
-          },
-          {
-            type: 'GET_VALUE',
-            ref: 'deeper/path/'
-          }
-        ],
-        true,
-      ))).toEqual({
-        "result": [
-          {
-            ".rule": {
-              "write": "true"
-            },
-            "can": {
-              "write": {
-                ".rule": {
-                  "write": "true"
-                }
-              }
-            },
-            "cannot": {
-              "write": {
-                ".rule": {
-                  "write": "false"
-                }
-              }
-            }
-          },
-          {
-            "can": {
-              "write": -5
-            },
-            "username": "test_user"
-          },
-          null
-        ],
-        "protoVer": "erased",
-      });
     });
 
-    it('get', async function() {
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).get([ // empty op_list
-      ]))).toEqual({
-        "code": 30006,
-        "message": "Invalid op_list given",
-        "protoVer": "erased",
-        "result": null,
-      });
-      // with is_raw_result_request = true
-      expect(eraseProtoVer(await ain.db.ref(allowed_path).get([ // empty op_list
-      ], true))).toEqual({
-        "code": 30006,
-        "message": "Invalid op_list given",
-        "protoVer": "erased",
-        "result": null,
-      });
+    it('get with empty op_list', async function() {
+      let thrownError;
+      try {
+        await ain.db.ref(allowed_path).get([]);
+      } catch(err) {
+        thrownError = err;
+      }
+      expect(thrownError.code).toEqual(30006);
+      expect(thrownError.message).toEqual('Invalid op_list given');
     });
 
     it('get with options', async function() {
