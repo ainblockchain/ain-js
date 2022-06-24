@@ -16,7 +16,7 @@ import HomomorphicEncryption from './he';
 export default class Ain {
   public chainId: number;
   public provider: Provider;
-  public isRawResultMode: boolean;
+  public rawResultMode: boolean;
   public db: Database;
   public net: Network;
   public wallet: Wallet;
@@ -29,7 +29,7 @@ export default class Ain {
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
     this.provider = new Provider(this, providerUrl);
-    this.isRawResultMode = ainOptions ? !!ainOptions.isRawResultMode : false;
+    this.rawResultMode = ainOptions ? !!ainOptions.rawResultMode : false;
     this.chainId = chainId || 0;
     this.net = new Network(this.provider);
     this.wallet = new Wallet(this, this.chainId);

@@ -43,7 +43,7 @@ export default class Provider {
     };
     const response = await this.httpClient.post(this.apiEndpoint, data);
     const rawResult = get(response, 'data.result');
-    if (this.ain.isRawResultMode) {
+    if (this.ain.rawResultMode) {
       return rawResult;
     }
     if (typeof rawResult !== 'object' || !(rawResult.code === undefined || rawResult.code === 0)) {

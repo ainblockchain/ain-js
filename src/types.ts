@@ -47,7 +47,7 @@ export interface V3Keystore {
 }
 
 export type AinOptions = {
-  isRawResultMode?: boolean;
+  rawResultMode?: boolean;
 }
 
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
