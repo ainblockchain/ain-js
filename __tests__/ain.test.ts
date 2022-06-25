@@ -870,67 +870,7 @@ describe('ain-js', function() {
     it('evalRule: true', async function() {
       await ain.db.ref(allowed_path).evalRule({ ref: '/can/write', value: 'hi' })
       .then(res => {
-        expect(res).toStrictEqual({
-          "code": 0,
-          "matched": {
-            "state": {
-              "closestRule": {
-                "config": null,
-                "path": []
-              },
-              "matchedRulePath": [
-                "apps",
-                "bfan",
-                "users",
-                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
-                "can",
-                "write"
-              ],
-              "matchedValuePath": [
-                "apps",
-                "bfan",
-                "users",
-                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
-                "can",
-                "write"
-              ],
-              "pathVars": {}
-            },
-            "write": {
-              "closestRule": {
-                "config": {
-                  "write": "true"
-                },
-                "path": [
-                  "apps",
-                  "bfan",
-                  "users",
-                  "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
-                  "can",
-                  "write"
-                ]
-              },
-              "matchedRulePath": [
-                "apps",
-                "bfan",
-                "users",
-                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
-                "can",
-                "write"
-              ],
-              "matchedValuePath": [
-                "apps",
-                "bfan",
-                "users",
-                "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
-                "can",
-                "write"
-              ],
-              "pathVars": {},
-              "subtreeRules": []
-            }
-          }
-        });
+        expect(res).toMatchSnapshot();
       })
       .catch(error => {
         console.log("error:", error);
