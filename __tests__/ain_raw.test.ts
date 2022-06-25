@@ -14,7 +14,7 @@ const TEST_ADDR = '0x08Aed7AF9354435c38d52143EE50ac839D20696b';
 jest.setTimeout(180000);
 
 describe('ain-js', function() {
-  let ain = new Ain(test_node_1, 0, { rawResultMode: true });
+  const ain = new Ain(test_node_1, 0, { rawResultMode: true });
 
   beforeAll(() => {
     ain.wallet.add(TEST_SK);

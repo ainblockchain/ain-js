@@ -21,7 +21,7 @@ jest.setTimeout(180000);
 
 // TODO(liayoo): Create more test cases.
 describe('ain-js', function() {
-  let ain = new Ain(test_node_1);
+  const ain = new Ain(test_node_1);
   let keystoreAddress = '';
 
   describe('Network', function() {

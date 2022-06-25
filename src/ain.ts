@@ -29,8 +29,8 @@ export default class Ain {
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
     this.provider = new Provider(this, providerUrl);
-    this.rawResultMode = ainOptions ? !!ainOptions.rawResultMode : false;
     this.chainId = chainId || 0;
+    this.rawResultMode = ainOptions?.rawResultMode || false;
     this.net = new Network(this.provider);
     this.wallet = new Wallet(this, this.chainId);
     this.db = new Database(this, this.provider);
