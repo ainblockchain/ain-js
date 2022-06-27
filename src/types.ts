@@ -46,6 +46,10 @@ export interface V3Keystore {
   };
 }
 
+export type AinOptions = {
+  rawResultMode?: boolean;
+}
+
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
 
 export type SetMultiOperationType = "SET";

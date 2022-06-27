@@ -2,8 +2,8 @@ import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
 import request from './request';
 import {
-  Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
-  SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo, AppNameValidationInfo
+  AinOptions, Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
+  SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo, AppNameValidationInfo,
 } from './types';
 import Provider from './provider';
 import Database from './ain-db/db';
@@ -16,6 +16,7 @@ import HomomorphicEncryption from './he';
 export default class Ain {
   public chainId: number;
   public provider: Provider;
+  public rawResultMode: boolean;
   public db: Database;
   public net: Network;
   public wallet: Wallet;
@@ -26,9 +27,10 @@ export default class Ain {
    * @param {string} providerUrl
    * @constructor
    */
-  constructor(providerUrl: string, chainId?: number) {
+  constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
     this.provider = new Provider(this, providerUrl);
     this.chainId = chainId || 0;
+    this.rawResultMode = ainOptions?.rawResultMode || false;
     this.net = new Network(this.provider);
     this.wallet = new Wallet(this, this.chainId);
     this.db = new Database(this, this.provider);
@@ -111,7 +113,7 @@ export default class Ain {
    * @param {string} transactionHash
    * @return {Promise<Transaction>}
    */
-  // TODO (lia): implement this function
+  // TODO(liayoo): implement this function.
   // getTransactionResult(transactionHash: string): Promise<TransactionResult> {}
 
   /**

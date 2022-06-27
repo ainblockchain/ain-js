@@ -310,7 +310,7 @@ export default class Reference {
   }
 
   /**
-   * TODO (lia): Add this function
+   * TODO(liayoo): Add this function.
    * Attaches an listener for database events.
    * @param {EventType} event - A type of event.
    * @param {Function} callback function to be executed when an event occurs.
@@ -335,7 +335,7 @@ export default class Reference {
   // }
 
   /**
-   * TODO (lia): Add this function
+   * TODO (liayoo): Add this function
    * Removes a database event listener.
    * @param {EventType} event - A type of event.
    * @param {Function} callback - A callback function to dettach from the event.

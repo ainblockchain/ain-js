@@ -10,6 +10,7 @@
     "test_snapshot": "jest --updateSnapshot",
     "test_ain": "jest ain.test.ts",
     "test_ain_snapshot": "jest ain.test.ts --updateSnapshot",
+    "test_ain_raw": "jest ain_raw.test.ts",
     "test_he": "jest he.test.ts",
     "test_em": "jest event_manager.test.ts"
   },
