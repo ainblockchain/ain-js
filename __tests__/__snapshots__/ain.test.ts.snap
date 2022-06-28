@@ -39,6 +39,70 @@ Object {
 }
 `;
 
+exports[`ain-js Database evalRule: true 1`] = `
+Object {
+  "code": 0,
+  "matched": Object {
+    "state": Object {
+      "closestRule": Object {
+        "config": null,
+        "path": Array [],
+      },
+      "matchedRulePath": Array [
+        "apps",
+        "bfan",
+        "users",
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+        "can",
+        "write",
+      ],
+      "matchedValuePath": Array [
+        "apps",
+        "bfan",
+        "users",
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+        "can",
+        "write",
+      ],
+      "pathVars": Object {},
+    },
+    "write": Object {
+      "closestRule": Object {
+        "config": Object {
+          "write": "true",
+        },
+        "path": Array [
+          "apps",
+          "bfan",
+          "users",
+          "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+          "can",
+          "write",
+        ],
+      },
+      "matchedRulePath": Array [
+        "apps",
+        "bfan",
+        "users",
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+        "can",
+        "write",
+      ],
+      "matchedValuePath": Array [
+        "apps",
+        "bfan",
+        "users",
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
+        "can",
+        "write",
+      ],
+      "pathVars": Object {},
+      "subtreeRules": Array [],
+    },
+  },
+}
+`;
+
 exports[`ain-js Database get with options 1`] = `null`;
 
 exports[`ain-js Database get with options 2`] = `
