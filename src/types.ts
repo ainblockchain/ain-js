@@ -222,6 +222,7 @@ export enum BlockchainEventTypes {
   BLOCK_FINALIZED = 'BLOCK_FINALIZED',
   VALUE_CHANGED = 'VALUE_CHANGED',
   TX_STATE_CHANGED = 'TX_STATE_CHANGED',
+  FILTER_DELETED = 'FILTER_DELETED',
 }
 
 export enum EventChannelMessageTypes {
@@ -249,6 +250,7 @@ export interface ValueChangedEventConfig {
 
 export interface TxStateChangedEventConfig {
   tx_hash: string;
+  timeout: number;
 }
 
 export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
@@ -288,8 +290,24 @@ export interface ValueChangedEvent {
   values: ValueChangedEventValues;
 }
 
+export interface TxStateChangedEventStates {
+  before: string;
+  after: string;
+}
+
 export interface TxStateChangedEvent {
-  // TODO(2sakchoi): Add event type.
+  transaction: Transaction;
+  tx_state: TxStateChangedEventStates;
+}
+
+export enum FilterDeletionReasons {
+  FILTER_TIMEOUT = 'FILTER_TIMEOUT',
+  END_STATE_REACHED = 'END_STATE_REACHED',
+}
+
+export interface FilterDeletedEvent {
+  filter_id: string;
+  reason: FilterDeletionReasons;
 }
 
 export interface BlockchainEventCallback {

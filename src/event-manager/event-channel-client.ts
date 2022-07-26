@@ -123,7 +123,7 @@ export default class EventChannelClient {
     if (!payload) {
       throw Error(`Can't find payload from message data (${JSON.stringify(messageData, null, 2)})`);
     }
-    this._eventCallbackManager.emitEvent(filterId, payload);
+    this._eventCallbackManager.emitEvent(filterId, eventType, payload);
   }
 
   handleEmitErrorMessage(messageData) {
