@@ -146,6 +146,8 @@ Object {
   "#tree_bytes:username": 178,
   "#tree_height": 2,
   "#tree_height:username": 0,
+  "#tree_max_siblings": 2,
+  "#tree_max_siblings:username": 1,
   "#tree_size": 4,
   "#tree_size:username": 1,
   "can": Object {
@@ -157,6 +159,8 @@ Object {
     "#tree_bytes:write": 168,
     "#tree_height": 1,
     "#tree_height:write": 0,
+    "#tree_max_siblings": 1,
+    "#tree_max_siblings:write": 1,
     "#tree_size": 2,
     "#tree_size:write": 1,
     "write": -5,

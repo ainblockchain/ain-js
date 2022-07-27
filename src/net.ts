@@ -40,7 +40,7 @@ export default class Network {
   /**
    * Returns the protocol version of the node.
    */
-  getProtocolVersion(): Promise<string> {
+  getProtocolVersion(): Promise<any> {
     return this.provider.send('ain_getProtocolVersion');
   }
 
