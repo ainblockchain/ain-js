@@ -69,7 +69,7 @@ export default class EventCallbackManager {
   createSubscription(filter: EventFilter, eventCallback?: BlockchainEventCallback,
       errorCallback?: (error: any) => void) {
     const subscription = new Subscription(filter);
-    subscription.on('filterDeleted', (payload) => console.log(`Event filter(id: ${payload.filter_id}) is deleted because of ${payload.reason}`));
+    subscription.on('filterDeleted', (payload) => console.log(`Event filter (id: ${payload.filter_id}) is deleted because of ${payload.reason}`));
     if (eventCallback) {
       subscription.on('event', eventCallback);
     }

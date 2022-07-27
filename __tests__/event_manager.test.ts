@@ -1,5 +1,5 @@
 import Ain from '../src/ain';
-import { FilterDeletionReasons } from '../src/types';
+import { FilterDeletionReasons, TransactionStates } from '../src/types';
 
 const { test_event_handler_node } = require('./test_data');
 const delayMs = (time) => new Promise(resolve => setTimeout(resolve, time));
@@ -141,13 +141,13 @@ describe('Event Handler', function() {
       }).then((result)=>{
         filterId = ain.em.subscribe('TX_STATE_CHANGED', {
           tx_hash: result.tx_hash,
-          timeout: 60000,
+          timeout_ms: 60000,
         }, (event) => {
-          expect(event.tx_state.before).toBe('EXECUTED');
-          expect(event.tx_state.after).toBe('FINALIZED');
+          expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
+          expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
           setTimeout(() => {
             expect((console.log as jest.Mock).mock.calls.length).toBe(1);
-            expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter(id: ${filterId}) is deleted because of ${FilterDeletionReasons.END_STATE_REACHED}`);
+            expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter (id: ${filterId}) is deleted because of ${FilterDeletionReasons.END_STATE_REACHED}`);
             done();
           }, 5000);
         })
@@ -157,11 +157,11 @@ describe('Event Handler', function() {
     it('Subscribe to TX_STATE_CHANGED and deleted because of timeout', (done) => {
       const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '0x9ac44b45853c2244715528f89072a337540c909c36bab4c9ed2fd7b7dbab47b2',
-        timeout: 60000,
+        timeout_ms: 60000,
       })
       setTimeout(() => {
         expect((console.log as jest.Mock).mock.calls.length).toBe(1);
-        expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter(id: ${filterId}) is deleted because of ${FilterDeletionReasons.FILTER_TIMEOUT}`);
+        expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter (id: ${filterId}) is deleted because of ${FilterDeletionReasons.FILTER_TIMEOUT}`);
         done();
       }, 61000);
     }, 70000);
@@ -169,7 +169,7 @@ describe('Event Handler', function() {
     it('Subscribe to TX_STATE_CHANGED with wrong config', (done) => {
       ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '123',
-        timeout: 0,
+        timeout_ms: 0,
       }, (event) => {
       }, (err) => {
         done();
