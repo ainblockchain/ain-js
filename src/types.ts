@@ -275,11 +275,6 @@ export interface ValueChangedEventAuth {
   fid?: string;
 }
 
-export interface ValueChangedEventValues {
-  before: any;
-  after: any;
-}
-
 export interface ValueChangedEvent {
   filter_path: string;
   matched_path: string;
@@ -287,7 +282,10 @@ export interface ValueChangedEvent {
   transaction: Transaction;
   event_source: ValueChangedEventSource;
   auth: ValueChangedEventAuth;
-  values: ValueChangedEventValues;
+  values: {
+    before: any;
+    after: any;
+  };
 }
 
 export enum TransactionStates {
