@@ -364,13 +364,12 @@ describe('ain-js', function() {
     });
 
     it('get with empty op_list', async function() {
-      const protoVer = (await ain.net.getProtocolVersion()).result;
-      expect(await ain.db.ref(allowed_path).get([]))
+      expect(eraseProtoVer(await ain.db.ref(allowed_path).get([])))
       .toEqual({
         "result": null,
         "code": 30006,
         "message": "Invalid op_list given",
-        "protoVer": protoVer,
+        "protoVer": "erased",
       });
     });
   });
