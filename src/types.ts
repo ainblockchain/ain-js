@@ -250,7 +250,7 @@ export interface ValueChangedEventConfig {
 
 export interface TxStateChangedEventConfig {
   tx_hash: string;
-  timeout: number;
+  timeout_ms: number;
 }
 
 export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
@@ -290,14 +290,21 @@ export interface ValueChangedEvent {
   values: ValueChangedEventValues;
 }
 
-export interface TxStateChangedEventStates {
-  before: string;
-  after: string;
+export enum TransactionStates {
+  FINALIZED = 'FINALIZED',
+  REVERTED = 'REVERTED', // Reverted means it's failed but included in a block
+  EXECUTED = 'EXECUTED',
+  FAILED = 'FAILED', // Failed means it's failed and is NOT included in a block
+  PENDING = 'PENDING',
+  TIMED_OUT = 'TIMED_OUT',
 }
 
 export interface TxStateChangedEvent {
   transaction: Transaction;
-  tx_state: TxStateChangedEventStates;
+  tx_state: {
+    before: TransactionStates;
+    after: TransactionStates;
+  };
 }
 
 export enum FilterDeletionReasons {
