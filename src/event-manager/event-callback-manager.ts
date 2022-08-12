@@ -1,6 +1,6 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback } from '../types';
+import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback } from '../types';
 import { PushId } from '../ain-db/push-id';
 
 export default class EventCallbackManager {
@@ -66,10 +66,16 @@ export default class EventCallbackManager {
     return filter;
   }
 
-  createSubscription(filter: EventFilter, eventCallback?: BlockchainEventCallback,
-      errorCallback?: (error: any) => void) {
+  createSubscription(
+    filter: EventFilter,
+    eventCallback?: BlockchainEventCallback,
+    errorCallback?: (error: any) => void,
+    filterDeletedEventCallback?: FilterDeletedEventCallback
+  ) {
     const subscription = new Subscription(filter);
-    subscription.on('filterDeleted', (payload) => console.log(`Event filter (id: ${payload.filter_id}) is deleted because of ${payload.reason}`));
+    subscription.on('filterDeleted', filterDeletedEventCallback ||
+        ((payload) => console.log(`Event filter (id: ${payload.filter_id})`
+        + ` is deleted because of ${payload.reason}`)));
     if (eventCallback) {
       subscription.on('event', eventCallback);
     }

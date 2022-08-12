@@ -250,7 +250,6 @@ export interface ValueChangedEventConfig {
 
 export interface TxStateChangedEventConfig {
   tx_hash: string;
-  timeout_ms: number;
 }
 
 export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
@@ -320,5 +319,7 @@ export interface BlockchainEventCallback {
   (event: ValueChangedEvent): void;
   (event: TxStateChangedEvent): void;
 }
+
+export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 
 export type DisconnectCallback = (webSocket) => void;

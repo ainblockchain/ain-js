@@ -120,7 +120,6 @@ describe('Event Handler', function() {
     const [ testAccount ] = ain.wallet.create(1);
     const testAppName = `test_2${Date.now()}`;
     const testAppPath = `/apps/${testAppName}`;
-    const mockConsoleLog = jest.spyOn(console, 'log');
 
     beforeAll(async () => {
       // Create test app
@@ -130,48 +129,84 @@ describe('Event Handler', function() {
       });
     });
 
-    afterAll(() => {
-      mockConsoleLog.mockRestore();
-    })
-
-    it('Subscribe to TX_STATE_CHANGED and deleted because end state reached', (done) => {
-      let filterId;
-      ain.db.ref(testAppPath).setValue({
-        value: Date.now(),
-      }).then((result)=>{
-        filterId = ain.em.subscribe('TX_STATE_CHANGED', {
-          tx_hash: result.tx_hash,
-          timeout_ms: 60000,
-        }, (event) => {
-          expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
-          expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
-          setTimeout(() => {
-            expect((console.log as jest.Mock).mock.calls.length).toBe(1);
-            expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter (id: ${filterId}) is deleted because of ${FilterDeletionReasons.END_STATE_REACHED}`);
+    describe('Subscribe to TX_STATE_CHANGED and deleted because end state reached', () => {
+      it('Valid transaction', (done) => {
+        let eventTriggeredCnt = 0;
+        ain.db.ref(testAppPath).setValue({
+          value: Date.now(),
+        }).then((result)=>{
+          const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
+            tx_hash: result.tx_hash,
+          }, (event) => {
+            if (eventTriggeredCnt === 0) {
+              expect(event.tx_state.before).toBe(null);
+              expect(event.tx_state.after).toBe(TransactionStates.EXECUTED);
+              eventTriggeredCnt++;
+            } else {
+              expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
+              expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
+              eventTriggeredCnt++;
+            }
+          }, (err) => {
+            done.fail(new Error(err.message));
+          }, (event) => {
+            expect(eventTriggeredCnt).toBe(2);
+            expect(event.filter_id).toBe(filterId);
+            expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
             done();
-          }, 5000);
+          })
         })
       });
-    }, 70000);
+      it('Valid transaction', (done) => {
+        let eventTriggeredCnt = 0;
+        ain.db.ref('/apps/invalid').setValue({
+          value: Date.now(),
+        }).then((result)=>{
+          const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
+            tx_hash: result.tx_hash,
+          }, (event) => {
+            if (eventTriggeredCnt === 0) {
+              expect(event.tx_state.before).toBe(null);
+              expect(event.tx_state.after).toBe(TransactionStates.PENDING);
+              eventTriggeredCnt++;
+            } else {
+              expect(event.tx_state.before).toBe(TransactionStates.PENDING);
+              expect(event.tx_state.after).toBe(TransactionStates.REVERTED);
+              eventTriggeredCnt++;
+            }
+          }, (err) => {
+            done.fail(new Error(err.message));
+          }, (event) => {
+            expect(eventTriggeredCnt).toBe(2);
+            expect(event.filter_id).toBe(filterId);
+            expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
+            done();
+          })
+        })
+      });
+    });
 
     it('Subscribe to TX_STATE_CHANGED and deleted because of timeout', (done) => {
       const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '0x9ac44b45853c2244715528f89072a337540c909c36bab4c9ed2fd7b7dbab47b2',
-        timeout_ms: 60000,
-      })
-      setTimeout(() => {
-        expect((console.log as jest.Mock).mock.calls.length).toBe(1);
-        expect((console.log as jest.Mock).mock.calls[0][0]).toBe(`Event filter (id: ${filterId}) is deleted because of ${FilterDeletionReasons.FILTER_TIMEOUT}`);
+      }, (event) => {
+        done.fail(new Error('Tx must not be executed'));
+      }, (err) => {
+        done.fail(new Error(err.message));
+      }, (event) => {
+        expect(event.filter_id).toBe(filterId);
+        expect(event.reason).toBe(FilterDeletionReasons.FILTER_TIMEOUT);
         done();
-      }, 61000);
-    }, 70000);
+      });
+    });
 
     it('Subscribe to TX_STATE_CHANGED with wrong config', (done) => {
       ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '123',
-        timeout_ms: 0,
       }, (event) => {
       }, (err) => {
+        expect(err.code).toBe(70301);
+        expect(err.message).toBe('Invalid tx hash (123)');
         done();
       });
     });
