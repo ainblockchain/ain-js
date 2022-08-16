@@ -157,7 +157,7 @@ describe('Event Handler', function() {
           })
         })
       });
-      it('Valid transaction', (done) => {
+      it('Invalid transaction', (done) => {
         let eventTriggeredCnt = 0;
         ain.db.ref('/apps/invalid').setValue({
           value: Date.now(),
