@@ -222,6 +222,7 @@ export enum BlockchainEventTypes {
   BLOCK_FINALIZED = 'BLOCK_FINALIZED',
   VALUE_CHANGED = 'VALUE_CHANGED',
   TX_STATE_CHANGED = 'TX_STATE_CHANGED',
+  FILTER_DELETED = 'FILTER_DELETED',
 }
 
 export enum EventChannelMessageTypes {
@@ -273,11 +274,6 @@ export interface ValueChangedEventAuth {
   fid?: string;
 }
 
-export interface ValueChangedEventValues {
-  before: any;
-  after: any;
-}
-
 export interface ValueChangedEvent {
   filter_path: string;
   matched_path: string;
@@ -285,11 +281,37 @@ export interface ValueChangedEvent {
   transaction: Transaction;
   event_source: ValueChangedEventSource;
   auth: ValueChangedEventAuth;
-  values: ValueChangedEventValues;
+  values: {
+    before: any;
+    after: any;
+  };
+}
+
+export enum TransactionStates {
+  FINALIZED = 'FINALIZED',
+  REVERTED = 'REVERTED', // Reverted means it's failed but included in a block
+  EXECUTED = 'EXECUTED',
+  FAILED = 'FAILED', // Failed means it's failed and is NOT included in a block
+  PENDING = 'PENDING',
+  TIMED_OUT = 'TIMED_OUT',
 }
 
 export interface TxStateChangedEvent {
-  // TODO(2sakchoi): Add event type.
+  transaction: Transaction;
+  tx_state: {
+    before: TransactionStates;
+    after: TransactionStates;
+  };
+}
+
+export enum FilterDeletionReasons {
+  FILTER_TIMEOUT = 'FILTER_TIMEOUT',
+  END_STATE_REACHED = 'END_STATE_REACHED',
+}
+
+export interface FilterDeletedEvent {
+  filter_id: string;
+  reason: FilterDeletionReasons;
 }
 
 export interface BlockchainEventCallback {
@@ -297,5 +319,7 @@ export interface BlockchainEventCallback {
   (event: ValueChangedEvent): void;
   (event: TxStateChangedEvent): void;
 }
+
+export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 
 export type DisconnectCallback = (webSocket) => void;
