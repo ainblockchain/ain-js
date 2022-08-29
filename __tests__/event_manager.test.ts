@@ -8,10 +8,19 @@ jest.setTimeout(180000);
 
 describe('Event Handler', function() {
   let ain = new Ain(test_event_handler_node);
+  let eventFilterId: string;
 
   beforeAll(async () => {
     await ain.em.connect();
   });
+
+  afterEach(async () => {
+    ain.em.unsubscribe(eventFilterId, (err) => {
+      if (err) {
+        console.log(`Failed to unsubscribe subscription. (${err.message})`);
+      }
+    });
+  })
 
   afterAll(() => {
     ain.em.disconnect();
@@ -19,7 +28,7 @@ describe('Event Handler', function() {
 
   describe('BLOCK_FINALIZED', () => {
     it('Subscribe to BLOCK_FINALIZED', (done) => {
-      ain.em.subscribe('BLOCK_FINALIZED', {
+      eventFilterId = ain.em.subscribe('BLOCK_FINALIZED', {
         block_number: null,
       }, (data) => {
         done();
@@ -27,7 +36,7 @@ describe('Event Handler', function() {
     });
 
     it('Subscribe to BLOCK_FINALIZED with wrong config', (done) => {
-      ain.em.subscribe('BLOCK_FINALIZED', {
+      eventFilterId = ain.em.subscribe('BLOCK_FINALIZED', {
         block_number: -1,
       }, (data) => {
       }, (err) => {
@@ -53,7 +62,7 @@ describe('Event Handler', function() {
       let blockEventCount = 0;
       let userEventCount = 0;
 
-      ain.em.subscribe('VALUE_CHANGED', {
+      eventFilterId = ain.em.subscribe('VALUE_CHANGED', {
         path: testAppPath,
         event_source: null,
       }, (event) => {
@@ -65,10 +74,14 @@ describe('Event Handler', function() {
             userEventCount++;
             break;
         }
-        if (blockEventCount + userEventCount === 2) {
-          expect(blockEventCount).toBe(1);
-          expect(userEventCount).toBe(1);
-          done();
+        try {
+          if (blockEventCount + userEventCount === 2) {
+            expect(blockEventCount).toBe(1);
+            expect(userEventCount).toBe(1);
+            done();
+          }
+        } catch (err) {
+          done(err);
         }
       });
 
@@ -78,12 +91,16 @@ describe('Event Handler', function() {
     });
 
     it('Subscribe to VALUE_CHANGED with event_source = BLOCK', (done) => {
-      ain.em.subscribe('VALUE_CHANGED', {
+      eventFilterId = ain.em.subscribe('VALUE_CHANGED', {
         path: testAppPath,
         event_source: 'BLOCK',
       }, (event) => {
-        expect(event.event_source).toBe('BLOCK');
-        done();
+        try {
+          expect(event.event_source).toBe('BLOCK');
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
 
       ain.db.ref(testAppPath).setValue({
@@ -92,12 +109,16 @@ describe('Event Handler', function() {
     });
 
     it('Subscribe to VALUE_CHANGED with event_source = USER', (done) => {
-      ain.em.subscribe('VALUE_CHANGED', {
+      eventFilterId = ain.em.subscribe('VALUE_CHANGED', {
         path: testAppPath,
         event_source: 'USER',
       }, (event) => {
-        expect(event.event_source).toBe('USER');
-        done();
+        try {
+          expect(event.event_source).toBe('USER');
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
 
       ain.db.ref(testAppPath).setValue({
@@ -106,7 +127,7 @@ describe('Event Handler', function() {
     });
 
     it('Subscribe to VALUE_CHANGED with wrong config', (done) => {
-      ain.em.subscribe('VALUE_CHANGED', {
+      eventFilterId = ain.em.subscribe('VALUE_CHANGED', {
         path: '/..wrong_app_name',
         event_source: null,
       }, (event) => {
@@ -135,79 +156,92 @@ describe('Event Handler', function() {
         ain.db.ref(testAppPath).setValue({
           value: Date.now(),
         }).then((result)=>{
-          const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
+          eventFilterId = ain.em.subscribe('TX_STATE_CHANGED', {
             tx_hash: result.tx_hash,
           }, (event) => {
-            if (eventTriggeredCnt === 0) {
-              expect(event.tx_state.before).toBe(null);
-              expect(event.tx_state.after).toBe(TransactionStates.EXECUTED);
-              eventTriggeredCnt++;
-            } else {
-              expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
-              expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
-              eventTriggeredCnt++;
+            try {
+              if (eventTriggeredCnt === 0) {
+                expect(event.tx_state.before).toBe(null);
+                expect(event.tx_state.after).toBe(TransactionStates.EXECUTED);
+                eventTriggeredCnt++;
+              } else {
+                expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
+                expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
+                eventTriggeredCnt++;
+              }
+            } catch (err) {
+              done(err);
             }
           }, (err) => {
-            done.fail(new Error(err.message));
+            done(new Error(err.message));
           }, (event) => {
-            expect(eventTriggeredCnt).toBe(2);
-            expect(event.filter_id).toBe(filterId);
-            expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
-            done();
-          })
+            try {
+              expect(eventTriggeredCnt).toBe(2);
+              expect(event.filter_id).toBe(eventFilterId);
+              expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
+              done();
+            } catch (err) {
+              done(err);
+            }
+          });
         })
       });
       it('Invalid transaction', (done) => {
-        let eventTriggeredCnt = 0;
         ain.db.ref('/apps/invalid').setValue({
           value: Date.now(),
         }).then((result)=>{
-          const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
+          eventFilterId = ain.em.subscribe('TX_STATE_CHANGED', {
             tx_hash: result.tx_hash,
           }, (event) => {
-            if (eventTriggeredCnt === 0) {
+            try {
+              // NOTE(ehgmsdk20): It only checks if the transaction has been added to the tx_pool
+              // in a PENDING state, but does not check the tx state change after that.
+              // If the node that executed the Tx does not become a proposal node,
+              // the state of the sent tx will change from PENDING to TIMED_OUT,
+              // which takes too long for the test to wait.
               expect(event.tx_state.before).toBe(null);
               expect(event.tx_state.after).toBe(TransactionStates.PENDING);
-              eventTriggeredCnt++;
-            } else {
-              expect(event.tx_state.before).toBe(TransactionStates.PENDING);
-              expect(event.tx_state.after).toBe(TransactionStates.REVERTED);
-              eventTriggeredCnt++;
+              done();
+            } catch (err) {
+              done(err);
             }
           }, (err) => {
-            done.fail(new Error(err.message));
-          }, (event) => {
-            expect(eventTriggeredCnt).toBe(2);
-            expect(event.filter_id).toBe(filterId);
-            expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
-            done();
+            done(new Error(err.message));
           })
-        })
+        });
       });
     });
 
     it('Subscribe to TX_STATE_CHANGED and deleted because of timeout', (done) => {
-      const filterId = ain.em.subscribe('TX_STATE_CHANGED', {
+      eventFilterId = ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '0x9ac44b45853c2244715528f89072a337540c909c36bab4c9ed2fd7b7dbab47b2',
       }, (event) => {
-        done.fail(new Error('Tx must not be executed'));
+        done(new Error('Tx must not be executed'));
       }, (err) => {
-        done.fail(new Error(err.message));
+        done(new Error(err.message));
       }, (event) => {
-        expect(event.filter_id).toBe(filterId);
-        expect(event.reason).toBe(FilterDeletionReasons.FILTER_TIMEOUT);
-        done();
+        try {
+          expect(event.filter_id).toBe(eventFilterId);
+          expect(event.reason).toBe(FilterDeletionReasons.FILTER_TIMEOUT);
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     });
 
     it('Subscribe to TX_STATE_CHANGED with wrong config', (done) => {
-      ain.em.subscribe('TX_STATE_CHANGED', {
+      eventFilterId = ain.em.subscribe('TX_STATE_CHANGED', {
         tx_hash: '123',
       }, (event) => {
       }, (err) => {
-        expect(err.code).toBe(70301);
-        expect(err.message).toBe('Invalid tx hash (123)');
-        done();
+        try {
+          expect(err.code).toBe(70301);
+          expect(err.message).toBe('Invalid tx hash (123)');
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     });
   });
