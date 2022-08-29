@@ -7,7 +7,7 @@ const delayMs = (time) => new Promise(resolve => setTimeout(resolve, time));
 jest.setTimeout(180000);
 
 describe('Event Handler', function() {
-  let ain = new Ain('https://testnet-event.ainetwork.ai/');
+  let ain = new Ain(test_event_handler_node);
   let eventFilterId: string;
 
   beforeAll(async () => {
