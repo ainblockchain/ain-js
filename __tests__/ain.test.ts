@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Ain from '../src/ain';
 import Reference from '../src/ain-db/ref';
 import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperationType } from '../src/types';

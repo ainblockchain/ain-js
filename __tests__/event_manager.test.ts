@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Ain from '../src/ain';
 import { FilterDeletionReasons, TransactionStates } from '../src/types';
 
