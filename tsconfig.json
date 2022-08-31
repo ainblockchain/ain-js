@@ -10,6 +10,6 @@
     "noImplicitAny": false, // for testing
     "allowJs": true,
   },
-  "include": ["src", "./src/package.alias.json", "**/__tests__/*"],
-  "exclude": ["node_modules"]
+  "include": ["src", "./src/package.alias.json"],
+  "exclude": ["node_modules", "**/__tests__/*"]
 }

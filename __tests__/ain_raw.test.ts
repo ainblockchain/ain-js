@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Ain from '../src/ain';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
