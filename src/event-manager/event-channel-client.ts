@@ -127,11 +127,6 @@ export default class EventChannelClient {
   }
 
   handleEmitErrorMessage(messageData) {
-    const filterId = messageData.filter_id;
-    if (!filterId) {
-      console.log(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
-      return;
-    }
     const code = messageData.code;
     if (!code) {
       console.log(`Can't find code from message data (${JSON.stringify(messageData, null, 2)})`);
@@ -140,6 +135,11 @@ export default class EventChannelClient {
     const errorMessage = messageData.message;
     if (!errorMessage) {
       console.log(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
+    }
+    const filterId = messageData.filter_id;
+    if (!filterId) {
+      console.log(errorMessage);
       return;
     }
     this._eventCallbackManager.emitError(filterId, code, errorMessage);
