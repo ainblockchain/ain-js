@@ -2,7 +2,7 @@ import EventFilter from './event-filter';
 import Subscription from './subscription';
 import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
 import { PushId } from '../ain-db/push-id';
-import { EVENT_HANDLER_ERROR_CODE } from '../constants';
+import { FAILED_TO_REGISTER_ERROR_CODE } from '../constants';
 
 export default class EventCallbackManager {
   private readonly _filters: Map<string, EventFilter>;
@@ -38,7 +38,7 @@ export default class EventCallbackManager {
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
-    if (code === EVENT_HANDLER_ERROR_CODE.FAILED_TO_REGISTER_FILTER) {
+    if (code === FAILED_TO_REGISTER_ERROR_CODE) {
       this.deleteFilter(filterId);
     }
     subscription.emit('error', {

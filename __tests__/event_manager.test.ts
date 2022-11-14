@@ -1,6 +1,6 @@
 // @ts-nocheck
 import Ain from '../src/ain';
-import { EVENT_HANDLER_ERROR_CODE } from '../src/constants';
+import { FAILED_TO_REGISTER_ERROR_CODE } from '../src/constants';
 import { FilterDeletionReasons, TransactionStates } from '../src/types';
 
 const { test_event_handler_node } = require('./test_data');
@@ -247,7 +247,7 @@ describe('Event Handler', function() {
       }, (event) => {
       }, (err) => {
         try {
-          expect(err.code).toBe(EVENT_HANDLER_ERROR_CODE.FAILED_TO_REGISTER_FILTER);
+          expect(err.code).toBe(FAILED_TO_REGISTER_ERROR_CODE);
           expect(err.message).toBe(`Failed to register filter with filter ID: ${eventFilterId} ` +
               `due to error: Invalid tx hash (123)`);
           //check whether the filter is actually deleted
