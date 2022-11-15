@@ -1,7 +1,8 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback } from '../types';
+import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
 import { PushId } from '../ain-db/push-id';
+import { FAILED_TO_REGISTER_ERROR_CODE } from '../constants';
 
 export default class EventCallbackManager {
   private readonly _filters: Map<string, EventFilter>;
@@ -37,6 +38,9 @@ export default class EventCallbackManager {
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
+    if (code === FAILED_TO_REGISTER_ERROR_CODE) {
+      this.deleteFilter(filterId);
+    }
     subscription.emit('error', {
       code: code,
       message: errorMessage,
@@ -70,12 +74,16 @@ export default class EventCallbackManager {
     filter: EventFilter,
     eventCallback?: BlockchainEventCallback,
     errorCallback?: (error: any) => void,
-    filterDeletedEventCallback?: FilterDeletedEventCallback
+    filterDeletedEventCallback: FilterDeletedEventCallback = (payload) => console.log(
+        `Event filter (id: ${payload.filter_id}) is deleted because of ${payload.reason}`)
   ) {
     const subscription = new Subscription(filter);
-    subscription.on('filterDeleted', filterDeletedEventCallback ||
-        ((payload) => console.log(`Event filter (id: ${payload.filter_id})`
-        + ` is deleted because of ${payload.reason}`)));
+    subscription.on(
+      'filterDeleted', (payload: FilterDeletedEvent) => {
+        this.deleteFilter(payload.filter_id);
+        filterDeletedEventCallback(payload);
+      }
+    );
     if (eventCallback) {
       subscription.on('event', eventCallback);
     }

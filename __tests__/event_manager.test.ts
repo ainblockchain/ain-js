@@ -1,9 +1,9 @@
 // @ts-nocheck
 import Ain from '../src/ain';
+import { FAILED_TO_REGISTER_ERROR_CODE } from '../src/constants';
 import { FilterDeletionReasons, TransactionStates } from '../src/types';
 
 const { test_event_handler_node } = require('./test_data');
-const delayMs = (time) => new Promise(resolve => setTimeout(resolve, time));
 
 jest.setTimeout(180000);
 
@@ -224,7 +224,17 @@ describe('Event Handler', function() {
         try {
           expect(event.filter_id).toBe(eventFilterId);
           expect(event.reason).toBe(FilterDeletionReasons.FILTER_TIMEOUT);
-          done();
+
+          //check whether the filter is actually deleted
+          ain.em.unsubscribe(eventFilterId, (err, txHash) => {
+            if (err) {
+              expect(err.message).toBe(`Non-existent filter ID (${eventFilterId})`);
+              done();
+            }
+            if (txHash) {
+              done("Filter must be deleted");
+            }
+          });
         } catch (err) {
           done(err);
         }
@@ -237,9 +247,19 @@ describe('Event Handler', function() {
       }, (event) => {
       }, (err) => {
         try {
-          expect(err.code).toBe(70301);
-          expect(err.message).toBe('Invalid tx hash (123)');
-          done();
+          expect(err.code).toBe(FAILED_TO_REGISTER_ERROR_CODE);
+          expect(err.message).toBe(`Failed to register filter with filter ID: ${eventFilterId} ` +
+              `due to error: Invalid tx hash (123)`);
+          //check whether the filter is actually deleted
+          ain.em.unsubscribe(eventFilterId, (err, txHash) => {
+            if (err) {
+              expect(err.message).toBe(`Non-existent filter ID (${eventFilterId})`);
+              done();
+            }
+            if (txHash) {
+              done("Filter must be deleted");
+            }
+          });
         } catch (err) {
           done(err);
         }
