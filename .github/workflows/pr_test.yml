@@ -24,4 +24,3 @@ jobs:
       - name: Run test
         uses: ./
         id: test-pipeline
-
