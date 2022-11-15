@@ -1,7 +1,7 @@
 name: PR Test
 on:
   pull_request:
-    branches: [ main ] #put your branches which you want to execute test pipeline
+    branches: [ master ]
 
 jobs:
   test:

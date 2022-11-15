@@ -1,7 +1,7 @@
 name: Publish Package to Npm
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     types: [ closed ]
 jobs:
   publish:
@@ -21,7 +21,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
       - name: Push tag
         run: |
-          git checkout main
+          git checkout master
           git tag $(echo ${{ github.head_ref }} | cut -b 9-)
           git push --tags
         env:
