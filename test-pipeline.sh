@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /app/ain-blockchain
-if [[ "$1" = 'dev']]; then
+if [[ "$1" = 'dev' ]]; then
   git checkout develop
 fi
 yarn install
