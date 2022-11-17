@@ -13,16 +13,63 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+      - name: Run test with local blockchain
+        uses: ./
+        id: test-pipeline
       - name: Publish package
         run: |
+          git checkout master
           yarn
           yarn publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-      - name: Push tag
-        run: |
-          git checkout master
           git tag $(echo ${{ github.head_ref }} | cut -b 9-)
           git push --tags
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  execute_on_failure:
+    needs: [ publish ]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Notify error to slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":rotating_light:TEST FAILED",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Title*\n${{ github.event.pull_request.title }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Merged At*\n${{ github.event.pull_request.merged_at }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

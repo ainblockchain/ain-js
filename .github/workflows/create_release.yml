@@ -20,6 +20,7 @@ jobs:
       run: |
         git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
         git config --global user.name "${GITHUB_ACTOR}"
+        git checkout develop
     - name: Upgrade version
       run: |
         yarn --no-git-tag-version version --$RELEASE_TYPE
@@ -33,5 +34,6 @@ jobs:
         git commit -m "Upgrade version to ${{ env.NEW_VERSION }}"
         git push origin release/v${{ env.NEW_VERSION }}
         gh pr create -B master -H release/v${{ env.NEW_VERSION }} --title 'Upgrade version to ${{ env.NEW_VERSION }}' --body 'Upgrade version to ${{ env.NEW_VERSION }}'
+        gh pr create -B develop -H release/v${{ env.NEW_VERSION }} --title 'Release/v${{ env.NEW_VERSION }} -> develop' --body 'Upgrade version to ${{ env.NEW_VERSION }}'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

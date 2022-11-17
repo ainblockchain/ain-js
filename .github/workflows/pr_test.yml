@@ -1,13 +1,14 @@
 name: PR Test
 on:
   pull_request:
-    branches: [ master ]
+    # branches: [ develop ]
+    branches: [master]
+    # types: [ opened, closed ]
 
 jobs:
   run_test_on_testnet:
-    if: ${{ !startsWith(github.head_ref, 'release/') }}
+    if: ${{ !(github.event.action == closed) || (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Run test
@@ -15,12 +16,51 @@ jobs:
         id: test-pipeline
         with:
           environment: 'dev'
-  run_test_on_mainnet:
-    if: startsWith(github.head_ref, 'release/')
-    runs-on: ubuntu-latest
 
+  execute_on_failure:
+    needs: [ run_test_on_testnet ]
+    runs-on: ubuntu-latest
+    if: failure()
     steps:
-      - uses: actions/checkout@v3
-      - name: Run test
-        uses: ./
-        id: test-pipeline
+      - name: Notify error to slack
+        # if: ${{ github.event.action == 'closed' }}
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":rotating_light:TEST FAILED",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Title*\n${{ github.event.pull_request.title }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Merged At*\n${{ github.event.pull_request.merged_at }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
