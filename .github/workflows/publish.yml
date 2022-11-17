@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Get error log
         run: |
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)"
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)"
           echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
       - name: Notify error to slack
         id: slack
