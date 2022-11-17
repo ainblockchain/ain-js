@@ -1,9 +1,8 @@
 name: PR Test
 on:
   pull_request:
-    # branches: [ develop ]
-    branches: [master]
-    # types: [ opened, closed ]
+    branches: [ develop ]
+    types: [ opened, closed ]
 
 jobs:
   run_test_on_testnet:
@@ -23,7 +22,8 @@ jobs:
     if: failure()
     steps:
       - name: Notify error to slack
-        # if: ${{ github.event.action == 'closed' }}
+        # send notify slack only when pr is merged
+        if: ${{ github.event.action == 'closed' }}
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
         with:
