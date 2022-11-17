@@ -37,14 +37,14 @@ jobs:
     steps:
       - name: Get error log
         run: |
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)" >> $GITHUB_ENV
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
       - name: Notify error to slack
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |
             {
-              "text": "Publishing ${{ env.VERSION }} failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
+              "text": "Publishing ${{ env.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
               "blocks": [
                 {
                   "type": "header",
@@ -58,14 +58,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Publishing ${{ env.VERSION }} failed for [pr#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                    "text": "Publishing ${{ env.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
                   }
                 },
                 {
                   "type": "section",
-                  {
+                  "text": {
                     "type": "mrkdwn",
-                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck detailed error logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck full logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]

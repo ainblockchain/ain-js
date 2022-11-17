@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Get error log
         run: |
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)" >> $GITHUB_ENV
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
       - name: Notify error to slack
         # send notify slack only when pr is merged
         if: ${{ github.event.action == 'closed' }}
@@ -32,7 +32,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
+              "text": "Test failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
               "blocks": [
                 {
                   "type": "header",
@@ -46,14 +46,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "### Test failed for [pr#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                    "text": "Test failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
                   }
                 },
                 {
                   "type": "section",
-                  {
+                  "text": {
                     "type": "mrkdwn",
-                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck detailed error logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck full logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]
