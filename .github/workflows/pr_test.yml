@@ -22,8 +22,9 @@ jobs:
     if: failure()
     steps:
       - name: Get error log
-        run: |
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
+        run: echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Notify error to slack
         # send notify slack only when pr is merged
         if: ${{ github.event.action == 'closed' }}
