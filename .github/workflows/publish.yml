@@ -13,6 +13,9 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
+      - name: Get version
+        run:
+          echo "VERSION=$(echo ${{ github.head_ref }} | cut -b 9-)" >> $GITHUB_ENV
       - name: Run test with local blockchain
         uses: ./
         id: test-pipeline
@@ -21,7 +24,7 @@ jobs:
           git checkout master
           yarn
           yarn publish --access public
-          git tag $(echo ${{ github.head_ref }} | cut -b 9-)
+          git tag ${{ env.VERSION }}
           git push --tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
@@ -32,40 +35,37 @@ jobs:
     runs-on: ubuntu-latest
     if: failure()
     steps:
+      - name: Get error log
+        run: |
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)" >> $GITHUB_ENV
       - name: Notify error to slack
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |
             {
-              "text": "Test failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
+              "text": "Publishing ${{ env.VERSION }} failed for pr#${{ github.event.number }}\n${{ github.event.pull_request.html_url }}",
               "blocks": [
                 {
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": ":rotating_light:TEST FAILED",
+                    "text": ":rotating_light:PUBLISHING ${{ env.VERSION }} FAILED",
                     "emoji": true
                   }
                 },
                 {
                   "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Title*\n${{ github.event.pull_request.title }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Merged At*\n${{ github.event.pull_request.merged_at }}"
-                    }
-                  ]
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Test failed for [pr#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                  }
                 },
                 {
                   "type": "section",
-                  "text": {
+                  {
                     "type": "mrkdwn",
-                    "text": "### Test failed for [pr#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck detailed error logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]

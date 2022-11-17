@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     if: failure()
     steps:
+      - name: Get error log
+        run: |
+          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)" >> $GITHUB_ENV
       - name: Notify error to slack
         # send notify slack only when pr is merged
         if: ${{ github.event.action == 'closed' }}
@@ -41,22 +44,16 @@ jobs:
                 },
                 {
                   "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Title*\n${{ github.event.pull_request.title }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Merged At*\n${{ github.event.pull_request.merged_at }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
                   "text": {
                     "type": "mrkdwn",
                     "text": "### Test failed for [pr#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                  }
+                },
+                {
+                  "type": "section",
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck detailed error logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]
