@@ -38,9 +38,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Get error log
         run: |
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log)"
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)"
-          echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
+          echo "ERROR_LOG=$(gh run view --job publish --log)"
+          echo "ERROR_LOG=$(gh run view --job publish --log | grep error)"
+          echo "ERROR_LOG=$(gh run view --job publish --log | grep error)" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Notify error to slack
