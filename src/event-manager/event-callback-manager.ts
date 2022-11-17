@@ -1,7 +1,8 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback } from '../types';
+import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
 import { PushId } from '../ain-db/push-id';
+import { FAILED_TO_REGISTER_ERROR_CODE } from '../constants';
 
 export default class EventCallbackManager {
   private readonly _filters: Map<string, EventFilter>;
@@ -20,10 +21,14 @@ export default class EventCallbackManager {
     return PushId.generate();
   }
 
-  emitEvent(filterId: string, payload: any) {
+  emitEvent(filterId: string, eventType: BlockchainEventTypes, payload: any) {
     const subscription = this._filterIdToSubscription.get(filterId);
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
+    }
+    if (eventType === BlockchainEventTypes.FILTER_DELETED) {
+      subscription.emit('filterDeleted', payload);
+      return;
     }
     subscription.emit('event', payload);
   }
@@ -33,6 +38,9 @@ export default class EventCallbackManager {
     if (!subscription) {
       throw Error(`Can't find subscription by filter id (${filterId})`);
     }
+    if (code === FAILED_TO_REGISTER_ERROR_CODE) {
+      this.deleteFilter(filterId);
+    }
     subscription.emit('error', {
       code: code,
       message: errorMessage,
@@ -41,10 +49,9 @@ export default class EventCallbackManager {
 
   createFilter(eventTypeStr: string, config: EventConfigType): EventFilter {
     const eventType = eventTypeStr as BlockchainEventTypes;
-    if (!Object.values(BlockchainEventTypes).includes(eventType)) {
+    if (!Object.values(BlockchainEventTypes).includes(eventType) ||
+        eventType === BlockchainEventTypes.FILTER_DELETED) {
       throw Error(`Invalid event type (${eventType})`);
-    } else if (eventType === BlockchainEventTypes.TX_STATE_CHANGED) {
-      throw Error(`Not implemented`); // TODO(isak): Implement.
     }
     const filterId = this.buildFilterId();
     if (this._filters.get(filterId)) { // TODO(cshcomcom): Retry logic.
@@ -63,9 +70,20 @@ export default class EventCallbackManager {
     return filter;
   }
 
-  createSubscription(filter: EventFilter, eventCallback?: BlockchainEventCallback,
-      errorCallback?: (error: any) => void) {
+  createSubscription(
+    filter: EventFilter,
+    eventCallback?: BlockchainEventCallback,
+    errorCallback?: (error: any) => void,
+    filterDeletedEventCallback: FilterDeletedEventCallback = (payload) => console.log(
+        `Event filter (id: ${payload.filter_id}) is deleted because of ${payload.reason}`)
+  ) {
     const subscription = new Subscription(filter);
+    subscription.on(
+      'filterDeleted', (payload: FilterDeletedEvent) => {
+        this.deleteFilter(payload.filter_id);
+        filterDeletedEventCallback(payload);
+      }
+    );
     if (eventCallback) {
       subscription.on('event', eventCallback);
     }

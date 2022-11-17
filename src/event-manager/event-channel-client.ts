@@ -66,7 +66,7 @@ export default class EventChannelClient {
 
       this._endpointUrl = url;
       this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
-      this._wsClient.on('message', (message) => {
+      this._wsClient.on('message', (message: string) => {
         this.handleMessage(message);
       });
       this._wsClient.on('error', (err) => {
@@ -76,7 +76,7 @@ export default class EventChannelClient {
       this._wsClient.on('open', () => {
         this._isConnected = true;
         this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
-        resolve();
+        resolve(this);
       });
       this._wsClient.on('ping', () => {
         if (this._heartbeatTimeout) {
@@ -95,7 +95,7 @@ export default class EventChannelClient {
 
   disconnect() {
     this._isConnected = false;
-    this._wsClient.terminate();
+    this._wsClient!.terminate();
     if (this._heartbeatTimeout) {
       clearTimeout(this._heartbeatTimeout);
       this._heartbeatTimeout = null;
@@ -105,7 +105,7 @@ export default class EventChannelClient {
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
       console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
-      this._wsClient.terminate();
+      this._wsClient!.terminate();
     }, timeoutMs);
   }
 
@@ -123,15 +123,10 @@ export default class EventChannelClient {
     if (!payload) {
       throw Error(`Can't find payload from message data (${JSON.stringify(messageData, null, 2)})`);
     }
-    this._eventCallbackManager.emitEvent(filterId, payload);
+    this._eventCallbackManager.emitEvent(filterId, eventType, payload);
   }
 
   handleEmitErrorMessage(messageData) {
-    const filterId = messageData.filter_id;
-    if (!filterId) {
-      console.log(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
-      return;
-    }
     const code = messageData.code;
     if (!code) {
       console.log(`Can't find code from message data (${JSON.stringify(messageData, null, 2)})`);
@@ -140,6 +135,11 @@ export default class EventChannelClient {
     const errorMessage = messageData.message;
     if (!errorMessage) {
       console.log(`Can't find error message from message data (${JSON.stringify(messageData, null, 2)})`);
+      return;
+    }
+    const filterId = messageData.filter_id;
+    if (!filterId) {
+      console.log(errorMessage);
       return;
     }
     this._eventCallbackManager.emitError(filterId, code, errorMessage);
@@ -182,7 +182,7 @@ export default class EventChannelClient {
     if (!this._isConnected) {
       throw Error(`Failed to send message. Event channel is not connected!`);
     }
-    this._wsClient.send(JSON.stringify(message));
+    this._wsClient!.send(JSON.stringify(message));
   }
 
   registerFilter(filter: EventFilter) {

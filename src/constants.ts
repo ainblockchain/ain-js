@@ -1,1 +1,3 @@
 export const BLOCKCHAIN_PROTOCOL_VERSION = '1.0.0';
+
+export const FAILED_TO_REGISTER_ERROR_CODE = 70020;

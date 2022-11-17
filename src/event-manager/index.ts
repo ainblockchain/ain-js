@@ -5,7 +5,7 @@ import {
   EventChannelConnectionOption,
   EventConfigType, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
-  ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback,
+  ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback, FilterDeletedEventCallback,
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
@@ -31,23 +31,37 @@ export default class EventManager {
   }
 
   subscribe(
-      eventType: 'BLOCK_FINALIZED', config: BlockFinalizedEventConfig,
-      eventCallback?: (event: BlockFinalizedEvent) => void, errorCallback?: (error: any) => void): string;
+    eventType: 'BLOCK_FINALIZED',
+    config: BlockFinalizedEventConfig,
+    eventCallback?: (event: BlockFinalizedEvent) => void,
+    errorCallback?: (error: any) => void
+  ): string;
   subscribe(
-      eventType: 'VALUE_CHANGED', config: ValueChangedEventConfig,
-      eventCallback?: (event: ValueChangedEvent) => void, errorCallback?: (error: any) => void): string;
+    eventType: 'VALUE_CHANGED',
+    config: ValueChangedEventConfig,
+    eventCallback?: (event: ValueChangedEvent) => void,
+    errorCallback?: (error: any) => void
+  ): string;
   subscribe(
-      eventType: 'TX_STATE_CHANGED', config: TxStateChangedEventConfig,
-      eventCallback?: (event: TxStateChangedEvent) => void, errorCallback?: (error: any) => void): string;
+    eventType: 'TX_STATE_CHANGED',
+    config: TxStateChangedEventConfig,
+    eventCallback?: (event: TxStateChangedEvent) => void,
+    errorCallback?: (error: any) => void,
+    filterDeletedEventCallback?: FilterDeletedEventCallback
+  ): string;
   subscribe(
-      eventTypeStr: string, config: EventConfigType,
-      eventCallback?: BlockchainEventCallback, errorCallback?: (error: any) => void): string {
+    eventTypeStr: string,
+    config: EventConfigType,
+    eventCallback?: BlockchainEventCallback,
+    errorCallback?: (error: any) => void,
+    filterDeletedEventCallback?: FilterDeletedEventCallback
+  ): string {
     if (!this._eventChannelClient.isConnected) {
       throw Error(`Event channel is not connected! You must call ain.eh.connect() before using subscribe()`);
     }
     const filter = this._eventCallbackManager.createFilter(eventTypeStr, config);
     this._eventChannelClient.registerFilter(filter);
-    this._eventCallbackManager.createSubscription(filter, eventCallback, errorCallback);
+    this._eventCallbackManager.createSubscription(filter, eventCallback, errorCallback, filterDeletedEventCallback);
     return filter.id;
   }
 
@@ -57,8 +71,8 @@ export default class EventManager {
         throw Error(`Event channel is not connected! You must call ain.eh.connect() before using unsubscribe()`);
       }
       const filter = this._eventCallbackManager.getFilter(filterId);
-      this._eventCallbackManager.deleteFilter(filter.id);
       this._eventChannelClient.deregisterFilter(filter);
+      // NOTE(ehgmsdk20): This does not mean filter is deleted. It just means that delete request is successfully sent.
       callback(null, filter);
     } catch (err) {
       callback(err, null);

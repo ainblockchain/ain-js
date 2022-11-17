@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Ain from '../src/ain';
 import { HomomorphicEncryptionParams } from '../src/types';
 const { test_node_1 } = require('./test_data');
