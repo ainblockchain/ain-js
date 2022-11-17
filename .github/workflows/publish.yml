@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     if: failure()
     steps:
+      - uses: actions/checkout@v3
       - name: Get error log
         run: echo "ERROR_LOG=$(gh run view ${{ github.run_id }} --log | grep error)" >> $GITHUB_ENV
         env:
