@@ -13,10 +13,9 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - name: Set envs
-        run: |
-          echo "VERSION=$(echo ${{ github.head_ref }} | cut -b 9-)" >> $GITHUB_ENV
-          echo "JOB_ID=${{ github.job }}" >> $GITHUB_ENV
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(echo ${{ github.head_ref }} | cut -b 9-)" >> $GITHUB_OUTPUT
       - name: Run test with local blockchain
         uses: ./
         id: test-pipeline
@@ -25,7 +24,7 @@ jobs:
           git checkout master
           yarn
           yarn publish --access public
-          git tag ${{ env.VERSION }}
+          git tag $(echo ${{ github.head_ref }} | cut -b 9-)
           git push --tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
@@ -37,11 +36,16 @@ jobs:
     if: failure()
     steps:
       - uses: actions/checkout@v3
+      - uses: Tiryoh/gha-jobid-action@v0
+        id: jobs
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          job_name: publish
       - name: Get error log
         run: |
-          echo "ERROR_LOG=$(gh run view --job ${{env.JOB_ID}} --log)"
-          echo "ERROR_LOG=$(gh run view --job ${{env.JOB_ID}} --log | grep error)"
-          echo "ERROR_LOG=$(gh run view --job ${{env.JOB_ID}} --log | grep error)" >> $GITHUB_ENV
+          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log)"
+          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log | grep error)"
+          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log | grep error)" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Notify error to slack
@@ -50,13 +54,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "Publishing ${{ env.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
+              "text": "Publishing ${{ needs.publish.steps.get_version.outputs.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
               "blocks": [
                 {
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": ":rotating_light:PUBLISHING ${{ env.VERSION }} FAILED",
+                    "text": ":rotating_light:PUBLISHING ${{ needs.publish.steps.get_version.outputs.VERSION }} FAILED",
                     "emoji": true
                   }
                 },
@@ -64,7 +68,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Publishing ${{ env.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
+                    "text": "Publishing ${{ needs.publish.steps.get_version.outputs.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
                   }
                 },
                 {
