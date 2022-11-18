@@ -1,0 +1,53 @@
+name: Send Error to Slack
+on:
+  workflow_run:
+    workflows: [Publish Package to Npm, PR Test]
+    types:
+      - completed
+jobs:
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get error log
+        run: |
+          echo ""
+          echo "ERROR_LOG=$(gh run view ${{ github.event.workflow_run.run_number }} --log-failed | tail -n 10)" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Notify error to slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "Publishing ${{ needs.publish.steps.get_version.outputs.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":rotating_light:PIPELINE FAILED",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ github.event.workflow_run.display_title }} failed for [PR#${{ github.event.workflow_run.event.number }}](${{ github.event.workflow_run.event.pull_request.html_url }})"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck full logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.run_number }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.TEST_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

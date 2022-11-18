@@ -13,9 +13,8 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - name: Get version
-        id: get_version
-        run: echo "VERSION=$(echo ${{ github.head_ref }} | cut -b 9-)" >> $GITHUB_OUTPUT
+      - name: make error
+        run: exit 1
       - name: Run test with local blockchain
         uses: ./
         id: test-pipeline
@@ -29,57 +28,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  execute_on_failure:
-    needs: [ publish ]
-    runs-on: ubuntu-latest
-    if: failure()
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Tiryoh/gha-jobid-action@v0
-        id: jobs
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          job_name: publish
-      - name: Get error log
+      - name: Save PR number
+        if: failure()
+        env:
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log)"
-          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log | grep error)"
-          echo "ERROR_LOG=$(gh run view --job ${{steps.jobs.outputs.job_id}} --log | grep error)" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify error to slack
-        id: slack
-        uses: slackapi/slack-github-action@v1.23.0
+          mkdir -p ./pr
+          echo $PR_NUMBER > ./pr/pr_number
+      - uses: actions/upload-artifact@v3
         with:
-          payload: |
-            {
-              "text": "Publishing ${{ needs.publish.steps.get_version.outputs.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": ":rotating_light:PUBLISHING ${{ needs.publish.steps.get_version.outputs.VERSION }} FAILED",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Publishing ${{ needs.publish.steps.get_version.outputs.VERSION }} failed for [PR#${{ github.event.number }}](${{ github.event.pull_request.html_url }})"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Error log*\n${{ env.ERROR_LOG }}\nCheck full logs in ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.TEST_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          name: pr_number
+          path: pr/
