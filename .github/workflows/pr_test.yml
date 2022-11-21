@@ -1,12 +1,14 @@
-name: PR Test
+name: Test Pipeline for opened PR
 on:
   pull_request:
-    branches: [ develop ]
-    types: [ opened, closed ]
-
+    branches: [ master, develop ] #put your branches which you want to execute test pipeline
+    types: [ review_requested ]
+concurrency: 
+      group: ${{ github.event.pull_request.number }}
+      cancel-in-progress: true
 jobs:
   run_test_on_testnet:
-    if: ${{ !(github.event.action == 'closed') || (github.event.pull_request.merged == true) }}
+    if: ${{ github.base_ref == 'develop' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,3 +17,11 @@ jobs:
         id: test-pipeline
         with:
           environment: 'dev'
+  run_test_on_mainnet:
+    if: ${{ github.base_ref == 'master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run test
+        uses: ./
+        id: test-pipeline
