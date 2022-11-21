@@ -1,7 +1,7 @@
 name: Send Error to Slack
 on:
   workflow_run:
-    workflows: [Publish Package to Npm, PR Test]
+    workflows: [ Test Pipeline for Merged PR ]
     types:
       - completed
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - name: Get error log
         id: error_log
         run: |
-          ERROR_LOG="$(gh run view ${{ github.event.workflow_run.id }} --log-failed | tail -n 10 | sed -r 's/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' | sed -z 's/\n/\\n/g' | sed 's/\t/    /g')"
+          ERROR_LOG="$(gh run view ${{ github.event.workflow_run.id }} --log-failed | tail -n 7 | sed -r 's/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' | sed -z 's/\n/\\n/g' | sed 's/\t/    /g')"
           echo "ERROR_LOG=$ERROR_LOG" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
