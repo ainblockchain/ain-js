@@ -2,7 +2,7 @@ name: Test Pipeline for opened PR
 on:
   pull_request:
     branches: [ master, develop ] #put your branches which you want to execute test pipeline
-    types: [ review_requested ]
+    types: [ opened, ready_for_review ]
 concurrency: 
       group: ${{ github.event.pull_request.number }}
       cancel-in-progress: true
