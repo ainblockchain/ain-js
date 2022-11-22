@@ -1,0 +1,54 @@
+name: Test Pipeline for Merged PR
+on:
+  pull_request:
+    branches: [ master, develop ]
+    types: [ closed ]
+concurrency: 
+      group: ${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+jobs:
+  run_test_on_testnet:
+    if: ${{ github.base_ref == 'develop' && github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run test
+        uses: ./
+        id: test-pipeline
+        with:
+          environment: 'dev'
+  run_test_on_mainnet:
+    if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run test
+        uses: ./
+        id: test-pipeline
+  publish:
+    needs: [ run_test_on_testnet, run_test_on_mainnet ]
+    if: ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: yarn
+      - name: Test Success
+        run: yarn test
+      - name: Publish package
+        run: |
+          yarn
+          yarn publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+      - name: Push tag
+        run: |
+          git branch
+          git tag $(echo ${{ github.head_ref }} | cut -b 9-)
+          git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
