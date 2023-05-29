@@ -16,7 +16,7 @@ export default class Provider {
    * @param {String} endpoint
    * @constructor
    */
-  constructor(ain: Ain, endpoint: string) {
+  constructor(ain: Ain, endpoint: string, axiosConfig: any) {
     this.ain = ain;
     let parsed = parseUrl(endpoint);
     if (parsed && parsed.origin !== 'null') {
@@ -25,7 +25,7 @@ export default class Provider {
     } else {
       throw Error('Invalid endpoint received.');
     }
-    this.httpClient = axios.create();
+    this.httpClient = axios.create(axiosConfig);
   }
 
   /**

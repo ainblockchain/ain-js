@@ -14,6 +14,7 @@ import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
 
 export default class Ain {
+  public axiosConfig: any;
   public chainId: number;
   public provider: Provider;
   public rawResultMode: boolean;
@@ -28,7 +29,8 @@ export default class Ain {
    * @constructor
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
-    this.provider = new Provider(this, providerUrl);
+    this.axiosConfig = ainOptions?.axiosConfig;
+    this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.chainId = chainId || 0;
     this.rawResultMode = ainOptions?.rawResultMode || false;
     this.net = new Network(this.provider);
@@ -43,7 +45,7 @@ export default class Ain {
    * @param {string} providerUrl
    */
   setProvider(providerUrl: string, chainId?: number) {
-    this.provider = new Provider(this, providerUrl);
+    this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);

@@ -48,6 +48,7 @@ export interface V3Keystore {
 
 export type AinOptions = {
   rawResultMode?: boolean;
+  axiosConfig?: any;
 }
 
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
