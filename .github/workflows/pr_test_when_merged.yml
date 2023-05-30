@@ -42,13 +42,40 @@ jobs:
       - name: Publish package
         run: |
           yarn
+          yarn build
           yarn publish --access public
+          echo "NEW_VERSION=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
       - name: Push tag
         run: |
-          git branch
-          git tag $(echo ${{ github.head_ref }} | cut -b 9-)
+          git tag v${{ env.NEW_VERSION }}
           git push --tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Notify package published to slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "Ain-js ${{ env.NEW_VERSION }} is published",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Ain-js Release"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Version ${{ env.NEW_VERSION }} is published on <https://www.npmjs.com/package/@ainblockchain/ain-js|npmjs.com>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
