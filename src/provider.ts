@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import * as parseUrl from 'url-parse';
 import { get } from 'lodash';
 import Ain from './ain';
@@ -16,7 +16,7 @@ export default class Provider {
    * @param {String} endpoint
    * @constructor
    */
-  constructor(ain: Ain, endpoint: string, axiosConfig: any) {
+  constructor(ain: Ain, endpoint: string, axiosConfig: AxiosRequestConfig | undefined) {
     this.ain = ain;
     let parsed = parseUrl(endpoint);
     if (parsed && parsed.origin !== 'null') {

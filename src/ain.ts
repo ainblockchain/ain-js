@@ -1,5 +1,7 @@
 import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
+import { AxiosRequestConfig } from 'axios';
+
 import request from './request';
 import {
   AinOptions, Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
@@ -14,7 +16,7 @@ import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
 
 export default class Ain {
-  public axiosConfig: any;
+  public axiosConfig: AxiosRequestConfig | undefined;
   public chainId: number;
   public provider: Provider;
   public rawResultMode: boolean;
