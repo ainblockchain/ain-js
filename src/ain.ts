@@ -1,5 +1,7 @@
 import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
+import { AxiosRequestConfig } from 'axios';
+
 import request from './request';
 import {
   AinOptions, Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
@@ -14,6 +16,7 @@ import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
 
 export default class Ain {
+  public axiosConfig: AxiosRequestConfig | undefined;
   public chainId: number;
   public provider: Provider;
   public rawResultMode: boolean;
@@ -28,7 +31,8 @@ export default class Ain {
    * @constructor
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
-    this.provider = new Provider(this, providerUrl);
+    this.axiosConfig = ainOptions?.axiosConfig;
+    this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.chainId = chainId || 0;
     this.rawResultMode = ainOptions?.rawResultMode || false;
     this.net = new Network(this.provider);
@@ -42,8 +46,11 @@ export default class Ain {
    * Sets a new provider
    * @param {string} providerUrl
    */
-  setProvider(providerUrl: string, chainId?: number) {
-    this.provider = new Provider(this, providerUrl);
+  setProvider(providerUrl: string, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
+    if (axiosConfig) {
+      this.axiosConfig = axiosConfig;
+    }
+    this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
