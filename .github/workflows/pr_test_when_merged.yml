@@ -33,6 +33,7 @@ jobs:
         id: test-pipeline
   contextTest:
     needs: [ run_test_on_testnet, run_test_on_mainnet ]
+    runs-on: ubuntu-latest
     steps:
       - name: Context Test
         run: |
