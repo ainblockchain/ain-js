@@ -46,7 +46,10 @@ export default class Ain {
    * Sets a new provider
    * @param {string} providerUrl
    */
-  setProvider(providerUrl: string, chainId?: number) {
+  setProvider(providerUrl: string, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
+    if (axiosConfig) {
+      this.axiosConfig = axiosConfig;
+    }
     this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
