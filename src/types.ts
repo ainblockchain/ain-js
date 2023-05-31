@@ -1,3 +1,5 @@
+import { AxiosRequestConfig } from "axios";
+
 export interface Account {
   address: string;
   private_key: string;
@@ -48,6 +50,7 @@ export interface V3Keystore {
 
 export type AinOptions = {
   rawResultMode?: boolean;
+  axiosConfig?: AxiosRequestConfig | undefined;
 }
 
 // export type EventType = "value" | "child_added" | "child_changed" | "child_removed";
