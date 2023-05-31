@@ -31,18 +31,8 @@ jobs:
       - name: Run test
         uses: ./
         id: test-pipeline
-  contextTest:
-    needs: [ run_test_on_testnet, run_test_on_mainnet ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Context Test
-        run: |
-          echo ${{ github.base_ref }}
-          echo ${{ github.head_ref }}
-          echo ${{ github.event.pull_request.merged == true }}
-          echo ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
   publish:
-    needs: [ run_test_on_testnet, run_test_on_mainnet ]
+    needs: [ run_test_on_mainnet ]
     if: ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     steps:
@@ -55,7 +45,6 @@ jobs:
         run: yarn
       - name: Publish package
         run: |
-          yarn
           yarn build
           yarn publish --access public
           echo "NEW_VERSION=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
