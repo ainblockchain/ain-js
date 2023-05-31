@@ -21,12 +21,6 @@ jobs:
     if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
-      - name: Context Test
-        run: |
-          echo ${{ github.base_ref }}
-          echo ${{ github.head_ref }}
-          echo ${{ github.event.pull_request.merged == true }}
-          echo ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
       - uses: actions/checkout@v3
       - name: Run test
         uses: ./
