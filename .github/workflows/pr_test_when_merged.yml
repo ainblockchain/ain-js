@@ -7,6 +7,13 @@ concurrency:
       group: ${{ github.event.pull_request.number }}
       cancel-in-progress: true
 jobs:
+  dump_github_context:
+  runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
   run_test_on_testnet:
     if: ${{ github.base_ref == 'develop' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
