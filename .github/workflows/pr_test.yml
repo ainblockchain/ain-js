@@ -7,7 +7,7 @@ concurrency:
       group: ${{ github.event.pull_request.number }}
       cancel-in-progress: true
 jobs:
-  run_test_on_testnet:
+  run_test_on_develop_branch:
     if: ${{ github.base_ref == 'develop' }}
     runs-on: ubuntu-latest
     steps:
@@ -17,7 +17,7 @@ jobs:
         id: test-pipeline
         with:
           environment: 'dev'
-  run_test_on_mainnet:
+  run_test_on_master_branch:
     if: ${{ github.base_ref == 'master' }}
     runs-on: ubuntu-latest
     steps:
