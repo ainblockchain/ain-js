@@ -7,7 +7,14 @@ concurrency:
       group: ${{ github.event.pull_request.number }}
       cancel-in-progress: true
 jobs:
-  run_test_on_testnet:
+  dump_github_context:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+  run_test_on_develop_branch:
     if: ${{ github.base_ref == 'develop' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
@@ -17,7 +24,7 @@ jobs:
         id: test-pipeline
         with:
           environment: 'dev'
-  run_test_on_mainnet:
+  run_test_on_master_branch:
     if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
@@ -26,7 +33,7 @@ jobs:
         uses: ./
         id: test-pipeline
   publish:
-    needs: [ run_test_on_testnet, run_test_on_mainnet ]
+    needs: run_test_on_master_branch
     if: ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     steps:
@@ -37,11 +44,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies
         run: yarn
-      - name: Test Success
-        run: yarn test
       - name: Publish package
         run: |
-          yarn
           yarn build
           yarn publish --access public
           echo "NEW_VERSION=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
