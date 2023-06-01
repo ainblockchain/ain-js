@@ -33,7 +33,7 @@ jobs:
         uses: ./
         id: test-pipeline
   publish:
-    needs: [ run_test_on_mainnet ]
+    needs: run_test_on_mainnet
     if: ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     steps:
