@@ -14,7 +14,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-  run_test_on_testnet:
+  run_test_on_develop_branch:
     if: ${{ github.base_ref == 'develop' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
@@ -24,7 +24,7 @@ jobs:
         id: test-pipeline
         with:
           environment: 'dev'
-  run_test_on_mainnet:
+  run_test_on_master_branch:
     if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +33,7 @@ jobs:
         uses: ./
         id: test-pipeline
   publish:
-    needs: run_test_on_mainnet
+    needs: run_test_on_master_branch
     if: ${{ startsWith(github.head_ref, 'release/') && (github.base_ref == 'master') && (github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     steps:
