@@ -8,7 +8,7 @@ concurrency:
       cancel-in-progress: true
 jobs:
   dump_github_context:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Dump GitHub context
         env:
