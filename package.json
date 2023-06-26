@@ -58,7 +58,7 @@
     "pbkdf2": "^3.0.17",
     "randombytes": "^2.1.0",
     "scryptsy": "^2.1.0",
-    "semver": "^6.3.0",
+    "semver": "^7.5.2",
     "url-parse": "^1.4.7",
     "uuid": "^3.3.3",
     "ws": "^8.2.3"
