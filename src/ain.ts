@@ -140,12 +140,7 @@ export default class Ain {
   async sendTransaction(transactionObject: TransactionInput): Promise<any> {
     const txBody = await this.buildTransactionBody(transactionObject);
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-    let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, tx_body: txBody });
-    if (!result || typeof result !== 'object') {
-      result = { result };
-    }
-    return result;
+    return await this.sendSignedTransaction(signature, txBody);
   }
 
   /**
