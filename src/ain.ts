@@ -133,40 +133,14 @@ export default class Ain {
   }
 
   /**
-   * Signs and dryruns a transaction to the network
-   * @param {TransactionInput} transactionObject
-   * @return {Promise<any>}
-   */
-  async dryrunTransaction(transactionObject: TransactionInput): Promise<any> {
-    const txBody = await this.buildTransactionBody(transactionObject);
-    const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-    return await this.dryrunSignedTransaction(signature, txBody);
-  }
-
-  /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
    * @return {Promise<any>}
    */
-  async sendTransaction(transactionObject: TransactionInput): Promise<any> {
+  async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
     const txBody = await this.buildTransactionBody(transactionObject);
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-    return await this.sendSignedTransaction(signature, txBody);
-  }
-
-  /**
-   * Dryruns a signed transaction to the network
-   * @param {string} signature
-   * @param {TransactionBody} txBody
-   * @return {Promise<any>}
-   */
-  async dryrunSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
-    let result = await this.provider.send('ain_dryrunSignedTransaction',
-        { signature, tx_body: txBody });
-    if (!result || typeof result !== 'object') {
-      result = { result };
-    }
-    return result;
+    return await this.sendSignedTransaction(signature, txBody, isDryrun);
   }
 
   /**
@@ -175,9 +149,9 @@ export default class Ain {
    * @param {TransactionBody} txBody
    * @return {Promise<any>}
    */
-  async sendSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
-    let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, tx_body: txBody });
+  async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
+    const method = isDryrun ? 'ain_dryrunSignedTransaction' : 'ain_sendSignedTransaction';
+    let result = await this.provider.send(method, { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
@@ -313,7 +287,7 @@ export default class Ain {
    * @param {ValueOnlyTransactionInput} transactionObject
    * @return {Promise<any>}
    */
-  private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): Promise<any> {
+  private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     const type: SetOperationType = "SET_VALUE";
     if (!transactionObject.value) {
       throw new Error('[ain-js.stakeFunction] a value should be specified.');
@@ -331,7 +305,7 @@ export default class Ain {
       }
       delete transactionObject.value;
       const txInput = Object.assign({ operation }, { transactionObject });
-      return this.sendTransaction(txInput);
+      return this.sendTransaction(txInput, isDryrun);
     } else {
       throw new Error('[ain-js.stakeFunction] Error in Reference push.');
     }

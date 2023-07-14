@@ -129,7 +129,7 @@ export default class Reference {
    * Any value given will be overwritten with null.
    * @return {Promise<any>}
    */
-  deleteValue(transactionInput?: ValueOnlyTransactionInput): Promise<any> {
+  deleteValue(transactionInput?: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     let txInput: ValueOnlyTransactionInput = transactionInput || {};
     txInput['value'] = null;
     return this._ain.sendTransaction(
@@ -138,7 +138,8 @@ export default class Reference {
             Reference.extendPath(this.path, txInput.ref),
             "SET_VALUE",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -146,14 +147,15 @@ export default class Reference {
    * Sets a function config.
    * @param transactionInput
    */
-  setFunction(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  setFunction(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "SET_FUNCTION",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -162,14 +164,15 @@ export default class Reference {
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  setOwner(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  setOwner(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "SET_OWNER",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -178,14 +181,15 @@ export default class Reference {
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  setRule(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  setRule(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "SET_RULE",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -194,14 +198,15 @@ export default class Reference {
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  setValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  setValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "SET_VALUE",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -210,14 +215,15 @@ export default class Reference {
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  incrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  incrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "INC_VALUE",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -226,14 +232,15 @@ export default class Reference {
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  decrementValue(transactionInput: ValueOnlyTransactionInput): Promise<any> {
+  decrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
         Reference.extendSetTransactionInput(
             transactionInput,
             Reference.extendPath(this.path, transactionInput.ref),
             "DEC_VALUE",
             this._isGlobal
-        )
+        ),
+        isDryrun
     );
   }
 
@@ -242,9 +249,9 @@ export default class Reference {
    * @param {SetMultiTransactionInput} transactionInput - A transaction input object.
    * @return {Promise<any>}
    */
-  set(transactionInput: SetMultiTransactionInput): Promise<any> {
+  set(transactionInput: SetMultiTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
-        Reference.extendSetMultiTransactionInput(transactionInput, this.path));
+        Reference.extendSetMultiTransactionInput(transactionInput, this.path), isDryrun);
   }
 
   /**
