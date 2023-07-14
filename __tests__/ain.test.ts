@@ -1,9 +1,6 @@
 // @ts-nocheck
 import Ain from '../src/ain';
-import Reference from '../src/ain-db/ref';
-import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperationType } from '../src/types';
-import { createSecretKey } from 'crypto';
-import { anyTypeAnnotation } from '@babel/types';
+import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
 import { fail, eraseProtoVer } from './test_util';
 const {
@@ -376,6 +373,24 @@ describe('ain-js', function() {
       expect(thrownError.message).toEqual('Invalid app name for state label: app/path');
     });
 
+    it('dryrunTransaction', async function() {
+      await ain.dryrunTransaction({ operation: targetTx })
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        targetTxHash = res.tx_hash;
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        fail('should not happen');
+      })
+    });
+
+    it('getTransaction for dryrun', async function () {
+      const tx = await ain.getTransaction(targetTxHash);
+      expect(tx).toStrictEqual(null);  // The tx is NOT in the blockchain.
+    });
+
     it('sendTransaction', async function() {
       await ain.sendTransaction({ operation: targetTx })
       .then(res => {
@@ -389,11 +404,46 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction', async function () {
+    it('getTransaction for send', async function () {
       const tx = await ain.getTransaction(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
+    it('dryrunSignedTransaction', async function() {
+      const tx: TransactionBody = {
+        nonce: -1,
+        gas_price: 500,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_OWNER",
+          ref: "/apps/bfan",
+          value: {
+            ".owner": {
+              "owners": {
+                "*": {
+                  write_owner: true,
+                  write_rule: true,
+                  branch_owner: true,
+                  write_function: true,
+                }
+              }
+            }
+          }
+        }
+      }
+      const sig = ain.wallet.signTransaction(tx);
+
+      await ain.dryrunSignedTransaction(sig, tx)
+      .then(res => {
+        expect(res.code).toBe(undefined);
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.code).toBe(0);
+      })
+      .catch(e => {
+        console.log("ERROR:", e);
+        fail('should not happen');
+      })
+    });
 
     it('sendSignedTransaction', async function() {
       const tx: TransactionBody = {
