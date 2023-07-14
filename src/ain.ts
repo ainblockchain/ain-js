@@ -133,6 +133,17 @@ export default class Ain {
   }
 
   /**
+   * Signs and dryruns a transaction to the network
+   * @param {TransactionInput} transactionObject
+   * @return {Promise<any>}
+   */
+  async dryrunTransaction(transactionObject: TransactionInput): Promise<any> {
+    const txBody = await this.buildTransactionBody(transactionObject);
+    const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+    return await this.dryrunSignedTransaction(signature, txBody);
+  }
+
+  /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
    * @return {Promise<any>}
@@ -141,6 +152,21 @@ export default class Ain {
     const txBody = await this.buildTransactionBody(transactionObject);
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
     return await this.sendSignedTransaction(signature, txBody);
+  }
+
+  /**
+   * Dryruns a signed transaction to the network
+   * @param {string} signature
+   * @param {TransactionBody} txBody
+   * @return {Promise<any>}
+   */
+  async dryrunSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
+    let result = await this.provider.send('ain_dryrunSignedTransaction',
+        { signature, tx_body: txBody });
+    if (!result || typeof result !== 'object') {
+      result = { result };
+    }
+    return result;
   }
 
   /**
