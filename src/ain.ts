@@ -150,7 +150,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
-    const method = isDryrun ? 'ain_dryrunSignedTransaction' : 'ain_sendSignedTransaction';
+    const method = isDryrun ? 'ain_sendSignedTransactionDryrun' : 'ain_sendSignedTransaction';
     let result = await this.provider.send(method, { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
