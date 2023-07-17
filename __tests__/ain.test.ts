@@ -209,6 +209,7 @@ describe('ain-js', function() {
       const response = await ain.wallet.transfer({
         to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813', value: 100, nonce: -1
       }, true);  // isDryrun = true
+      expect(response.result.is_dryrun).toBe(true);
       const balanceAfter = await ain.wallet.getBalance();
       expect(balanceAfter).toBe(balanceBefore);  // NOT changed!
     });
@@ -387,6 +388,7 @@ describe('ain-js', function() {
       .then(res => {
         expect(res.result.code).toBe(0);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.is_dryrun).toBe(true);
         targetTxHash = res.tx_hash;
       })
       .catch(e => {
@@ -447,6 +449,7 @@ describe('ain-js', function() {
         expect(res.code).toBe(undefined);
         expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
         expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
       })
       .catch(e => {
         console.log("ERROR:", e);
@@ -673,6 +676,7 @@ describe('ain-js', function() {
       }, true)  // isDryrun = true
       .then(res => {
         expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
       })
       .catch((error) => {
         console.log("setOwner error:", error);
@@ -734,6 +738,7 @@ describe('ain-js', function() {
       }, true)  // isDryrun = true
       .then(res => {
         expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
       })
       .catch((error) => {
         console.log("setRule error:", error);
@@ -760,6 +765,7 @@ describe('ain-js', function() {
       }, true)  // isDryrun = true
       .then(res => {
         expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
       })
       .catch((error) => {
         console.log("setValue error:", error);
@@ -794,6 +800,7 @@ describe('ain-js', function() {
         }, true)  // isDryrun = true
         .then(res => {
           expect(res.result.code).toBe(0);
+          expect(res.result.is_dryrun).toBe(true);
         })
         .catch((error) => {
           console.log("setFunction error:", error);
@@ -849,7 +856,8 @@ describe('ain-js', function() {
         nonce: -1
       }, true)  // isDryrun = true
       .then(res => {
-        expect(Object.keys(res.result).length).toBe(4);
+        expect(Object.keys(res.result).length).toBe(5);
+        expect(res.result.is_dryrun).toBe(true);
       })
       .catch((error) => {
         console.log("set error:",error);
@@ -1023,10 +1031,11 @@ describe('ain-js', function() {
     });
 
     it('deleteValue with isDryrun = true', async function() {
-      await ain.db.ref(`${allowed_path}/can/write`).deleteValue()
+      await ain.db.ref(`${allowed_path}/can/write`).deleteValue({}, true)
       .then(res => {
         expect(res.result.code).toBe(0);
-      }, true)  // isDryrun = true
+        expect(res.result.is_dryrun).toBe(true);
+      })  // isDryrun = true
       .catch((error) => {
         console.log("deleteValue error:",error);
         fail('should not happen');

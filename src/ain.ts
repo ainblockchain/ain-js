@@ -135,6 +135,7 @@ export default class Ain {
   /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -147,6 +148,7 @@ export default class Ain {
    * Sends a signed transaction to the network
    * @param {string} signature
    * @param {TransactionBody} txBody
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
@@ -285,6 +287,7 @@ export default class Ain {
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
    * @param {string} path
    * @param {ValueOnlyTransactionInput} transactionObject
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {

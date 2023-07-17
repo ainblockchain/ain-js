@@ -127,6 +127,7 @@ export default class Reference {
    * Deletes a value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
    * Any value given will be overwritten with null.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   deleteValue(transactionInput?: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -146,6 +147,7 @@ export default class Reference {
   /**
    * Sets a function config.
    * @param transactionInput
+   * @param {boolean} isDryrun - dryrun option.
    */
   setFunction(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -162,6 +164,7 @@ export default class Reference {
   /**
    * Sets the owner rule.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   setOwner(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -179,6 +182,7 @@ export default class Reference {
   /**
    * Sets the write rule.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   setRule(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -196,6 +200,7 @@ export default class Reference {
   /**
    * Sets a value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   setValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -213,6 +218,7 @@ export default class Reference {
   /**
    * Increments the value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   incrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -230,6 +236,7 @@ export default class Reference {
   /**
    * Decrements the value.
    * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   decrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -247,6 +254,7 @@ export default class Reference {
   /**
    * Processes multiple set operations.
    * @param {SetMultiTransactionInput} transactionInput - A transaction input object.
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
   set(transactionInput: SetMultiTransactionInput, isDryrun: boolean = false): Promise<any> {

@@ -220,6 +220,7 @@ export default class Wallet {
   /**
    * Sends a transfer transaction to the network.
    * @param input
+   * @param {boolean} isDryrun - dryrun option.
    */
   transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}, isDryrun: boolean = false): Promise<any> {
     const address = this.getImpliedAddress(input.from);
