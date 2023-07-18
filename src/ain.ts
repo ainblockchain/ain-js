@@ -135,28 +135,25 @@ export default class Ain {
   /**
    * Signs and sends a transaction to the network
    * @param {TransactionInput} transactionObject
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
-  async sendTransaction(transactionObject: TransactionInput): Promise<any> {
+  async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
     const txBody = await this.buildTransactionBody(transactionObject);
     const signature = this.wallet.signTransaction(txBody, transactionObject.address);
-    let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, tx_body: txBody });
-    if (!result || typeof result !== 'object') {
-      result = { result };
-    }
-    return result;
+    return await this.sendSignedTransaction(signature, txBody, isDryrun);
   }
 
   /**
    * Sends a signed transaction to the network
    * @param {string} signature
    * @param {TransactionBody} txBody
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
-  async sendSignedTransaction(signature: string, txBody: TransactionBody): Promise<any> {
-    let result = await this.provider.send('ain_sendSignedTransaction',
-        { signature, tx_body: txBody });
+  async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
+    const method = isDryrun ? 'ain_sendSignedTransactionDryrun' : 'ain_sendSignedTransaction';
+    let result = await this.provider.send(method, { signature, tx_body: txBody });
     if (!result || typeof result !== 'object') {
       result = { result };
     }
@@ -290,9 +287,10 @@ export default class Ain {
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
    * @param {string} path
    * @param {ValueOnlyTransactionInput} transactionObject
+   * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
    */
-  private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput): Promise<any> {
+  private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     const type: SetOperationType = "SET_VALUE";
     if (!transactionObject.value) {
       throw new Error('[ain-js.stakeFunction] a value should be specified.');
@@ -310,7 +308,7 @@ export default class Ain {
       }
       delete transactionObject.value;
       const txInput = Object.assign({ operation }, { transactionObject });
-      return this.sendTransaction(txInput);
+      return this.sendTransaction(txInput, isDryrun);
     } else {
       throw new Error('[ain-js.stakeFunction] Error in Reference push.');
     }
