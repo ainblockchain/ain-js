@@ -141,7 +141,7 @@ Object {
   "#num_children": 2,
   "#num_children:username": 0,
   "#num_parents": 1,
-  "#num_parents:username": 2,
+  "#num_parents:username": 1,
   "#tree_bytes": 698,
   "#tree_bytes:username": 178,
   "#tree_height": 2,

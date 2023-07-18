@@ -1,9 +1,6 @@
 // @ts-nocheck
 import Ain from '../src/ain';
-import Reference from '../src/ain-db/ref';
-import { TransactionBody, SetOperation, Transaction, TransactionInput, SetOperationType } from '../src/types';
-import { createSecretKey } from 'crypto';
-import { anyTypeAnnotation } from '@babel/types';
+import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
 import { fail, eraseProtoVer } from './test_util';
 const {
@@ -207,6 +204,16 @@ describe('ain-js', function() {
       expect(balance).toBeGreaterThan(0);
     });
 
+    it('transfer with isDryrun = true', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      const response = await ain.wallet.transfer({
+        to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813', value: 100, nonce: -1
+      }, true);  // isDryrun = true
+      expect(response.result.is_dryrun).toBe(true);
+      const balanceAfter = await ain.wallet.getBalance();
+      expect(balanceAfter).toBe(balanceBefore);  // NOT changed!
+    });
+
     it('transfer', async function() {
       const balanceBefore = await ain.wallet.getBalance();
       const response = await ain.wallet.transfer({
@@ -376,6 +383,25 @@ describe('ain-js', function() {
       expect(thrownError.message).toEqual('Invalid app name for state label: app/path');
     });
 
+    it('sendTransaction with isDryrun = true', async function() {
+      await ain.sendTransaction({ operation: targetTx }, true)
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.is_dryrun).toBe(true);
+        targetTxHash = res.tx_hash;
+      })
+      .catch(e => {
+        console.log("ERROR:", e)
+        fail('should not happen');
+      })
+    });
+
+    it('getTransaction for sendTransaction with isDryrun = true', async function () {
+      const tx = await ain.getTransaction(targetTxHash);
+      expect(tx).toStrictEqual(null);  // The tx is NOT in the blockchain.
+    });
+
     it('sendTransaction', async function() {
       await ain.sendTransaction({ operation: targetTx })
       .then(res => {
@@ -389,11 +415,47 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction', async function () {
+    it('getTransaction for sendTransaction', async function () {
       const tx = await ain.getTransaction(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
+    it('sendSignedTransaction with isDryrun = true', async function() {
+      const tx: TransactionBody = {
+        nonce: -1,
+        gas_price: 500,
+        timestamp: Date.now(),
+        operation: {
+          type: "SET_OWNER",
+          ref: "/apps/bfan",
+          value: {
+            ".owner": {
+              "owners": {
+                "*": {
+                  write_owner: true,
+                  write_rule: true,
+                  branch_owner: true,
+                  write_function: true,
+                }
+              }
+            }
+          }
+        }
+      }
+      const sig = ain.wallet.signTransaction(tx);
+
+      await ain.sendSignedTransaction(sig, tx, true)
+      .then(res => {
+        expect(res.code).toBe(undefined);
+        expect(res.tx_hash).toEqual(expect.stringMatching(TX_PATTERN));
+        expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
+      })
+      .catch(e => {
+        console.log("ERROR:", e);
+        fail('should not happen');
+      })
+    });
 
     it('sendSignedTransaction', async function() {
       const tx: TransactionBody = {
@@ -597,6 +659,31 @@ describe('ain-js', function() {
       expect(ain.db.ref(test_path).path).toBe('/' + test_path);
     });
 
+    it('setOwner with isDryrun = true', async function() {
+      await ain.db.ref(allowed_path).setOwner({
+        value: {
+          ".owner": {
+              "owners": {
+              "*": {
+                write_owner: true,
+                write_rule: true,
+                write_function: true,
+                branch_owner: true
+              }
+            }
+          }
+        }
+      }, true)  // isDryrun = true
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
+      })
+      .catch((error) => {
+        console.log("setOwner error:", error);
+        fail('should not happen');
+      });
+    });
+
     it('setOwner', async function() {
       await ain.db.ref(allowed_path).setOwner({
         value: {
@@ -645,6 +732,20 @@ describe('ain-js', function() {
       });
     });
 
+    it('setRule with isDryrun = true', async function() {
+      await ain.db.ref(allowed_path).setRule({
+        value: { '.rule': { 'write': "true" } }
+      }, true)  // isDryrun = true
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
+      })
+      .catch((error) => {
+        console.log("setRule error:", error);
+        fail('should not happen');
+      });
+    });
+
     it('setRule', async function() {
       await ain.db.ref(allowed_path).setRule({
         value: { '.rule': { 'write': "true" } }
@@ -654,6 +755,20 @@ describe('ain-js', function() {
       })
       .catch((error) => {
         console.log("setRule error:", error);
+        fail('should not happen');
+      });
+    });
+
+    it('setValue with isDryrun = true', async function() {
+      await ain.db.ref(allowed_path + '/username').setValue({
+        value: "test_user"
+      }, true)  // isDryrun = true
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
+      })
+      .catch((error) => {
+        console.log("setValue error:", error);
         fail('should not happen');
       });
     });
@@ -669,6 +784,28 @@ describe('ain-js', function() {
         console.log("setValue error:", error);
         fail('should not happen');
       });
+    });
+
+    it('setFunction with isDryrun = true', async function() {
+      await ain.db.ref(allowed_path).setFunction({
+          value: {
+            ".function": {
+              '0xFUNCTION_HASH': {
+                function_url: "https://events.ainetwork.ai/trigger",
+                function_id: '0xFUNCTION_HASH',
+                function_type: "REST"
+              }
+            }
+          }
+        }, true)  // isDryrun = true
+        .then(res => {
+          expect(res.result.code).toBe(0);
+          expect(res.result.is_dryrun).toBe(true);
+        })
+        .catch((error) => {
+          console.log("setFunction error:", error);
+          fail('should not happen');
+        })
     });
 
     it('setFunction', async function() {
@@ -690,6 +827,42 @@ describe('ain-js', function() {
           console.log("setFunction error:", error);
           fail('should not happen');
         })
+    });
+
+    it('set with isDryrun = true', async function() {
+      await ain.db.ref(allowed_path).set({
+        op_list: [
+          {
+            type: 'SET_RULE',
+            ref: 'can/write/',
+            value: { '.rule': { 'write': "true" } }
+          },
+          {
+            type: 'SET_RULE',
+            ref: 'cannot/write',
+            value: { '.rule': { 'write': "false" } }
+          },
+          {
+            type: 'INC_VALUE',
+            ref: 'can/write/',
+            value: 5
+          },
+          {
+            type: 'DEC_VALUE',
+            ref: 'can/write',
+            value: 10,
+          }
+        ],
+        nonce: -1
+      }, true)  // isDryrun = true
+      .then(res => {
+        expect(Object.keys(res.result).length).toBe(5);
+        expect(res.result.is_dryrun).toBe(true);
+      })
+      .catch((error) => {
+        console.log("set error:",error);
+        fail('should not happen');
+      });
     });
 
     it('set', async function() {
@@ -855,6 +1028,18 @@ describe('ain-js', function() {
       expect(await ain.db.ref().getValue(allowed_path, { include_tree_info: true })).toMatchSnapshot();
       const getWithVersion = await ain.db.ref().getValue(allowed_path, { include_version: true });
       expect(getWithVersion['#version']).not.toBeNull();
+    });
+
+    it('deleteValue with isDryrun = true', async function() {
+      await ain.db.ref(`${allowed_path}/can/write`).deleteValue({}, true)
+      .then(res => {
+        expect(res.result.code).toBe(0);
+        expect(res.result.is_dryrun).toBe(true);
+      })  // isDryrun = true
+      .catch((error) => {
+        console.log("deleteValue error:",error);
+        fail('should not happen');
+      });
     });
 
     it('deleteValue', async function() {
