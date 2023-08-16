@@ -268,7 +268,7 @@ export default class Reference {
    * @param params
    */
   evalRule(params: EvalRuleInput): Promise<any> {
-    const address = this._ain.wallet.getImpliedAddress(params.address);
+    const address = this._ain.signer.getAddress(params.address);
     const request = {
       address,
       ref: Reference.extendPath(this.path, params.ref),
@@ -284,7 +284,7 @@ export default class Reference {
    */
   evalOwner(params: EvalOwnerInput): Promise<any> {
     const request = {
-      address: this._ain.wallet.getImpliedAddress(params.address),
+      address: this._ain.signer.getAddress(params.address),
       ref: Reference.extendPath(this.path, params.ref),
       permission: params.permission
     };
