@@ -164,12 +164,14 @@ describe('Event Handler', function() {
               if (eventTriggeredCnt === 0) {
                 expect(event.tx_state.before).toBe(null);
                 expect(event.tx_state.after).toBe(TransactionStates.EXECUTED);
-                eventTriggeredCnt++;
-              } else {
+              } else if (eventTriggeredCnt === 1) {
                 expect(event.tx_state.before).toBe(TransactionStates.EXECUTED);
+                expect(event.tx_state.after).toBe(TransactionStates.IN_BLOCK);
+              } else if (eventTriggeredCnt === 2) {
+                expect(event.tx_state.before).toBe(TransactionStates.IN_BLOCK);
                 expect(event.tx_state.after).toBe(TransactionStates.FINALIZED);
-                eventTriggeredCnt++;
               }
+              eventTriggeredCnt++;
             } catch (err) {
               done(err);
             }
@@ -177,7 +179,7 @@ describe('Event Handler', function() {
             done(new Error(err.message));
           }, (event) => {
             try {
-              expect(eventTriggeredCnt).toBe(2);
+              expect(eventTriggeredCnt).toBe(3);
               expect(event.filter_id).toBe(eventFilterId);
               expect(event.reason).toBe(FilterDeletionReasons.END_STATE_REACHED);
               done();

@@ -304,7 +304,7 @@ bash start_local_blockchain.sh
 3. Run tests
 ```
 yarn run test
-yarn run test_snapshot
+yarn run test_snapshot  # update test snapshot files
 ```
 
 
