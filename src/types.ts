@@ -1,4 +1,11 @@
 import { AxiosRequestConfig } from "axios";
+import {Signer} from "./signer/signer";
+
+declare global {
+  interface Window {
+    ainetwork: Signer;
+  }
+}
 
 export interface Account {
   address: string;
