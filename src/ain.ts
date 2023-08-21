@@ -14,7 +14,7 @@ import Wallet from './wallet';
 import Network from './net';
 import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
-import { DefaultSigner, Signer } from "./signer";
+import { DefaultSigner, Signer } from "./signer/signer";
 
 export default class Ain {
   public axiosConfig: AxiosRequestConfig | undefined;
