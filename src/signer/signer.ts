@@ -1,4 +1,4 @@
-import Wallet from "./wallet";
+import Wallet from "../wallet";
 
 /**
  * Signer takes responsibility to sign message and transaction.
