@@ -1,7 +1,8 @@
-import {Signer} from "./signer";
+import { Signer } from "./signer";
 
 export class AinWalletSigner implements Signer {
   private ainetwork: Signer;
+  
   constructor() {
     if (window.ainetwork) {
       this.ainetwork = window.ainetwork;
