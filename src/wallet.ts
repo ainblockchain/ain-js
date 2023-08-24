@@ -1,9 +1,6 @@
 import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions, KdfParams } from './types';
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
-import { pbkdf2Sync } from 'pbkdf2';
-import { createCipheriv, createDecipheriv } from 'browserify-cipher';
-import { toChecksumAddress } from '@ainblockchain/ain-util';
 import Reference from './ain-db/ref';
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
 

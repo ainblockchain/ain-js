@@ -14,6 +14,7 @@ import Wallet from './wallet';
 import Network from './net';
 import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
+import { DefaultSigner, Signer } from "./signer/signer";
 
 export default class Ain {
   public axiosConfig: AxiosRequestConfig | undefined;
@@ -25,6 +26,7 @@ export default class Ain {
   public wallet: Wallet;
   public he: HomomorphicEncryption;
   public em: EventManager;
+  public signer: Signer;
 
   /**
    * @param {string} providerUrl
@@ -40,6 +42,7 @@ export default class Ain {
     this.db = new Database(this, this.provider);
     this.he = new HomomorphicEncryption();
     this.em = new EventManager(this);
+    this.signer = new DefaultSigner(this.wallet);
   }
 
   /**
@@ -55,6 +58,14 @@ export default class Ain {
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
     this.wallet.setChainId(this.chainId);
+  }
+
+  /**
+   * Sets a new signer
+   * @param {Signer} signer
+   */
+  setSigner(signer: Signer) {
+    this.signer = signer;
   }
 
   /**
@@ -140,7 +151,7 @@ export default class Ain {
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
     const txBody = await this.buildTransactionBody(transactionObject);
-    const signature = this.wallet.signTransaction(txBody, transactionObject.address);
+    const signature = await this.signer.signMessage(txBody, transactionObject.address);
     return await this.sendSignedTransaction(signature, txBody, isDryrun);
   }
 
@@ -167,13 +178,13 @@ export default class Ain {
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     let promises: Promise<any>[] = [];
     for (let tx of transactionObjects) {
-      promises.push(this.buildTransactionBody(tx).then(txBody => {
+      promises.push(this.buildTransactionBody(tx).then(async (txBody) => {
         if (tx.nonce === undefined) {
           // Batch transactions' nonces should be specified.
           // If they're not, they default to un-nonced (nonce = -1).
           txBody.nonce = -1;
         }
-        const signature = this.wallet.signTransaction(txBody, tx.address);
+        const signature = await this.signer.signMessage(txBody, tx.address);
         return { signature, tx_body: txBody };
       }));
     }
@@ -221,7 +232,7 @@ export default class Ain {
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
     const address = account ? Ain.utils.toChecksumAddress(account)
-        : this.wallet.getImpliedAddress(account);
+        : this.signer.getAddress(account);
     return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
   }
 
@@ -237,7 +248,7 @@ export default class Ain {
   getNonce(args: {address?: string, from?: string}): Promise<number> {
     if (!args) { args = {}; }
     const address = args.address ? Ain.utils.toChecksumAddress(args.address)
-        : this.wallet.getImpliedAddress(args.address);
+        : this.signer.getAddress(args.address);
     if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
       throw Error("'from' should be either 'pending' or 'committed'");
     }
@@ -250,7 +261,7 @@ export default class Ain {
    * @return {Promise<TransactionBody>}
    */
   async buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
-    const address = this.wallet.getImpliedAddress(transactionInput.address);
+    const address = this.signer.getAddress(transactionInput.address);
     let tx = {
       operation: transactionInput.operation,
       parent_tx_hash: transactionInput.parent_tx_hash
@@ -298,7 +309,7 @@ export default class Ain {
     if (typeof transactionObject.value !== 'number') {
       throw new Error('[ain-js.stakeFunction] value has to be a number.');
     }
-    transactionObject.address = this.wallet.getImpliedAddress(transactionObject.address);
+    transactionObject.address = this.signer.getAddress(transactionObject.address);
     const ref = this.db.ref(`${path}/${transactionObject.address}`).push()
     if (ref instanceof Reference) {
       const operation: SetOperation = {
