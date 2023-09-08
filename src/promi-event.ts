@@ -7,6 +7,7 @@ import * as EventEmitter from 'eventemitter3';
 export class PromiEvent<T> implements Promise<T> {
   public eventEmitter: EventEmitter;
   public promise: Promise<T>
+  public [Symbol.toStringTag];
   private _resolve;
   private _reject;
 
@@ -17,6 +18,7 @@ export class PromiEvent<T> implements Promise<T> {
     });
     this.eventEmitter = new EventEmitter();
     Object.setPrototypeOf(this, PromiEvent.prototype);
+    this[Symbol.toStringTag] = 'Promise';
   }
 
   then<TResult1 = T, TResult2 = never>(
@@ -51,6 +53,4 @@ export class PromiEvent<T> implements Promise<T> {
     this.eventEmitter.on(type, handler);
     return this;
   };
-
-  [Symbol.toStringTag]: 'Promise'
 }
