@@ -136,7 +136,7 @@ export interface ValueOnlyTransactionInput extends ValueOnlyTransactionBodyBase,
 
 export interface SetMultiTransactionInput extends TransactionInputBase {
   parent_tx_hash?: string;
-  op_list: SetOperation[];
+  op_list?: SetOperation[];
 }
 
 export interface Transaction {

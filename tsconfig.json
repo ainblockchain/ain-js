@@ -11,5 +11,13 @@
     "allowJs": true,
   },
   "include": ["src", "./src/package.alias.json"],
-  "exclude": ["node_modules", "**/__tests__/*"]
+  "exclude": ["node_modules", "**/__tests__/*"],
+  "typedocOptions": {
+    "entryPoints": ["./src"],
+    "entryPointStrategy": "expand",
+    "out": "docs",
+    "name": "Ain-Js",
+    "plugin": ["typedoc-plugin-remove-references", "typedoc-plugin-rename-defaults",  "typedoc-theme-hierarchy"],
+    "theme": "hierarchy"
+  }
 }

@@ -12,10 +12,11 @@
     "test_ain_snapshot": "jest ain.test.ts --updateSnapshot",
     "test_ain_raw": "jest ain_raw.test.ts",
     "test_he": "jest he.test.ts",
-    "test_em": "jest event_manager.test.ts"
+    "test_em": "jest event_manager.test.ts",
+    "docs": "yarn build && typedoc --out docs"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "repository": {
     "type": "git",
@@ -41,7 +42,11 @@
     "@types/ws": "^8.5.3",
     "jest": "^27.3.1",
     "ts-jest": "^27.0.7",
-    "typescript": "^3.9.10"
+    "typedoc": "^0.25.1",
+    "typedoc-plugin-remove-references": "^0.0.6",
+    "typedoc-plugin-rename-defaults": "^0.6.6",
+    "typedoc-theme-hierarchy": "^4.1.1",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "@ainblockchain/ain-util": "^1.1.9",
