@@ -13,7 +13,7 @@
     "test_ain_raw": "jest ain_raw.test.ts",
     "test_he": "jest he.test.ts",
     "test_em": "jest event_manager.test.ts",
-    "docs": "yarn build && typedoc --out docs"
+    "docs": "yarn build && typedoc --plugin @mxssfd/typedoc-theme --theme my-theme --out docs"
   },
   "engines": {
     "node": ">=16"
@@ -38,6 +38,7 @@
     "lib/**/*"
   ],
   "devDependencies": {
+    "@mxssfd/typedoc-theme": "^1.1.3",
     "@types/jest": "^27.0.2",
     "@types/ws": "^8.5.3",
     "jest": "^27.3.1",
