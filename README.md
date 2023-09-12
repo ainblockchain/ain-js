@@ -2,10 +2,12 @@
 
 AI Network Client Library for Node.js
 
+
 ## Installation
 ```
 yarn add @ainblockchain/ain-js
 ```
+
 
 ## Examples
 ```
@@ -29,6 +31,26 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
   console.log(result);
 });
 ```
+
+## Test How-To
+1. Clone AIN Blockchain and install
+```
+git clone git@github.com:ainblockchain/ain-blockchain.git
+yarn install
+```
+
+2. Start blockchain locally
+```
+bash start_local_blockchain.sh
+```
+   * Note that the node 2 of the blockchain needs to be started with ENABLE_EVENT_HANDLER=true env variable for the event manager test cases.
+
+3. Run tests
+```
+yarn run test
+yarn run test_snapshot  # update test snapshot files
+```
+
 
 ## API
 
@@ -287,25 +309,6 @@ eventCallback?: BlockchainEventCallback, errorCallback?: (error: any) => void): 
 
 `unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>)`
 - Unsubscribe from a previously subscribed event.
-
-## Test How-To
-1. Clone AIN Blockchain and install
-```
-git clone git@github.com:ainblockchain/ain-blockchain.git
-yarn install
-```
-
-2. Start blockchain locally
-```
-bash start_local_blockchain.sh
-```
-   * Note that the node 2 of the blockchain needs to be started with ENABLE_EVENT_HANDLER=true env variable for the event manager test cases.
-
-3. Run tests
-```
-yarn run test
-yarn run test_snapshot  # update test snapshot files
-```
 
 
 ## LICENSE

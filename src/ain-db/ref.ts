@@ -440,9 +440,11 @@ export default class Reference {
       ref: string
   ): TransactionInput {
     const op_list: SetOperation[] = [];
-    input.op_list.forEach(op => {
-      op_list.push(Object.assign(op, { ref: Reference.extendPath(ref, op.ref) }));
-    });
+    if (input.op_list) {
+      input.op_list.forEach(op => {
+        op_list.push(Object.assign(op, { ref: Reference.extendPath(ref, op.ref) }));
+      });
+    }
     delete input.op_list;
     const operation: SetMultiOperation = { type: 'SET', op_list };
     return Object.assign(input, { operation });

@@ -856,7 +856,7 @@ describe('ain-js', function() {
         nonce: -1
       }, true)  // isDryrun = true
       .then(res => {
-        expect(Object.keys(res.result).length).toBe(5);
+        expect(Object.keys(res.result.result_list).length).toBe(4);
         expect(res.result.is_dryrun).toBe(true);
       })
       .catch((error) => {
@@ -892,7 +892,7 @@ describe('ain-js', function() {
         nonce: -1
       })
       .then(res => {
-        expect(Object.keys(res.result).length).toBe(4);
+        expect(Object.keys(res.result.result_list).length).toBe(4);
       })
       .catch((error) => {
         console.log("set error:",error);
