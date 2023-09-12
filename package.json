@@ -1,6 +1,6 @@
 {
   "name": "@ainblockchain/ain-js",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "",
   "main": "lib/ain.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "docs": "yarn build && typedoc --out docs"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "repository": {
     "type": "git",
