@@ -39,7 +39,7 @@ export class AinWalletSigner implements Signer {
   }
 
   /**
-   * Signs and sends a transaction to the network
+   * Signs and sends a transaction to the network.
    * @param {TransactionInput} transactionObject
    * @param {boolean} isDryrun - dryrun option.
    * @return {Promise<any>}
