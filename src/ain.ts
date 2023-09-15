@@ -15,6 +15,9 @@ import HomomorphicEncryption from './he';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 
+/**
+ * The main class of the ain-js SDK library.
+ */
 export default class Ain {
   /** The axios request config object.  */
   public axiosConfig: AxiosRequestConfig | undefined;
