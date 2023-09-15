@@ -2,12 +2,16 @@ import * as semver from 'semver';
 import Provider from './provider';
 import { BLOCKCHAIN_PROTOCOL_VERSION } from './constants';
 
+/**
+ * A class for checking the blockchain node status.
+ */
 export default class Network {
   public provider: Provider;
   public protoVer: string;
 
   /**
-   * @param {Provider} provider
+   * Creates a new Network object.
+   * @param {Provider} provider The network provider.
    * @constructor
    */
   constructor (provider: Provider) {
@@ -16,7 +20,7 @@ export default class Network {
   }
 
   /**
-   * Returns whether the node is listening for network connections.
+   * Checks whether the blockchain node is listening for network connections.
    * @return {Promise<boolean>}
    */
   isListening(): Promise<boolean> {
@@ -24,28 +28,28 @@ export default class Network {
   }
 
   /**
-   * Returns the id of the network the node is connected to.
+   * Fetches the ID of the network the blokchain node is connected to.
    */
   getNetworkId(): Promise<string> {
     return this.provider.send('net_getNetworkId');
   }
 
   /**
-   * Checks the protocol version.
+   * Checks the protocol version compatibility with the blockchain node.
    */
   async checkProtocolVersion(): Promise<any> {
     return this.provider.send('ain_checkProtocolVersion');
   }
 
   /**
-   * Returns the protocol version of the node.
+   * Fetches the protocol version of the blockchain node.
    */
   getProtocolVersion(): Promise<any> {
     return this.provider.send('ain_getProtocolVersion');
   }
 
   /**
-   * Returns the number of peers the provider node is connected to.
+   * Fetches the number of the peers the blockchain node is connected to.
    * @return {Promise<number>}
    */
   getPeerCount(): Promise<number> {
@@ -53,7 +57,7 @@ export default class Network {
   }
 
   /**
-   * Returns whether the node is syncing with the network or not.
+   * Checks whether the blockchain node is syncing with the network or not.
    * @return {Promise<boolean>}
    */
   isSyncing(): Promise<boolean> {
@@ -61,7 +65,7 @@ export default class Network {
   }
 
   /**
-   * Returns the event handler network information.
+   * Fetches the event handler network information.
    */
   getEventHandlerNetworkInfo(): Promise<any> {
     return this.provider.send('net_getEventHandlerNetworkInfo');
