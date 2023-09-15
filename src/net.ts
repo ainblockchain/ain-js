@@ -6,13 +6,14 @@ import { BLOCKCHAIN_PROTOCOL_VERSION } from './constants';
  * A class for checking the blockchain node status.
  */
 export default class Network {
+  /** The network provider. */
   public provider: Provider;
+  /** The protocol version. */
   public protoVer: string;
 
   /**
    * Creates a new Network object.
    * @param {Provider} provider The network provider.
-   * @constructor
    */
   constructor (provider: Provider) {
     this.provider = provider;

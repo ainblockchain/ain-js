@@ -45,7 +45,6 @@ export default class Ain {
    * @param {string} providerUrl The endpoint URL of the network provider.
    * @param {number} chainId The chain ID of the blockchain network.
    * @param {AinOptions} ainOptions The options of the class.
-   * @constructor
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
     this.axiosConfig = ainOptions?.axiosConfig;
