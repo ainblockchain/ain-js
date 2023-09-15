@@ -1,3 +1,4 @@
+import { TransactionBody, TransactionInput } from "../types";
 import { Signer } from "./signer";
 
 /**
@@ -35,5 +36,23 @@ export class AinWalletSigner implements Signer {
    */
   signMessage(message: any, address?: string): Promise<string> | string {
     return this.ainetwork.signMessage(message, address);
+  }
+
+  /**
+   * Signs and sends a transaction to the network.
+   * @param {TransactionInput} transactionObject
+   * @param {boolean} isDryrun - dryrun option.
+   * @return {Promise<any>}
+   */
+  sendTransaction(transactionObject: TransactionInput) {
+    return this.ainetwork.sendTransaction(transactionObject);
+  }
+
+  sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+
+  sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun?: boolean | undefined): Promise<any> {
+    throw new Error("Method not implemented.");
   }
 }

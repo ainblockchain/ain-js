@@ -1,8 +1,6 @@
-import * as EventEmitter from 'eventemitter3'
 import * as AinUtil from "@ainblockchain/ain-util";
 import { AxiosRequestConfig } from 'axios';
 
-import request from './request';
 import {
   AinOptions, Block, TransactionInfo, TransactionBody, TransactionResult, SetOperationType,
   SetOperation, TransactionInput, ValueOnlyTransactionInput, StateUsageInfo, AppNameValidationInfo,
@@ -14,7 +12,8 @@ import Wallet from './wallet';
 import Network from './net';
 import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
-import { DefaultSigner, Signer } from "./signer/signer";
+import { Signer } from "./signer/signer";
+import { DefaultSigner } from './signer/default-signer';
 
 export default class Ain {
   public axiosConfig: AxiosRequestConfig | undefined;
@@ -42,7 +41,7 @@ export default class Ain {
     this.db = new Database(this, this.provider);
     this.he = new HomomorphicEncryption();
     this.em = new EventManager(this);
-    this.signer = new DefaultSigner(this.wallet);
+    this.signer = new DefaultSigner(this.wallet, this.provider);
   }
 
   /**
@@ -150,9 +149,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
-    const txBody = await this.buildTransactionBody(transactionObject);
-    const signature = await this.signer.signMessage(txBody, transactionObject.address);
-    return await this.sendSignedTransaction(signature, txBody, isDryrun);
+    return this.signer.sendTransaction(transactionObject, isDryrun);
   }
 
   /**
@@ -163,12 +160,7 @@ export default class Ain {
    * @return {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
-    const method = isDryrun ? 'ain_sendSignedTransactionDryrun' : 'ain_sendSignedTransaction';
-    let result = await this.provider.send(method, { signature, tx_body: txBody });
-    if (!result || typeof result !== 'object') {
-      result = { result };
-    }
-    return result;
+    return this.signer.sendSignedTransaction(signature, txBody, isDryrun);
   }
 
   /**
@@ -176,35 +168,7 @@ export default class Ain {
    * @param {TransactionInput[]} transactionObjects
    */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
-    let promises: Promise<any>[] = [];
-    for (let tx of transactionObjects) {
-      promises.push(this.buildTransactionBody(tx).then(async (txBody) => {
-        if (tx.nonce === undefined) {
-          // Batch transactions' nonces should be specified.
-          // If they're not, they default to un-nonced (nonce = -1).
-          txBody.nonce = -1;
-        }
-        const signature = await this.signer.signMessage(txBody, tx.address);
-        return { signature, tx_body: txBody };
-      }));
-    }
-    return Promise.all(promises).then(async (tx_list) => {
-      const resultList = await this.provider.send('ain_sendSignedTransactionBatch', { tx_list });
-      if (!Array.isArray(resultList)) {
-        return resultList;
-      }
-      const len = resultList.length;
-      if (len !== tx_list.length) {
-        return resultList;
-      } else {
-        for (let i = 0; i < len; i++) {
-          if (!resultList[i] || typeof resultList[i] !== 'object') {
-            resultList[i] = { result: resultList[i] };
-          }
-        }
-        return resultList;
-      }
-    })
+    return this.signer.sendTransactionBatch(transactionObjects);
   }
 
   /**
@@ -234,46 +198,6 @@ export default class Ain {
     const address = account ? Ain.utils.toChecksumAddress(account)
         : this.signer.getAddress(account);
     return this.db.ref(`/deposit_accounts/consensus/${address}`).getValue();
-  }
-
-  /**
-   * Returns the current transaction count of account, which is the nonce of the account.
-   * @param {object} args - May contain a string 'address' and a string 'from' values.
-   *                        The 'address' indicates the address of the account to get the
-   *                        nonce of, and the 'from' indicates where to get the nonce from.
-   *                        It could be either the pending transaction pool ("pending") or
-   *                        the committed blocks ("committed"). The default value is "committed".
-   * @return {Promise<number>}
-   */
-  getNonce(args: {address?: string, from?: string}): Promise<number> {
-    if (!args) { args = {}; }
-    const address = args.address ? Ain.utils.toChecksumAddress(args.address)
-        : this.signer.getAddress(args.address);
-    if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
-      throw Error("'from' should be either 'pending' or 'committed'");
-    }
-    return this.provider.send('ain_getNonce', { address, from: args.from })
-  }
-
-  /**
-   * Builds a transaction body from transaction input.
-   * @param {TransactionInput} transactionInput
-   * @return {Promise<TransactionBody>}
-   */
-  async buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
-    const address = this.signer.getAddress(transactionInput.address);
-    let tx = {
-      operation: transactionInput.operation,
-      parent_tx_hash: transactionInput.parent_tx_hash
-    }
-    let nonce = transactionInput.nonce;
-    if (nonce === undefined) {
-      nonce = await this.getNonce({address, from: "pending"});
-    }
-    const timestamp = transactionInput.timestamp ? transactionInput.timestamp : Date.now();
-    const gasPrice = transactionInput.gas_price || 0;
-    const billing = transactionInput.billing;
-    return Object.assign(tx, { nonce, timestamp, gas_price: gasPrice, billing });
   }
 
   /**
