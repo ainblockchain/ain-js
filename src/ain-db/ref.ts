@@ -324,12 +324,12 @@ export default class Reference {
     return this._ain.provider.send('ain_matchOwner', request);
   }
 
-  /**
-   * TODO(liayoo): Add this function.
-   * Attaches an listener for database events.
-   * @param {EventType} event - A type of event.
-   * @param {Function} callback function to be executed when an event occurs.
-   */
+  // TODO(liayoo): Add this function.
+  ///**
+  // * Attaches an listener for database events.
+  // * @param {EventType} event - A type of event.
+  // * @param {Function} callback function to be executed when an event occurs.
+  // */
   // on(event: EventType, callback: Function) {
   //   if (this._isRootReference) {
   //     throw new Error('[ain-js.Reference.on] Cannot attach an on() listener to a root node');
@@ -349,12 +349,12 @@ export default class Reference {
   //   }, 1000);
   // }
 
-  /**
-   * TODO (liayoo): Add this function
-   * Removes a database event listener.
-   * @param {EventType} event - A type of event.
-   * @param {Function} callback - A callback function to dettach from the event.
-   */
+  // TODO(liayoo): Add this function.
+  ///**
+  // * Removes a database event listener.
+  // * @param {EventType} event - A type of event.
+  // * @param {Function} callback - A callback function to dettach from the event.
+  // */
   // off(event?: EventType, callback?: Function) {
   //   if (!event && !callback) {
   //     this._listeners = {};
