@@ -1,18 +1,28 @@
-import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions, KdfParams } from './types';
+import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions } from './types';
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
 
+/**
+ * A class for AI Network wallets.
+ */
 export default class Wallet {
+  /** The default account. */
   public defaultAccount: Account | null;
+  /** The list of accounts. */
   public accounts: Accounts;
+  /** The number of accounts. */
   public _length: number;
+  /** The Ain object. */
   public ain: Ain;
+  /** The chain ID of the blockchain. */
   public chainId: number;
 
   /**
-   * @constructor
+   * Creates a new Wallet object.
+   * @param {Ain} ain The Ain object.
+   * @param {number} chainId The chain ID.
    */
   constructor(ain: Ain, chainId: number) {
     this.defaultAccount = null;
@@ -49,8 +59,9 @@ export default class Wallet {
   }
 
   /**
-   * Creates {numberOfAccounts} new accounts and add them to the wallet.
+   * Creates {numberOfAccounts} new accounts and adds them to the wallet.
    * @param {number} numberOfAccounts
+   * @return {Array<string>} The created new accounts.
    */
   create(numberOfAccounts: number): Array<string> {
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
@@ -67,7 +78,7 @@ export default class Wallet {
 
   /**
    * Returns whether the address has already been added to the wallet.
-   * @param {string} address
+   * @param {string} address The address to check.
    * @return {boolean}
    */
   isAdded(address: string): boolean {
@@ -76,7 +87,8 @@ export default class Wallet {
 
   /**
    * Adds a new account from the given private key.
-   * @param {string} privateKey
+   * @param {string} privateKey The private key.
+   * @return {string} The address of the newly added account.
    */
   add(privateKey: string): string {
     let newAccount = Wallet.fromPrivateKey(Buffer.from(privateKey, 'hex'));
@@ -87,8 +99,8 @@ export default class Wallet {
 
   /**
    * Adds a new account from the given private key and sets the new account as the default account.
-   * @param {string} privateKey
-   * @return {string} address
+   * @param {string} privateKey The private key.
+   * @return {string} The address of the newly added account.
    */
   addAndSetDefaultAccount(privateKey: string): string {
     const address = this.add(privateKey);
@@ -99,9 +111,9 @@ export default class Wallet {
   /**
    * Adds an account from a seed phrase. Only the account at the given
    * index (default = 0) will be added.
-   * @param {string} seedPhrase
-   * @param {number} index
-   * @return {string} - The address of the newly added account.
+   * @param {string} seedPhrase The seed phrase.
+   * @param {number} index The index of the account.
+   * @return {string} The address of the newly added account.
    */
   addFromHDWallet(seedPhrase: string, index: number = 0): string {
     if (index < 0) {
@@ -128,9 +140,9 @@ export default class Wallet {
 
   /**
    * Adds an account from a V3 Keystore.
-   * @param {V3Keystore | string} v3Keystore
-   * @param {string} [password]
-   * @return {string} - The address of the newly added account.
+   * @param {V3Keystore | string} v3Keystore The v3 keystore.
+   * @param {string} [password] The password of the v3 keystore.
+   * @return {string} The address of the newly added account.
    */
   addFromV3Keystore(v3Keystore: V3Keystore | string, password: string): string {
     const privateKey = Ain.utils.v3KeystoreToPrivate(v3Keystore, password);
@@ -139,8 +151,8 @@ export default class Wallet {
   }
 
   /**
-   * Removes an account
-   * @param {string} address
+   * Removes an account from the wallet.
+   * @param {string} address The address of the account to be removed.
    */
   remove(address: string) {
     let addressToRemove = Ain.utils.toChecksumAddress(address);
@@ -158,7 +170,7 @@ export default class Wallet {
   /**
    * Sets the default account as {address}. The account should be already added
    * in the wallet.
-   * @param {string} address
+   * @param {string} address The address of the account.
    */
   setDefaultAccount(address: string) {
     const checksummed = Ain.utils.toChecksumAddress(address);
@@ -190,7 +202,7 @@ export default class Wallet {
    * it returns the defaultAccount. It throws an error if
    * an address is not given and defaultAccount is not set, or
    * the specified address is not added to the wallet.
-   * @param {string} address
+   * @param {string} address The address of the account.
    */
   getImpliedAddress(inputAddress?: string) {
     const address = inputAddress || (this.defaultAccount ? this.defaultAccount.address : null);
@@ -205,8 +217,9 @@ export default class Wallet {
   }
 
   /**
-   * Returns the AIN balance of the address.
-   * @param {string} address - Defaults to the defaultAccount.
+   * Fetches the AIN balance of the address.
+   * @param {string} address The address of the account. It defaults to the default account of the wallet.
+   * @returns {Promise<number>} The AIN balance of the account.
    */
   getBalance(address?: string): Promise<number> {
     const addr = address ? Ain.utils.toChecksumAddress(address)
@@ -216,8 +229,9 @@ export default class Wallet {
 
   /**
    * Sends a transfer transaction to the network.
-   * @param input
-   * @param {boolean} isDryrun - dryrun option.
+   * @param {{to: string, value: number, from?: string, nonce?: number, gas_price?: number}} input The input parameters of the transaction.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}, isDryrun: boolean = false): Promise<any> {
     const address = this.getImpliedAddress(input.from);
@@ -229,10 +243,10 @@ export default class Wallet {
 
   /**
    * Signs a string data with the private key of the given address. It will use
-   * the defaultAccount if an address is not provided.
-   * @param {string} data
-   * @param {string} address
-   * @return {string} - signature
+   * the default account if an address is not provided.
+   * @param {string} data The data to sign.
+   * @param {string} address The address of the account. It defaults to the default account of the wallet.
+   * @return {string} The signature.
    */
   sign(data: string, address?: string): string {
     const addr = this.getImpliedAddress(address);
@@ -240,20 +254,21 @@ export default class Wallet {
   }
 
   /**
-   * Signs a transaction data with the private key of the given address. It will use
-   * the defaultAccount if an address is not provided.
-   * @param {TransactionBody} data
-   * @param {string} address
-   * @return {string} - signature
+   * Signs a transaction body with the private key of the given address. It will use
+   * the default account if an address is not provided.
+   * @param {TransactionBody} txBody The transaction body.
+   * @param {string} address The address of the account. It defaults to the adefault account of the wallet..
+   * @return {string} The signature.
    */
-  signTransaction(tx: TransactionBody, address?: string): string {
+  signTransaction(txBody: TransactionBody, address?: string): string {
     const addr = this.getImpliedAddress(address);
-    return Ain.utils.ecSignTransaction(tx, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
+    return Ain.utils.ecSignTransaction(txBody, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
   }
 
   /**
    * Gets the hash from the signature.
-   * @param {string} signature
+   * @param {string} signature The signature.
+   * @returns {string} The hash of the signature.
    */
   getHashStrFromSig(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
@@ -265,8 +280,8 @@ export default class Wallet {
 
   /**
    * Recovers an address of the account that was used to create the signature.
-   * @param {string} signature
-   * @return {string} - address
+   * @param {string} signature The signature.
+   * @return {string} The address recovered.
    */
   recover(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
@@ -281,9 +296,9 @@ export default class Wallet {
 
   /**
    * Verifies if the signature is valid and was signed by the address.
-   * @param {any} data
-   * @param {string} signature
-   * @param {string} address
+   * @param {any} data The data used in the signing.
+   * @param {string} signature The signature to verify.
+   * @param {string} address The address to verify.
    * @return {boolean}
    */
   verifySignature(data: any, signature: string, address: string): boolean {
@@ -291,10 +306,10 @@ export default class Wallet {
   }
 
   /**
-   * Save the accounts in the wallet as V3 Keystores, locking them with the password.
-   * @param {string} password
-   * @param {V3KeystoreOptions} options
-   * @return {V3Keystore[]}
+   * Saves the accounts in the wallet as V3 Keystores, locking them with the password.
+   * @param {string} password The password.
+   * @param {V3KeystoreOptions} options The v3 keystore options.
+   * @return {V3Keystore[]} The v3 keystores.
    */
   toV3Keystore(password: string, options: V3KeystoreOptions = {}): V3Keystore[] {
     let V3KeystoreArr: V3Keystore[] = [];
@@ -306,12 +321,11 @@ export default class Wallet {
   }
 
   /**
-   * Converts an account into a V3 Keystore and encrypts it with a password.
-   * @param {TransactionBody} data
-   * @param {string} address
-   * @param {string} password
-   * @param {V3KeystoreOptions} options
-   * @return {V3Keystore}
+   * Converts an account into a v3 keystore and encrypts it with a password.
+   * @param {string} address The address of the account.
+   * @param {string} password The password.
+   * @param {V3KeystoreOptions} options The v3 keystore options.
+   * @return {V3Keystore} The v3 keystore.
    */
   accountToV3Keystore(
       address: string,
@@ -327,8 +341,8 @@ export default class Wallet {
 
   /**
    * Imports an account from a private key.
-   * @param {Buffer} privateKey
-   * @return {Account}
+   * @param {Buffer} privateKey The private key.
+   * @return {Account} The account.
    */
   static fromPrivateKey(privateKey: Buffer): Account {
     let publicKey = Ain.utils.privateToPublic(privateKey);
