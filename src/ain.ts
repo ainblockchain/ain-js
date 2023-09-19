@@ -125,7 +125,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches the information of a transaction with a transaction hash.
+   * Fetches a transaction's information with a transaction hash.
    * @param {string} transactionHash The transaction hash.
    * @return {Promise<TransactionInfo>}
    */
@@ -134,7 +134,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches the state usage information of a blockchain app.
+   * Fetches a blockchain app's state usage information with an app name.
    * @param {string} appName The blockchain app name.
    * @return {Promise<StateUsageInfo>}
    */
@@ -143,7 +143,7 @@ export default class Ain {
   }
 
   /**
-   * Validates a blockchain app name.
+   * Validates a blockchain app's name.
    * @param {string} appName The blockchain app name.
    * @return {Promise<AppNameValidationInfo>}
    */
@@ -219,7 +219,7 @@ export default class Ain {
   }
 
   /**
-   * Checks whether an object is an instance of the TransactionBody interface.
+   * Checks whether an object is an instance of TransactionBody interface.
    * @param {any} object The object to check.
    * @return {boolean}
    */
@@ -231,7 +231,7 @@ export default class Ain {
   /**
    * A base function for all staking related database changes. It builds a
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
-   * @param {string} path The path to set a value.
+   * @param {string} path The path to set a value with.
    * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
    * @param {boolean} isDryrun The dryrun option.
    * @return {Promise<any>}

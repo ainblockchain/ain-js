@@ -59,9 +59,9 @@ export default class Wallet {
   }
 
   /**
-   * Creates {numberOfAccounts} new accounts and adds them to the wallet.
-   * @param {number} numberOfAccounts
-   * @return {Array<string>} The created new accounts.
+   * Creates new accounts and adds them to the wallet.
+   * @param {number} numberOfAccounts The number of accounts to create.
+   * @return {Array<string>} The newly created accounts.
    */
   create(numberOfAccounts: number): Array<string> {
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
@@ -139,7 +139,7 @@ export default class Wallet {
   }
 
   /**
-   * Adds an account from a V3 Keystore.
+   * Adds an account from a v3 keystore.
    * @param {V3Keystore | string} v3Keystore The v3 keystore.
    * @param {string} [password] The password of the v3 keystore.
    * @return {string} The address of the newly added account.
@@ -306,7 +306,7 @@ export default class Wallet {
   }
 
   /**
-   * Saves the accounts in the wallet as V3 Keystores, locking them with the password.
+   * Saves the accounts in the wallet as v3 keystores, locking them with the password.
    * @param {string} password The password.
    * @param {V3KeystoreOptions} options The v3 keystore options.
    * @return {V3Keystore[]} The v3 keystores.

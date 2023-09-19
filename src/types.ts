@@ -25,7 +25,7 @@ export interface Account {
 export interface Accounts {[address: string]: Account}
 
 /**
- * The key derivation function parameters.
+ * An interface for key derivation function parameters.
  */
 export interface KdfParams {
   dklen: number;
@@ -144,7 +144,7 @@ export interface GetOperation extends GetOptions {
 }
 
 /**
- * An interface for transactions body base.
+ * An interface for transaction body base.
  */
 export interface TransactionBodyBase {
   parent_tx_hash?: string;
@@ -274,7 +274,7 @@ export interface EvalRuleInput {
 }
 
 /**
- * An interface for eval owner (EVAL_RULE) input.
+ * An interface for eval owner (EVAL_OWNER) input.
  */
 export interface EvalOwnerInput {
   ref?: string;
@@ -361,7 +361,7 @@ export interface BlockFinalizedEventConfig {
 }
 
 /**
- * A type for value changed event source (blockchain event handler).
+ * A type for value-changed event source (blockchain event handler).
  */
 export type ValueChangedEventSource = 'BLOCK' | 'USER';
 
@@ -394,7 +394,7 @@ export interface EventChannelConnectionOption {
 }
 
 /**
- * An interface for error handling (blockchain event handler).
+ * An interface for error handling callbacks (blockchain event handler).
  */
 export interface ErrorFirstCallback<T> {
   (err: any, result?: undefined | null): void;
