@@ -173,7 +173,7 @@ export default class Ain {
   }
 
   /**
-   * Sends signed multiple transactions in a batch to the network.
+   * Signs and sends multiple transactions in a batch to the network.
    * @param {TransactionInput[]} transactionObjects The list of the transaction input objects.
    * @return {Promise<any>}
    */
