@@ -15,21 +15,36 @@ import HomomorphicEncryption from './he';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 
+/**
+ * The main class of the ain-js SDK library.
+ */
 export default class Ain {
+  /** The axios request config object.  */
   public axiosConfig: AxiosRequestConfig | undefined;
+  /** The chain ID of the blockchain network. */
   public chainId: number;
+  /** The network provider object. */
   public provider: Provider;
+  /** The raw result mode option. */
   public rawResultMode: boolean;
+  /** The database object. */
   public db: Database;
+  /** The network object. */
   public net: Network;
+  /** The wallet object. */
   public wallet: Wallet;
+  /** The homorphic encryption object. */
   public he: HomomorphicEncryption;
+  /** The event manager object. */
   public em: EventManager;
+  /** The signer object. */
   public signer: Signer;
 
   /**
-   * @param {string} providerUrl
-   * @constructor
+   * Creates a new Ain object.
+   * @param {string} providerUrl The endpoint URL of the network provider.
+   * @param {number} chainId The chain ID of the blockchain network.
+   * @param {AinOptions} ainOptions The options of the class.
    */
   constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
     this.axiosConfig = ainOptions?.axiosConfig;
@@ -45,8 +60,10 @@ export default class Ain {
   }
 
   /**
-   * Sets a new provider
-   * @param {string} providerUrl
+   * Sets a new provider.
+   * @param {string} providerUrl The endpoint URL of the network provider.
+   * @param {number} chainId The chain ID of the blockchain network.
+   * @param {AxiosRequestConfig} axiosConfig The axios request config.
    */
   setProvider(providerUrl: string, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
     if (axiosConfig) {
@@ -60,18 +77,18 @@ export default class Ain {
   }
 
   /**
-   * Sets a new signer
-   * @param {Signer} signer
+   * Sets a new signer.
+   * @param {Signer} signer The signer to set.
    */
   setSigner(signer: Signer) {
     this.signer = signer;
   }
 
   /**
-   * A promise returns a block with the given hash or block number.
-   * @param {string | number} blockHashOrBlockNumber
-   * @param {boolean} returnTransactionObjects - If true, returns the full transaction objects;
-   * otherwise, returns only the transaction hashes
+   * Fetches a block with a block hash or block number.
+   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
+   * Otherwise, returns a block with only transaction hashes.
    * @return {Promise<Block>}
    */
   getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
@@ -84,8 +101,8 @@ export default class Ain {
   }
 
   /**
-   * A promise returns the address of the forger of given block
-   * @param {string | number} blockHashOrBlockNumber
+   * Fetches the forger's address of a block with a block hash or block number.
+   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @return {Promise<string>}
    */
   getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
@@ -96,8 +113,8 @@ export default class Ain {
   }
 
   /**
-   * A promise returns the list of validators for a given block
-   * @param {string | number} blockHashOrBlockNumber
+   * Fetches the validator list of a block with a block hash or block number.
+   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @return {Promise<string[]>}
    */
   getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
@@ -108,8 +125,8 @@ export default class Ain {
   }
 
   /**
-   * Returns the transaction with the given transaction hash.
-   * @param {string} transactionHash
+   * Fetches a transaction's information with a transaction hash.
+   * @param {string} transactionHash The transaction hash.
    * @return {Promise<TransactionInfo>}
    */
   getTransaction(transactionHash: string): Promise<TransactionInfo> {
@@ -117,8 +134,8 @@ export default class Ain {
   }
 
   /**
-   * Returns the state usage information with the given app name.
-   * @param {string} appName
+   * Fetches a blockchain app's state usage information with an app name.
+   * @param {string} appName The blockchain app name.
    * @return {Promise<StateUsageInfo>}
    */
   getStateUsage(appName: string): Promise<StateUsageInfo> {
@@ -126,16 +143,8 @@ export default class Ain {
   }
 
   /**
-   * Returns the result of the transaction with the given transaaction hash.
-   * @param {string} transactionHash
-   * @return {Promise<Transaction>}
-   */
-  // TODO(liayoo): implement this function.
-  // getTransactionResult(transactionHash: string): Promise<TransactionResult> {}
-
-  /**
-   * Validate the given app name.
-   * @param {string} appName
+   * Validates a blockchain app's name.
+   * @param {string} appName The blockchain app name.
    * @return {Promise<AppNameValidationInfo>}
    */
   validateAppName(appName: string): Promise<AppNameValidationInfo> {
@@ -143,9 +152,9 @@ export default class Ain {
   }
 
   /**
-   * Signs and sends a transaction to the network
-   * @param {TransactionInput} transactionObject
-   * @param {boolean} isDryrun - dryrun option.
+   * Signs and sends a transaction to the network.
+   * @param {TransactionInput} transactionObject The transaction input object. 
+   * @param {boolean} isDryrun The dryrun option.
    * @return {Promise<any>}
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
@@ -153,10 +162,10 @@ export default class Ain {
   }
 
   /**
-   * Sends a signed transaction to the network
-   * @param {string} signature
-   * @param {TransactionBody} txBody
-   * @param {boolean} isDryrun - dryrun option.
+   * Sends a signed transaction to the network.
+   * @param {string} signature The signature of the transaction.
+   * @param {TransactionBody} txBody The transaction body.
+   * @param {boolean} isDryrun The dryrun option.
    * @return {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
@@ -164,8 +173,9 @@ export default class Ain {
   }
 
   /**
-   * Sends signed transactions to the network.
-   * @param {TransactionInput[]} transactionObjects
+   * Signs and sends multiple transactions in a batch to the network.
+   * @param {TransactionInput[]} transactionObjects The list of the transaction input objects.
+   * @return {Promise<any>}
    */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     return this.signer.sendTransactionBatch(transactionObjects);
@@ -173,7 +183,7 @@ export default class Ain {
 
   /**
    * Sends a transaction that deposits AIN for consensus staking.
-   * @param {ValueOnlyTransactionInput} transactionObject
+   * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
    * @return {Promise<any>}
    */
   depositConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
@@ -182,7 +192,7 @@ export default class Ain {
 
   /**
    * Sends a transaction that withdraws AIN for consensus staking.
-   * @param {ValueOnlyTransactionInput} transactionObject
+   * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
    * @return {Promise<any>}
    */
   withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
@@ -190,8 +200,9 @@ export default class Ain {
   }
 
   /**
-   * Gets the amount of AIN currently staked for participating in consensus protocol.
-   * @param {string} account - If not specified, will try to use the defaultAccount value.
+   * Fetches the amount of AIN currently staked for participating in consensus protocol.
+   * @param {string} account The account to fetch the value with. If not specified,
+   * the default account of the signer is used.
    * @return {Promise<number>}
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
@@ -201,15 +212,15 @@ export default class Ain {
   }
 
   /**
-   * Getter for ain-util library
+   * Getter for ain-util library.
    */
   static get utils() {
     return AinUtil;
   }
 
   /**
-   * Checks whether a given object is an instance of TransactionBody interface.
-   * @param {string} account
+   * Checks whether an object is an instance of TransactionBody interface.
+   * @param {any} object The object to check.
    * @return {boolean}
    */
   static instanceofTransactionBody(object: any): object is TransactionBody {
@@ -220,9 +231,9 @@ export default class Ain {
   /**
    * A base function for all staking related database changes. It builds a
    * deposit/withdraw transaction and sends the transaction by calling sendTransaction().
-   * @param {string} path
-   * @param {ValueOnlyTransactionInput} transactionObject
-   * @param {boolean} isDryrun - dryrun option.
+   * @param {string} path The path to set a value with.
+   * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
    * @return {Promise<any>}
    */
   private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
