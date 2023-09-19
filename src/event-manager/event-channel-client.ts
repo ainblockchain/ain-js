@@ -4,7 +4,7 @@ import {
   EventChannelMessageTypes,
   EventChannelMessage,
   BlockchainEventTypes,
-  EventChannelConnectionOption,
+  EventChannelConnectionOptions,
   DisconnectCallback,
 } from '../types';
 import EventFilter from './event-filter';
@@ -34,7 +34,7 @@ export default class EventChannelClient {
     return this._isConnected;
   }
 
-  connect(connectionOption: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
+  connect(connectionOption: EventChannelConnectionOptions, disconnectCallback?: DisconnectCallback) {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));

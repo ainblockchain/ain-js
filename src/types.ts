@@ -38,7 +38,7 @@ export interface KdfParams {
 }
 
 /**
- * An interface for V3Keystore options.
+ * An interface for v3 keystore options.
  */
 export interface V3KeystoreOptions {
   salt?: string;
@@ -386,9 +386,9 @@ export interface TxStateChangedEventConfig {
 export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
 
 /**
- * An interface for event-channel-connection option (blockchain event handler).
+ * An interface for event-channel-connection options (blockchain event handler).
  */
-export interface EventChannelConnectionOption {
+export interface EventChannelConnectionOptions {
   handshakeTimeout?: number;
   heartbeatIntervalMs?: number;
 }

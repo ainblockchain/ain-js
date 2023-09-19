@@ -2,7 +2,7 @@ import Ain from '../ain';
 import {
   BlockFinalizedEventConfig, BlockFinalizedEvent,
   ErrorFirstCallback,
-  EventChannelConnectionOption,
+  EventChannelConnectionOptions,
   EventConfigType, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
   ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback, FilterDeletedEventCallback,
@@ -22,7 +22,7 @@ export default class EventManager {
     this._eventChannelClient = new EventChannelClient(ain, this._eventCallbackManager);
   }
 
-  async connect(connectionOption?: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
+  async connect(connectionOption?: EventChannelConnectionOptions, disconnectCallback?: DisconnectCallback) {
     await this._eventChannelClient.connect(connectionOption || {}, disconnectCallback);
   }
 
