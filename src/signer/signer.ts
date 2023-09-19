@@ -23,7 +23,7 @@ export interface Signer {
    * Signs and sends a transaction to the network.
    * @param {TransactionInput} transactionObject
    * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   sendTransaction(transactionObject: TransactionInput, isDryrun?: boolean);
 
@@ -38,7 +38,7 @@ export interface Signer {
    * @param {string} signature
    * @param {TransactionBody} txBody
    * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun?: boolean): Promise<any>
 }

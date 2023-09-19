@@ -42,7 +42,7 @@ export class AinWalletSigner implements Signer {
    * Signs and sends a transaction to the network.
    * @param {TransactionInput} transactionObject
    * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   sendTransaction(transactionObject: TransactionInput) {
     return this.ainetwork.sendTransaction(transactionObject);

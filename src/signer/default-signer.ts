@@ -45,7 +45,7 @@ export class DefaultSigner implements Signer {
    * Signs and sends a transaction to the network.
    * @param {TransactionInput} transactionObject
    * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false) {
     const txBody = await this.buildTransactionBody(transactionObject);
@@ -94,7 +94,7 @@ export class DefaultSigner implements Signer {
    * @param {string} signature
    * @param {TransactionBody} txBody
    * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
     const method = isDryrun ? 'ain_sendSignedTransactionDryrun' : 'ain_sendSignedTransaction';
@@ -108,7 +108,7 @@ export class DefaultSigner implements Signer {
   /**
    * Builds a transaction body from transaction input.
    * @param {TransactionInput} transactionInput
-   * @return {Promise<TransactionBody>}
+   * @returns {Promise<TransactionBody>}
    */
   async buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
     const address = this.getAddress(transactionInput.address);
@@ -133,7 +133,7 @@ export class DefaultSigner implements Signer {
    *                        nonce of, and the 'from' indicates where to get the nonce from.
    *                        It could be either the pending transaction pool ("pending") or
    *                        the committed blocks ("committed"). The default value is "committed".
-   * @return {Promise<number>}
+   * @returns {Promise<number>}
    */
   getNonce(args: { address?: string, from?: string }): Promise<number> {
     if (!args) { args = {}; }
