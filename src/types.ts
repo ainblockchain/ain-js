@@ -383,7 +383,7 @@ export interface TxStateChangedEventConfig {
 /**
  * A type for event configuration (blockchain event handler).
  */
-export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
+export type BlockchainEventConfig = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
 
 /**
  * An interface for event-channel-connection options (blockchain event handler).

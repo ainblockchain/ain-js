@@ -1,11 +1,11 @@
-import { BlockchainEventTypes, EventConfigType } from '../types';
+import { BlockchainEventTypes, BlockchainEventConfig } from '../types';
 
 export default class EventFilter {
   public readonly id: string;
   public readonly type: BlockchainEventTypes;
-  public readonly config: EventConfigType;
+  public readonly config: BlockchainEventConfig;
 
-  constructor(id: string, type: BlockchainEventTypes, config: EventConfigType) {
+  constructor(id: string, type: BlockchainEventTypes, config: BlockchainEventConfig) {
     this.id = id;
     this.type = type;
     this.config = config;

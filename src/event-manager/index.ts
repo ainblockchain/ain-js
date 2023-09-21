@@ -3,7 +3,7 @@ import {
   BlockFinalizedEventConfig, BlockFinalizedEvent,
   ErrorFirstCallback,
   EventChannelConnectionOptions,
-  EventConfigType, BlockchainEventCallback,
+  BlockchainEventConfig, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
   ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback, FilterDeletedEventCallback,
 } from '../types';
@@ -51,7 +51,7 @@ export default class EventManager {
   ): string;
   subscribe(
     eventTypeStr: string,
-    config: EventConfigType,
+    config: BlockchainEventConfig,
     eventCallback?: BlockchainEventCallback,
     errorCallback?: (error: any) => void,
     filterDeletedEventCallback?: FilterDeletedEventCallback

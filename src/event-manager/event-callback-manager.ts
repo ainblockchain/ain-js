@@ -1,6 +1,6 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, EventConfigType, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
+import { BlockchainEventTypes, BlockchainEventConfig, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
 import { PushId } from '../ain-db/push-id';
 import { FAILED_TO_REGISTER_ERROR_CODE } from '../constants';
 
@@ -47,7 +47,7 @@ export default class EventCallbackManager {
     });
   }
 
-  createFilter(eventTypeStr: string, config: EventConfigType): EventFilter {
+  createFilter(eventTypeStr: string, config: BlockchainEventConfig): EventFilter {
     const eventType = eventTypeStr as BlockchainEventTypes;
     if (!Object.values(BlockchainEventTypes).includes(eventType) ||
         eventType === BlockchainEventTypes.FILTER_DELETED) {
