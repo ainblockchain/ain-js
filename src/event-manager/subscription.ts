@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import EventFilter from './event-filter';
 
 /**
- * A class for subscribing to blockchain events based on EventEmitter class.
+ * A class for subscribing callback functions to blockchain events.
  */
 export default class Subscription extends EventEmitter {
   /** The event filter object. */
