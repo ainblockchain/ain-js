@@ -5,7 +5,7 @@ import {
   EventChannelMessage,
   BlockchainEventTypes,
   EventChannelConnectionOptions,
-  DisconnectCallback,
+  DisconnectionCallback,
 } from '../types';
 import EventFilter from './event-filter';
 import EventCallbackManager from './event-callback-manager';
@@ -34,7 +34,7 @@ export default class EventChannelClient {
     return this._isConnected;
   }
 
-  connect(connectionOption: EventChannelConnectionOptions, disconnectCallback?: DisconnectCallback) {
+  connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback) {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -86,8 +86,8 @@ export default class EventChannelClient {
       });
       this._wsClient.on('close', () => {
         this.disconnect();
-        if (disconnectCallback) {
-          disconnectCallback(this._wsClient);
+        if (disconnectionCallback) {
+          disconnectionCallback(this._wsClient);
         }
       });
     })

@@ -474,7 +474,7 @@ export interface FilterDeletedEvent {
 }
 
 /**
- * An interface for blockchain event callback (blockchain event handler).
+ * An interface for blockchain event callback functions (blockchain event handler).
  */
 export interface BlockchainEventCallback {
   (event: BlockFinalizedEvent): void;
@@ -483,11 +483,11 @@ export interface BlockchainEventCallback {
 }
 
 /**
- * A type for filter-deleted event callback (blockchain event handler).
+ * A type for filter-deleted event callback functions (blockchain event handler).
  */
 export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 
 /**
- * A type for disconnected callback (blockchain event handler).
+ * A type for disconnection callback functions (blockchain event handler).
  */
-export type DisconnectCallback = (webSocket) => void;
+export type DisconnectionCallback = (webSocket) => void;
