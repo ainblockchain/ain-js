@@ -13,14 +13,28 @@ import EventCallbackManager from './event-callback-manager';
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 15000 + 1000; // NOTE: This time must be longer than blockchain event handler heartbeat interval.
 const DEFAULT_HANDSHAKE_TIMEOUT_MS = 30000;
 
+/**
+ * A class for managing event channels and event handling callback functions.
+ */
 export default class EventChannelClient {
+  /** The Ain object. */
   private readonly _ain: Ain;
+  /** The event callback manager object. */
   private readonly _eventCallbackManager: EventCallbackManager;
+  /** The web socket client. */
   private _wsClient?: WebSocket;
+  /** The blockchain endpoint URL. */
   private _endpointUrl?: string;
+  /** Whether it's connected or not. */
   private _isConnected: boolean;
+  /** The heartbeat timeout object. */
   private _heartbeatTimeout?: ReturnType<typeof setTimeout> | null;
 
+  /**
+   * Creates a new EventChannelClient object.
+   * @param {Ain} ain The Ain object.
+   * @param {EventCallbackManager} eventCallbackManager The event callback manager object.
+   */
   constructor(ain: Ain, eventCallbackManager: EventCallbackManager) {
     this._ain = ain;
     this._eventCallbackManager = eventCallbackManager;
@@ -34,6 +48,12 @@ export default class EventChannelClient {
     return this._isConnected;
   }
 
+  /**
+   * Opens an event channel.
+   * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
+   * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   * @returns {Promise<void>} A promise for the connection success.
+   */
   connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback) {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
@@ -93,6 +113,9 @@ export default class EventChannelClient {
     })
   }
 
+  /**
+   * Closes the event channel.
+   */
   disconnect() {
     this._isConnected = false;
     this._wsClient!.terminate();
@@ -102,6 +125,10 @@ export default class EventChannelClient {
     }
   }
 
+  /**
+   * Starts the heartbeat timer for the event channel.
+   * @param {number} timeoutMs The timeout value in miliseconds.
+   */
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
       console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
@@ -109,7 +136,11 @@ export default class EventChannelClient {
     }, timeoutMs);
   }
 
-  handleEmitEventMessage(messageData) {
+  /**
+   * Handles an emit-event message from the event channel.
+   * @param {any} messageData The payload data of the message.
+   */
+  handleEmitEventMessage(messageData: any) {
     const filterId = messageData.filter_id;
     if (!filterId) {
       throw Error(`Can't find filter ID from message data (${JSON.stringify(messageData, null, 2)})`);
@@ -126,7 +157,11 @@ export default class EventChannelClient {
     this._eventCallbackManager.emitEvent(filterId, eventType, payload);
   }
 
-  handleEmitErrorMessage(messageData) {
+  /**
+   * Handles an emit-error message from the event channel.
+   * @param {any} messageData The payload data of the message.
+   */
+  handleEmitErrorMessage(messageData: any) {
     const code = messageData.code;
     if (!code) {
       console.log(`Can't find code from message data (${JSON.stringify(messageData, null, 2)})`);
@@ -145,6 +180,10 @@ export default class EventChannelClient {
     this._eventCallbackManager.emitError(filterId, code, errorMessage);
   }
 
+  /**
+   * Handles a message from the event channel.
+   * @param {string} message The message.
+   */
   handleMessage(message: string) {
     try {
       const parsedMessage = JSON.parse(message);
@@ -171,6 +210,12 @@ export default class EventChannelClient {
     }
   }
 
+  /**
+   * Builds a message to be sent to the event channel.
+   * @param {EventChannelMessageTypes} messageType The message type.
+   * @param {any} data The payload data of the msssage.
+   * @returns 
+   */
   buildMessage(messageType: EventChannelMessageTypes, data: any): EventChannelMessage {
     return {
       type: messageType,
@@ -178,6 +223,10 @@ export default class EventChannelClient {
     };
   }
 
+  /**
+   * Sends a message to the event channel.
+   * @param {EventChannelMessage} message The message to be sent.
+   */
   sendMessage(message: EventChannelMessage) {
     if (!this._isConnected) {
       throw Error(`Failed to send message. Event channel is not connected!`);
@@ -185,12 +234,20 @@ export default class EventChannelClient {
     this._wsClient!.send(JSON.stringify(message));
   }
 
+  /**
+   * Sends a register-event-filter messsage to the event channel.
+   * @param {EventFilter} filter The event filter to register.
+   */
   registerFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
     const registerMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
     this.sendMessage(registerMessage);
   }
 
+  /**
+   * Sends a deregister-event-filter messsage to the event channel.
+   * @param {EventFilter} filter The event filter to deregister.
+   */
   deregisterFilter(filter: EventFilter) {
     const filterObj = filter.toObject();
     const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
