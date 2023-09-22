@@ -22,7 +22,7 @@ export default class Network {
 
   /**
    * Checks whether the blockchain node is listening for network connections.
-   * @return {Promise<boolean>}
+   * @returns {Promise<boolean>}
    */
   isListening(): Promise<boolean> {
     return this.provider.send('net_listening');
@@ -51,7 +51,7 @@ export default class Network {
 
   /**
    * Fetches the number of the peers the blockchain node is connected to.
-   * @return {Promise<number>}
+   * @returns {Promise<number>}
    */
   getPeerCount(): Promise<number> {
     return this.provider.send('net_peerCount');
@@ -59,7 +59,7 @@ export default class Network {
 
   /**
    * Checks whether the blockchain node is syncing with the network or not.
-   * @return {Promise<boolean>}
+   * @returns {Promise<boolean>}
    */
   isSyncing(): Promise<boolean> {
     return this.provider.send('net_syncing');

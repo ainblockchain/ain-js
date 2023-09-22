@@ -89,7 +89,7 @@ export default class Ain {
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
    * Otherwise, returns a block with only transaction hashes.
-   * @return {Promise<Block>}
+   * @returns {Promise<Block>}
    */
   getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
     const byHash = typeof blockHashOrBlockNumber === 'string'
@@ -103,7 +103,7 @@ export default class Ain {
   /**
    * Fetches the forger's address of a block with a block hash or block number.
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
-   * @return {Promise<string>}
+   * @returns {Promise<string>}
    */
   getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
     const byHash = typeof blockHashOrBlockNumber === 'string'
@@ -115,7 +115,7 @@ export default class Ain {
   /**
    * Fetches the validator list of a block with a block hash or block number.
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
-   * @return {Promise<string[]>}
+   * @returns {Promise<string[]>}
    */
   getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
     const byHash = typeof blockHashOrBlockNumber === 'string'
@@ -127,7 +127,7 @@ export default class Ain {
   /**
    * Fetches a transaction's information with a transaction hash.
    * @param {string} transactionHash The transaction hash.
-   * @return {Promise<TransactionInfo>}
+   * @returns {Promise<TransactionInfo>}
    */
   getTransaction(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
@@ -136,7 +136,7 @@ export default class Ain {
   /**
    * Fetches a blockchain app's state usage information with an app name.
    * @param {string} appName The blockchain app name.
-   * @return {Promise<StateUsageInfo>}
+   * @returns {Promise<StateUsageInfo>}
    */
   getStateUsage(appName: string): Promise<StateUsageInfo> {
     return this.provider.send('ain_getStateUsage', { app_name: appName });
@@ -145,7 +145,7 @@ export default class Ain {
   /**
    * Validates a blockchain app's name.
    * @param {string} appName The blockchain app name.
-   * @return {Promise<AppNameValidationInfo>}
+   * @returns {Promise<AppNameValidationInfo>}
    */
   validateAppName(appName: string): Promise<AppNameValidationInfo> {
     return this.provider.send('ain_validateAppName', { app_name: appName });
@@ -155,7 +155,7 @@ export default class Ain {
    * Signs and sends a transaction to the network.
    * @param {TransactionInput} transactionObject The transaction input object. 
    * @param {boolean} isDryrun The dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false): Promise<any> {
     return this.signer.sendTransaction(transactionObject, isDryrun);
@@ -166,7 +166,7 @@ export default class Ain {
    * @param {string} signature The signature of the transaction.
    * @param {TransactionBody} txBody The transaction body.
    * @param {boolean} isDryrun The dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
     return this.signer.sendSignedTransaction(signature, txBody, isDryrun);
@@ -175,7 +175,7 @@ export default class Ain {
   /**
    * Signs and sends multiple transactions in a batch to the network.
    * @param {TransactionInput[]} transactionObjects The list of the transaction input objects.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     return this.signer.sendTransactionBatch(transactionObjects);
@@ -184,7 +184,7 @@ export default class Ain {
   /**
    * Sends a transaction that deposits AIN for consensus staking.
    * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   depositConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
     return this.stakeFunction('/deposit/consensus', transactionObject);
@@ -193,7 +193,7 @@ export default class Ain {
   /**
    * Sends a transaction that withdraws AIN for consensus staking.
    * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   withdrawConsensusStake(transactionObject: ValueOnlyTransactionInput): Promise<any> {
     return this.stakeFunction('/withdraw/consensus', transactionObject);
@@ -203,7 +203,7 @@ export default class Ain {
    * Fetches the amount of AIN currently staked for participating in consensus protocol.
    * @param {string} account The account to fetch the value with. If not specified,
    * the default account of the signer is used.
-   * @return {Promise<number>}
+   * @returns {Promise<number>}
    */
   getConsensusStakeAmount(account?: string): Promise<number> {
     const address = account ? Ain.utils.toChecksumAddress(account)
@@ -221,7 +221,7 @@ export default class Ain {
   /**
    * Checks whether an object is an instance of TransactionBody interface.
    * @param {any} object The object to check.
-   * @return {boolean}
+   * @returns {boolean}
    */
   static instanceofTransactionBody(object: any): object is TransactionBody {
     return object.nonce !== undefined && object.timestamp !== undefined &&
@@ -234,7 +234,7 @@ export default class Ain {
    * @param {string} path The path to set a value with.
    * @param {ValueOnlyTransactionInput} transactionObject The transaction input object.
    * @param {boolean} isDryrun The dryrun option.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   private stakeFunction(path: string, transactionObject: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     const type: SetOperationType = "SET_VALUE";

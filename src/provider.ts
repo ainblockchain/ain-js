@@ -41,7 +41,7 @@ export default class Provider {
    * Creates a JSON-RPC payload and sends it to the network.
    * @param {string} rpcMethod The JSON-RPC method.
    * @param {any} params The JSON-RPC parameters.
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async send(rpcMethod: string, params?: any): Promise<any> {
     const data = {

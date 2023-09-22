@@ -5,9 +5,13 @@
 const SEAL = require('node-seal');
 
 /**
- * wrapper Error class for DesiloSeal
+ * A wrapper Error class for DesiloSeal.
  */
 class DesiloSealError extends Error {
+  /**
+   * Creates a new DesiloSealError object with an error message.
+   * @param {String} message The error message.
+   */
   constructor(message) {
     super(message);
     this.name = this.constructor.name;
@@ -16,12 +20,12 @@ class DesiloSealError extends Error {
 }
 
 /**
- * node-seal wrapper class
+ * A wrapper class for the Desilo's HE solution.
  */
 class DesiloSeal {
 
   /**
-   * Constructor
+   * Creates a new DesiloSeal object.
    * @param {Number} polyModulusDegree
    * @param {Int32Array} coeffModulusArray
    * @param {Number} scaleBits
@@ -33,7 +37,7 @@ class DesiloSeal {
   }
 
   /**
-   * Initializes new SEALContext
+   * Initializes new SEALContext.
    */
   async initContext() {
     this.seal = await SEAL();
@@ -58,9 +62,7 @@ class DesiloSeal {
   }
 
   /**
-   * Makes a new keyset
-   * @param {string} secretKeyStr - secret key to load
-   * @param {string} publicKeyStr - public key to load
+   * Generates a new key set.
    */
   initKeySet() {
     const keyGenerator = this.seal.KeyGenerator(this.context);
@@ -78,9 +80,9 @@ class DesiloSeal {
   }
 
   /**
-   * Loads secret key
-   * @param {string} secretKeyStr - secret key to load
-   * @param {string} publicKeyStr - public key to load
+   * Loads a key set.
+   * @param {string} secretKeyStr The secret key to load.
+   * @param {string} publicKeyStr The public key to load.
    */
   loadKeySet(secretKeyStr, publicKeyStr = undefined) {
     const secretKey = this.seal.SecretKey();
@@ -104,7 +106,7 @@ class DesiloSeal {
   }
 
   /**
-   * Initialize encryptor, decryptor, evaluator
+   * Initializes encryptor, decryptor, and evaluator objects.
    */
   initClasses() {
     this.encryptor = this.seal.Encryptor(this.context, this.keys.publicKey);
@@ -113,8 +115,9 @@ class DesiloSeal {
   }
 
   /**
-   * gets entire keyset
-   * @returns {object} keys
+   * Returns the entire key set.
+   * It temporarily returns the secret key only due to memory issues.
+   * @returns {Object} The key set.
    */
   getKeys() {
     // hidden for now, due to memory issue
@@ -132,8 +135,8 @@ class DesiloSeal {
   }
 
   /**
-   * gets secretKey
-   * @returns {seal.SecretKey} secretKey
+   * Returns the secret key.
+   * @returns {any} The secret key.
    */
   getSecretKey() {
     const secretKey = this.keys.secretKey ? this.keys.secretKey.save() : '';
@@ -141,9 +144,9 @@ class DesiloSeal {
   }
 
   /**
-   * encrypts a length-fixed array into a ciphertext
-   * @param {Float64Array} - array of length poly_mod_degree / 2
-   * @returns {CipherText}
+   * Encrypts a length-fixed array into a ciphertext.
+   * @param {Float64Array} array The array of length poly_mod_degree / 2.
+   * @returns {CipherText} The cipertext encrypted.
    */
   encrypt(array) {
     const plaintext = this.encoder.encode(array, this.scale);
@@ -155,9 +158,9 @@ class DesiloSeal {
   }
 
   /**
-   * Decrypt ciphertext
-   * @param {string::Ciphertext} cipherStr - ciphertext string
-   * @returns {Float64Array}
+   * Decrypts a ciphertext to an float64 array.
+   * @param {Ciphertext} cipherStr The ciphertext.
+   * @returns {Float64Array} The float64 array decrypted.
    */
   decrypt(cipherStr) {
     const uploadedCipherText = this.seal.CipherText();
@@ -169,9 +172,9 @@ class DesiloSeal {
 }
 
 /**
- * Factory method for DesiloSeal class
- * @param {Object} keys - object containing sk, pk, galois-key, relin-key strings
- * @returns {DesiloSeal} seal - Desilo SEAL wrapper class
+ * A factory method for DesiloSeal class.
+ * @param {Object} keys The object containing sk, pk, galois-key, and relin-key strings.
+ * @returns {DesiloSeal} The newly created DesiloSeal object.
  */
 async function DesiloSealFactory(keys, params) {
   const { polyModulusDegree, coeffModulusArray, scaleBit } = params;

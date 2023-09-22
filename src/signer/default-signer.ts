@@ -10,12 +10,15 @@ import Ain from "../ain";
  * When Ain class is initialized, DefaultSigner is set as its signer.
  */
 export class DefaultSigner implements Signer {
+  /** The wallet object. */
   readonly wallet: Wallet;
+  /** The network provider object. */
   readonly provider: Provider;
 
   /**
-   * Initializes the class.
-   * @param {Wallet} wallet - The wallet to initialize with.
+   * Creates a new DefaultClass object.
+   * @param {Wallet} wallet The wallet object.
+   * @param {Provider} provider The network provider object.
    */
   constructor(wallet: Wallet, provider: Provider) {
     this.wallet = wallet;
@@ -23,19 +26,21 @@ export class DefaultSigner implements Signer {
   }
 
   /**
-   * Returns the checksum address to sign messages with.
-   * If the address is not given, the default address of the wallet is used.
-   * @param {string} address - The address of the account to sign the message with.
+   * Gets an account's checksum address.
+   * If the address is not given, the default account of the wallet is used.
+   * @param {string} address The address of the account.
+   * @returns {string} The checksum address.
    */
   getAddress(address?: string): string {
     return this.wallet.getImpliedAddress(address);
   }
 
   /**
-   * Signs a message with the private key of the given address.
-   * If an address is not given, the default address of the wallet is used.
-   * @param {string} message - The message to sign.
-   * @param {string} address - The address of the account to sign the message with.
+   * Signs a message using an account.
+   * If an address is not given, the default account of the wallet is used.
+   * @param {string} message The message to sign.
+   * @param {string} address The address of the account.
+   * @returns {Promise<string> | string} The signature.
    */
   signMessage(message: string, address?: string): Promise<string> | string {
     return this.wallet.sign(message, address);
@@ -43,9 +48,9 @@ export class DefaultSigner implements Signer {
 
   /**
    * Signs and sends a transaction to the network.
-   * @param {TransactionInput} transactionObject
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @param {TransactionInput} transactionObject The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   async sendTransaction(transactionObject: TransactionInput, isDryrun: boolean = false) {
     const txBody = await this.buildTransactionBody(transactionObject);
@@ -54,8 +59,9 @@ export class DefaultSigner implements Signer {
   }
 
   /**
-   * Sends signed transactions to the network.
-   * @param {TransactionInput[]} transactionObjects
+   * Signs and sends multiple transactions in a batch to the network.
+   * @param {TransactionInput[]} transactionObjects The list of the transaction input objects.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   async sendTransactionBatch(transactionObjects: TransactionInput[]): Promise<any> {
     let promises: Promise<any>[] = [];
@@ -90,11 +96,11 @@ export class DefaultSigner implements Signer {
   }
 
   /**
-   * Sends a signed transaction to the network
-   * @param {string} signature
-   * @param {TransactionBody} txBody
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Sends a signed transaction to the network.
+   * @param {string} signature The signature.
+   * @param {TransactionBody} txBody The transaction body.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   async sendSignedTransaction(signature: string, txBody: TransactionBody, isDryrun: boolean = false): Promise<any> {
     const method = isDryrun ? 'ain_sendSignedTransactionDryrun' : 'ain_sendSignedTransaction';
@@ -106,9 +112,9 @@ export class DefaultSigner implements Signer {
   }
 
   /**
-   * Builds a transaction body from transaction input.
-   * @param {TransactionInput} transactionInput
-   * @return {Promise<TransactionBody>}
+   * Builds a transaction body object from a transaction input object.
+   * @param {TransactionInput} transactionInput The transaction input object.
+   * @returns {Promise<TransactionBody>} The transaction body object.
    */
   async buildTransactionBody(transactionInput: TransactionInput): Promise<TransactionBody> {
     const address = this.getAddress(transactionInput.address);
@@ -127,13 +133,14 @@ export class DefaultSigner implements Signer {
   }
 
   /**
-   * Returns the current transaction count of account, which is the nonce of the account.
-   * @param {object} args - May contain a string 'address' and a string 'from' values.
-   *                        The 'address' indicates the address of the account to get the
-   *                        nonce of, and the 'from' indicates where to get the nonce from.
-   *                        It could be either the pending transaction pool ("pending") or
-   *                        the committed blocks ("committed"). The default value is "committed".
-   * @return {Promise<number>}
+   * Fetches an account's nonce value, which is the current transaction count of the account.
+   * @param {object} args The ferch options.
+   * It may contain a string 'address' value and a string 'from' value.
+   * The 'address' is the address of the account to get the nonce of,
+   * and the 'from' is the source of the data.
+   * It could be either the pending transaction pool ("pending") or
+   * the committed blocks ("committed"). The default value is "committed".
+   * @returns {Promise<number>} The nonce value.
    */
   getNonce(args: { address?: string, from?: string }): Promise<number> {
     if (!args) { args = {}; }
