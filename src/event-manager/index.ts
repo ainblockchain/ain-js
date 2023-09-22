@@ -11,21 +11,36 @@ import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
 import EventFilter from './event-filter';
 
+/**
+ * A class for managing blockchain events.
+ */
 export default class EventManager {
-  private _ain: Ain;
+  /** The event callback manager. */
   private readonly _eventCallbackManager: EventCallbackManager;
+  /** The event channel client. */
   private readonly _eventChannelClient: EventChannelClient;
 
+  /**
+   * Creates a new EventManager object.
+   * @param {Ain} ain The Ain object.
+   */
   constructor(ain: Ain) {
-    this._ain = ain;
     this._eventCallbackManager = new EventCallbackManager();
     this._eventChannelClient = new EventChannelClient(ain, this._eventCallbackManager);
   }
 
+  /**
+   * Opens a new event channel.
+   * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
+   * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   */
   async connect(connectionOption?: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback) {
     await this._eventChannelClient.connect(connectionOption || {}, disconnectionCallback);
   }
 
+  /**
+   * Closes the current event channel.
+   */
   disconnect() {
     this._eventChannelClient.disconnect();
   }
@@ -49,6 +64,15 @@ export default class EventManager {
     errorCallback?: (error: any) => void,
     filterDeletedEventCallback?: FilterDeletedEventCallback
   ): string;
+  /**
+   * Subscribes to blockchain events.
+   * @param {string} eventTypeStr The event type.
+   * @param {BlockchainEventConfig} config The blockchain event configuraiton.
+   * @param {BlockchainEventCallback} eventCallback The blockchain event callback function.
+   * @param {(error: any) => void} errorCallback The error event callback function.
+   * @param {FilterDeletedEventCallback} errorCallback The filter-deleted event callback function.
+   * @returns {string} The created filter ID.
+   */
   subscribe(
     eventTypeStr: string,
     config: BlockchainEventConfig,
@@ -65,6 +89,11 @@ export default class EventManager {
     return filter.id;
   }
 
+  /**
+   * Cancel a subscription.
+   * @param {string} filterId The filter ID of the subscription to cancel.
+   * @param {ErrorFirstCallback} callback The error handling callback function.
+   */
   unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>) {
     try {
       if (!this._eventChannelClient.isConnected) {

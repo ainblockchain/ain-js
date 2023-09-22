@@ -49,12 +49,12 @@ export default class EventChannelClient {
   }
 
   /**
-   * Opens an event channel.
+   * Opens a new event channel.
    * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback) {
+  connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -114,7 +114,7 @@ export default class EventChannelClient {
   }
 
   /**
-   * Closes the event channel.
+   * Closes the current event channel.
    */
   disconnect() {
     this._isConnected = false;
