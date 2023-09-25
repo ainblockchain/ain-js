@@ -381,9 +381,9 @@ export interface TxStateChangedEventConfig {
 }
 
 /**
- * A type for event configuration (blockchain event handler).
+ * A type for blockchain event configuration (blockchain event handler).
  */
-export type EventConfigType = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
+export type BlockchainEventConfig = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
 
 /**
  * An interface for event-channel-connection options (blockchain event handler).
@@ -474,7 +474,7 @@ export interface FilterDeletedEvent {
 }
 
 /**
- * An interface for blockchain event callback (blockchain event handler).
+ * An interface for blockchain event callback functions (blockchain event handler).
  */
 export interface BlockchainEventCallback {
   (event: BlockFinalizedEvent): void;
@@ -483,11 +483,16 @@ export interface BlockchainEventCallback {
 }
 
 /**
- * A type for filter-deleted event callback (blockchain event handler).
+ * A type for blockchain error callback functions (blockchain event handler).
+ */
+export type BlockchainErrorCallback = (error: any) => void;
+
+/**
+ * A type for filter-deleted event callback functions (blockchain event handler).
  */
 export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 
 /**
- * A type for disconnected callback (blockchain event handler).
+ * A type for disconnection callback functions (blockchain event handler).
  */
-export type DisconnectCallback = (webSocket) => void;
+export type DisconnectionCallback = (webSocket) => void;
