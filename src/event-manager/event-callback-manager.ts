@@ -1,6 +1,6 @@
 import EventFilter from './event-filter';
 import Subscription from './subscription';
-import { BlockchainEventTypes, BlockchainEventConfig, BlockchainEventCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
+import { BlockchainEventTypes, BlockchainEventConfig, BlockchainEventCallback, BlockchainErrorCallback, FilterDeletedEventCallback, FilterDeletedEvent } from '../types';
 import { PushId } from '../ain-db/push-id';
 import { FAILED_TO_REGISTER_ERROR_CODE } from '../constants';
 
@@ -113,14 +113,14 @@ export default class EventCallbackManager {
    * Creates a new Subscription object.
    * @param {EventFilter} filter The event filter.
    * @param {BlockchainEventCallback} eventCallback The blockchain event callback function.
-   * @param {(error: any) => void} errorCallback The error callback function.
+   * @param {BlockchainErrorCallback} errorCallback The blockchain error callback function.
    * @param {FilterDeletedEventCallback} filterDeletedEventCallback The filter deletion event callback function.
    * @returns {Subscription} The subscription object created.
    */
   createSubscription(
     filter: EventFilter,
     eventCallback?: BlockchainEventCallback,
-    errorCallback?: (error: any) => void,
+    errorCallback?: BlockchainErrorCallback,
     filterDeletedEventCallback: FilterDeletedEventCallback = (payload) => console.log(
         `Event filter (id: ${payload.filter_id}) is deleted because of ${payload.reason}`)
   ): Subscription {

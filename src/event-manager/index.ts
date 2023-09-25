@@ -5,7 +5,7 @@ import {
   EventChannelConnectionOptions,
   BlockchainEventConfig, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
-  ValueChangedEventConfig, ValueChangedEvent, DisconnectionCallback, FilterDeletedEventCallback,
+  ValueChangedEventConfig, ValueChangedEvent, DisconnectionCallback, FilterDeletedEventCallback, BlockchainErrorCallback,
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
@@ -49,19 +49,19 @@ export default class EventManager {
     eventType: 'BLOCK_FINALIZED',
     config: BlockFinalizedEventConfig,
     eventCallback?: (event: BlockFinalizedEvent) => void,
-    errorCallback?: (error: any) => void
+    errorCallback?: BlockchainErrorCallback
   ): string;
   subscribe(
     eventType: 'VALUE_CHANGED',
     config: ValueChangedEventConfig,
     eventCallback?: (event: ValueChangedEvent) => void,
-    errorCallback?: (error: any) => void
+    errorCallback?: BlockchainErrorCallback
   ): string;
   subscribe(
     eventType: 'TX_STATE_CHANGED',
     config: TxStateChangedEventConfig,
     eventCallback?: (event: TxStateChangedEvent) => void,
-    errorCallback?: (error: any) => void,
+    errorCallback?: BlockchainErrorCallback,
     filterDeletedEventCallback?: FilterDeletedEventCallback
   ): string;
   /**
@@ -69,15 +69,15 @@ export default class EventManager {
    * @param {string} eventTypeStr The event type.
    * @param {BlockchainEventConfig} config The blockchain event configuraiton.
    * @param {BlockchainEventCallback} eventCallback The blockchain event callback function.
-   * @param {(error: any) => void} errorCallback The error event callback function.
-   * @param {FilterDeletedEventCallback} errorCallback The filter-deleted event callback function.
+   * @param {BlockchainErrorCallback} errorCallback The blockchain error callback function.
+   * @param {FilterDeletedEventCallback} filterDeletedEventCallback The filter-deleted event callback function.
    * @returns {string} The created filter ID.
    */
   subscribe(
     eventTypeStr: string,
     config: BlockchainEventConfig,
     eventCallback?: BlockchainEventCallback,
-    errorCallback?: (error: any) => void,
+    errorCallback?: BlockchainErrorCallback,
     filterDeletedEventCallback?: FilterDeletedEventCallback
   ): string {
     if (!this._eventChannelClient.isConnected) {

@@ -483,6 +483,11 @@ export interface BlockchainEventCallback {
 }
 
 /**
+ * A type for blockchain error callback functions (blockchain event handler).
+ */
+export type BlockchainErrorCallback = (error: any) => void;
+
+/**
  * A type for filter-deleted event callback functions (blockchain event handler).
  */
 export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
