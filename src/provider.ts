@@ -6,15 +6,24 @@ import { BlockchainError } from './errors';
 
 const JSON_RPC_ENDPOINT = 'json-rpc';
 
+/**
+ * A class for providing JSON-RPC channels with blockchain node endpoints.
+ */
 export default class Provider {
+  /** The blockchain node endpoint. */
   public endpoint: string;
+  /** The blockchain node JSON-RPC endpoint. */
   public apiEndpoint: string;
+  /** The Ain object. */
   private ain: Ain;
+  /** The axios http client object. */
   private httpClient: AxiosInstance;
 
   /**
-   * @param {String} endpoint
-   * @constructor
+   * Creates a new Provider object.
+   * @param {Ain} ain The Ain object.
+   * @param {string} endpoint The blockchain node endpoint.
+   * @param {AxiosRequestConfig} axiosConfig The axios request config object.
    */
   constructor(ain: Ain, endpoint: string, axiosConfig: AxiosRequestConfig | undefined) {
     this.ain = ain;
@@ -29,10 +38,10 @@ export default class Provider {
   }
 
   /**
-   * Creates the JSON-RPC payload and sends it to the node.
-   * @param {string} rpcMethod
-   * @param {any} params
-   * @return {Promise<any>}
+   * Creates a JSON-RPC payload and sends it to the network.
+   * @param {string} rpcMethod The JSON-RPC method.
+   * @param {any} params The JSON-RPC parameters.
+   * @returns {Promise<any>}
    */
   async send(rpcMethod: string, params?: any): Promise<any> {
     const data = {
@@ -53,8 +62,8 @@ export default class Provider {
   }
 
   /**
-   * Sets the httpClient's default timeout time
-   * @param {number} time (in milliseconds)
+   * Sets the http client's default timeout value.
+   * @param {number} time The timeout value (in milliseconds).
    */
   setDefaultTimeoutMs(time: number) {
     this.httpClient.defaults.timeout = time;

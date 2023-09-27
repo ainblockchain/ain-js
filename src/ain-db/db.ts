@@ -2,15 +2,19 @@ import Reference from './ref';
 import Ain from '../ain';
 import Provider from '../provider';
 
+/**
+ * A class for managing the states of the blockchain database.
+ */
 export default class Database {
+  /** The network provider object. */
   public provider: Provider;
+  /** The Ain object. */
   private _ain: Ain;
 
   /**
-   * @param {Ain} ain
-   * @param {Provider} provider
-   *
-   * @constructor
+   * Creates a new Database object.
+   * @param {Ain} ain The Ain object.
+   * @param {Provider} provider The network provider object.
    */
   constructor(ain: Ain, provider: Provider) {
     this.provider = provider;
@@ -19,8 +23,8 @@ export default class Database {
 
   /**
    * Returns a reference instance of the given path.
-   * @param {String} path
-   * @return {Reference} A reference instance of the given path.
+   * @param {String} path The path to refer to.
+   * @returns {Reference} A reference instance of the given path.
    */
   ref(path?: string): Reference {
     return new Reference(this._ain, path);

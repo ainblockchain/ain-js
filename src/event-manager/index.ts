@@ -2,30 +2,45 @@ import Ain from '../ain';
 import {
   BlockFinalizedEventConfig, BlockFinalizedEvent,
   ErrorFirstCallback,
-  EventChannelConnectionOption,
-  EventConfigType, BlockchainEventCallback,
+  EventChannelConnectionOptions,
+  BlockchainEventConfig, BlockchainEventCallback,
   TxStateChangedEventConfig, TxStateChangedEvent,
-  ValueChangedEventConfig, ValueChangedEvent, DisconnectCallback, FilterDeletedEventCallback,
+  ValueChangedEventConfig, ValueChangedEvent, DisconnectionCallback, FilterDeletedEventCallback, BlockchainErrorCallback,
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
 import EventFilter from './event-filter';
 
+/**
+ * A class for managing blockchain events.
+ */
 export default class EventManager {
-  private _ain: Ain;
+  /** The event callback manager. */
   private readonly _eventCallbackManager: EventCallbackManager;
+  /** The event channel client. */
   private readonly _eventChannelClient: EventChannelClient;
 
+  /**
+   * Creates a new EventManager object.
+   * @param {Ain} ain The Ain object.
+   */
   constructor(ain: Ain) {
-    this._ain = ain;
     this._eventCallbackManager = new EventCallbackManager();
     this._eventChannelClient = new EventChannelClient(ain, this._eventCallbackManager);
   }
 
-  async connect(connectionOption?: EventChannelConnectionOption, disconnectCallback?: DisconnectCallback) {
-    await this._eventChannelClient.connect(connectionOption || {}, disconnectCallback);
+  /**
+   * Opens a new event channel.
+   * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
+   * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   */
+  async connect(connectionOption?: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback) {
+    await this._eventChannelClient.connect(connectionOption || {}, disconnectionCallback);
   }
 
+  /**
+   * Closes the current event channel.
+   */
   disconnect() {
     this._eventChannelClient.disconnect();
   }
@@ -34,26 +49,35 @@ export default class EventManager {
     eventType: 'BLOCK_FINALIZED',
     config: BlockFinalizedEventConfig,
     eventCallback?: (event: BlockFinalizedEvent) => void,
-    errorCallback?: (error: any) => void
+    errorCallback?: BlockchainErrorCallback
   ): string;
   subscribe(
     eventType: 'VALUE_CHANGED',
     config: ValueChangedEventConfig,
     eventCallback?: (event: ValueChangedEvent) => void,
-    errorCallback?: (error: any) => void
+    errorCallback?: BlockchainErrorCallback
   ): string;
   subscribe(
     eventType: 'TX_STATE_CHANGED',
     config: TxStateChangedEventConfig,
     eventCallback?: (event: TxStateChangedEvent) => void,
-    errorCallback?: (error: any) => void,
+    errorCallback?: BlockchainErrorCallback,
     filterDeletedEventCallback?: FilterDeletedEventCallback
   ): string;
+  /**
+   * Subscribes to blockchain events.
+   * @param {string} eventTypeStr The event type.
+   * @param {BlockchainEventConfig} config The blockchain event configuraiton.
+   * @param {BlockchainEventCallback} eventCallback The blockchain event callback function.
+   * @param {BlockchainErrorCallback} errorCallback The blockchain error callback function.
+   * @param {FilterDeletedEventCallback} filterDeletedEventCallback The filter-deleted event callback function.
+   * @returns {string} The created filter ID.
+   */
   subscribe(
     eventTypeStr: string,
-    config: EventConfigType,
+    config: BlockchainEventConfig,
     eventCallback?: BlockchainEventCallback,
-    errorCallback?: (error: any) => void,
+    errorCallback?: BlockchainErrorCallback,
     filterDeletedEventCallback?: FilterDeletedEventCallback
   ): string {
     if (!this._eventChannelClient.isConnected) {
@@ -65,6 +89,11 @@ export default class EventManager {
     return filter.id;
   }
 
+  /**
+   * Cancel a subscription.
+   * @param {string} filterId The filter ID of the subscription to cancel.
+   * @param {ErrorFirstCallback} callback The error handling callback function.
+   */
   unsubscribe(filterId: string, callback: ErrorFirstCallback<EventFilter>) {
     try {
       if (!this._eventChannelClient.isConnected) {

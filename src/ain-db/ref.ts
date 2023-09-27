@@ -4,7 +4,6 @@ import {
   ListenerMap,
   SetOperationType,
   GetOperationType,
-  SetMultiOperationType,
   SetMultiOperation,
   TransactionInput,
   ValueOnlyTransactionInput,
@@ -17,6 +16,9 @@ import {
 import Ain from '../ain';
 import { PushId } from './push-id';
 
+/**
+ * A class for referencing the states of the blockchain database.
+ */
 export default class Reference {
   public readonly path: string;
   public readonly key: string | null;
@@ -27,9 +29,9 @@ export default class Reference {
   private _isGlobal: boolean;
 
   /**
-   * @param {Ain} ain An ain instance.
-   * @param {String} path The path in the global state tree.
-   * @constructor
+   * Creates a new Reference object.
+   * @param {Ain} ain The Ain object.
+   * @param {string} path The path to refer to in the global state tree.
    */
   constructor(ain: Ain, path?: string) {
     this.path = Reference.sanitizeRef(path);
@@ -51,18 +53,21 @@ export default class Reference {
   }
 
   /**
-   * A getter for number of listeners.
-   * @return {number} The number of listeners.
+   * Getter for the number of listeners.
+   * @returns {number} The number of listeners.
    */
   get numberOfListeners(): number {
     return this._numberOfListeners;
   }
 
   /**
-   * If value is given, it sets the value at a new child of this.path;
-   * otherwise, it creates a key for a new child but doesn't set any values.
-   * @param {any} value - A value to set at the path.
-   * @return {Promise<any> | Reference} A reference instance of the given path.
+   * Pushes a new child state to the current path of the blockchain states and
+   * returns the reference of the child state.
+   * If a value is given, it's set as the value of the newly added child
+   * by sending a transaction to the network. Otherwise, it creates a key locally
+   * for a new child but doesn't change any blockchain states.
+   * @param {any} value The value of the newly added child state.
+   * @returns {Promise<any> | Reference} The reference of the newly added child state.
    */
   push(value?: any): Promise<any> | Reference {
     const newKey = "/" + PushId.generate();
@@ -74,8 +79,10 @@ export default class Reference {
   }
 
   /**
-   * Returns the value at the path.
-   * @param path
+   * Fetches the value of a blockchain state path.
+   * @param {string} path The path of the blockchain state.
+   * @param {GetOperation} options The get options.
+   * @returns {Promise<any>} The value of the blockchain state.
    */
   getValue(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_VALUE', Reference.extendPath(this.path, path), options);
@@ -83,8 +90,10 @@ export default class Reference {
   }
 
   /**
-   * Returns the rule at the path.
-   * @param path
+   * Fetches the rule configuration of a blockchain state path.
+   * @param {string} path The path of the blockchain state.
+   * @param {GetOperation} options The get options.
+   * @returns {Promise<any>} The rule configuration the blockchain state.
    */
   getRule(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_RULE', Reference.extendPath(this.path, path), options);
@@ -92,8 +101,10 @@ export default class Reference {
   }
 
   /**
-   * Returns the owner config at the path.
-   * @param path
+   * Fetches the owner configuration of a blockchain state path.
+   * @param {string} path The path of the blockchain state.
+   * @param {GetOperation} options The get options.
+   * @returns {Promise<any>} The owner configuration of the blockchain state.
    */
   getOwner(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_OWNER', Reference.extendPath(this.path, path), options);
@@ -101,8 +112,10 @@ export default class Reference {
   }
 
   /**
-   * Returns the function config at the path.
-   * @param path
+   * Fetches the function configuration of a blockchain state path.
+   * @param {string} path The path of the blockchain state.
+   * @param {GetOperation} options The get options.
+   * @returns {Promise<any>} The function configuration of the blockchain state.
    */
   getFunction(path?: string, options?: GetOptions): Promise<any> {
     const req = Reference.buildGetRequest('GET_FUNCTION', Reference.extendPath(this.path, path), options);
@@ -110,10 +123,9 @@ export default class Reference {
   }
 
   /**
-   * Returns the value / write rule / owner rule / function hash at multiple paths.
-   * @param {Array<GetOperation>} requests - Array of get requests
-   * Could be any one from "VALUE", "RULE", "OWNER", "FUNC" or a combination of them as an array.
-   * @return {Promise<any>}
+   * Performs multiple get operations for values, rules, owners, or functions.
+   * @param {Array<GetOperation>} gets The get operations.
+   * @returns {Promise<any>} The results of the get operations.
    */
   get(gets: GetOperation[]): Promise<any> {
     const request = { type: 'GET', op_list: gets };
@@ -124,11 +136,11 @@ export default class Reference {
   }
 
   /**
-   * Deletes a value.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
+   * Deletes a value from the blockchain states.
+   * @param {ValueOnlyTransactionInput} transactionInput The transaction input object.
    * Any value given will be overwritten with null.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   deleteValue(transactionInput?: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     let txInput: ValueOnlyTransactionInput = transactionInput || {};
@@ -145,9 +157,10 @@ export default class Reference {
   }
 
   /**
-   * Sets a function config.
-   * @param transactionInput
-   * @param {boolean} isDryrun - dryrun option.
+   * Sets a function configuration in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   setFunction(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -162,10 +175,10 @@ export default class Reference {
   }
 
   /**
-   * Sets the owner rule.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Sets a owner configuration in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   setOwner(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -180,10 +193,10 @@ export default class Reference {
   }
 
   /**
-   * Sets the write rule.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Sets a rule configuration in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   setRule(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -198,10 +211,10 @@ export default class Reference {
   }
 
   /**
-   * Sets a value.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Sets a value in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   setValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -216,10 +229,10 @@ export default class Reference {
   }
 
   /**
-   * Increments the value.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Increments a value in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   incrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -234,10 +247,10 @@ export default class Reference {
   }
 
   /**
-   * Decrements the value.
-   * @param {ValueOnlyTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Decrements a value in the blockchain states.
+   * @param transactionInput The transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   decrementValue(transactionInput: ValueOnlyTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -252,10 +265,10 @@ export default class Reference {
   }
 
   /**
-   * Processes multiple set operations.
-   * @param {SetMultiTransactionInput} transactionInput - A transaction input object.
-   * @param {boolean} isDryrun - dryrun option.
-   * @return {Promise<any>}
+   * Sends a transaction of multi-set (SET) operation to the network.
+   * @param transactionInput The multi-set (SET) transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   set(transactionInput: SetMultiTransactionInput, isDryrun: boolean = false): Promise<any> {
     return this._ain.sendTransaction(
@@ -263,9 +276,12 @@ export default class Reference {
   }
 
   /**
-   * Returns the rule evaluation result. True if the params satisfy the write rule,
-   * false if not.
-   * @param params
+   * Requests an eval-rule (EVAL_RULE) operation to the network.
+   * If it returns true, it means that the input operation satisfies the write rule
+   * in the blockchain states.
+   * @param transactionInput The multi-set (SET) transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   evalRule(params: EvalRuleInput): Promise<any> {
     const address = this._ain.signer.getAddress(params.address);
@@ -279,8 +295,12 @@ export default class Reference {
   }
 
   /**
-   * Returns the owner evaluation result.
-   * @param params
+   * Requests an eval-owner (EVAL_OWNER) operation to the network.
+   * If it returns true, it means that the input operation satisfies the owner permissions
+   * in the blockchain states.
+   * @param transactionInput The multi-set (SET) transaction input object.
+   * @param {boolean} isDryrun The dryrun option.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   evalOwner(params: EvalOwnerInput): Promise<any> {
     const request = {
@@ -292,8 +312,9 @@ export default class Reference {
   }
 
   /**
-   * Returns the function configs that are related to the input ref.
-   * @param params
+   * Fetches the function configurations matched to the input reference (blockchain state path).
+   * @param {MatchInput} params The match input object.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   matchFunction(params?: MatchInput): Promise<any> {
     const request = {
@@ -303,8 +324,9 @@ export default class Reference {
   }
 
   /**
-   * Returns the rule configs that are related to the input ref.
-   * @param params
+   * Fetches the rule configurations matched to the input reference (blockchain state path).
+   * @param {MatchInput} params The match input object.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   matchRule(params?: MatchInput): Promise<any> {
     const request = {
@@ -314,8 +336,9 @@ export default class Reference {
   }
 
   /**
-   * Returns the owner configs that are related to the input ref.
-   * @param params
+   * Fetches the owner configurations matched to the input reference (blockchain state path).
+   * @param {MatchInput} params The match input object.
+   * @returns {Promise<any>} The return value of the blockchain API.
    */
   matchOwner(params?: MatchInput): Promise<any> {
     const request = {
@@ -324,12 +347,12 @@ export default class Reference {
     return this._ain.provider.send('ain_matchOwner', request);
   }
 
-  /**
-   * TODO(liayoo): Add this function.
-   * Attaches an listener for database events.
-   * @param {EventType} event - A type of event.
-   * @param {Function} callback function to be executed when an event occurs.
-   */
+  // TODO(liayoo): Add this function.
+  ///**
+  // * Attaches an listener for database events.
+  // * @param {EventType} event - A type of event.
+  // * @param {Function} callback function to be executed when an event occurs.
+  // */
   // on(event: EventType, callback: Function) {
   //   if (this._isRootReference) {
   //     throw new Error('[ain-js.Reference.on] Cannot attach an on() listener to a root node');
@@ -349,12 +372,12 @@ export default class Reference {
   //   }, 1000);
   // }
 
-  /**
-   * TODO (liayoo): Add this function
-   * Removes a database event listener.
-   * @param {EventType} event - A type of event.
-   * @param {Function} callback - A callback function to dettach from the event.
-   */
+  // TODO(liayoo): Add this function.
+  ///**
+  // * Removes a database event listener.
+  // * @param {EventType} event - A type of event.
+  // * @param {Function} callback - A callback function to dettach from the event.
+  // */
   // off(event?: EventType, callback?: Function) {
   //   if (!event && !callback) {
   //     this._listeners = {};
@@ -376,10 +399,12 @@ export default class Reference {
 
   /**
    * Builds a get request.
-   * @param type
-   * @param ref
+   * @param {GetOperationType} type The get operations type.
+   * @param {string} ref The blockchain state reference (path).
+   * @param {GetOptions} options The get options.
+   * @returns {any} The request built.
    */
-  static buildGetRequest(type: GetOperationType, ref: string, options?: GetOptions) {
+  static buildGetRequest(type: GetOperationType, ref: string, options?: GetOptions): any {
     const request = { type, ref: Reference.sanitizeRef(ref) };
     if (options) {
       Object.assign(request, options);
@@ -388,9 +413,10 @@ export default class Reference {
   }
 
   /**
-   * Returns a path that is the basePath extended with extension.
-   * @param basePath
-   * @param extension
+   * Extends a base path with an extension.
+   * @param {string} basePath The base path.
+   * @param {string} extension The extension.
+   * @returns {string} The extended path.
    */
   static extendPath(basePath?: string, extension?: string): string {
     const sanitizedBase = Reference.sanitizeRef(basePath);
@@ -405,11 +431,12 @@ export default class Reference {
   }
 
   /**
-   * Decorates a transaction input with an appropriate type, ref and value.
-   * @param {ValueOnlyTransactionInput} input - A transaction input object
-   * @param {string} ref - The path at which set operations will take place
-   * @param {SetOperationType} type - A type of set operations
-   * @return {TransactionInput}
+   * Builds a transaction input object from a value-only transaction input object
+   * and additional parameters.
+   * @param {ValueOnlyTransactionInput} input The value-only transaction input object.
+   * @param {string} ref The blockchain state reference (path).
+   * @param {SetOperationType} type The set operation type.
+   * @returns {TransactionInput} The transaction input built.
    */
   static extendSetTransactionInput(
       input: ValueOnlyTransactionInput,
@@ -429,11 +456,12 @@ export default class Reference {
   }
 
   /**
-   * Decorates a transaction input with an appropriate type and op_list.
-   * @param {SetMultiTransactionInput} input - A transaction input object
-   * @param {string} ref - The path at which set operations will take place
-   * @param {SetMultiOperationType} type - A type of set operations
-   * @return {TransactionInput}
+   * Builds a transaction input object from a multi-set (SET) transaction input object
+   * and additional parameters.
+   * @param {ValueOnlyTransactionInput} input The multi-set (SET) transaction input object.
+   * @param {string} ref The blockchain state reference (path).
+   * @param {SetOperationType} type The set operation type.
+   * @returns {TransactionInput} The transaction input built.
    */
   static extendSetMultiTransactionInput(
       input: SetMultiTransactionInput,
@@ -451,9 +479,10 @@ export default class Reference {
   }
 
   /**
-   * Returns a sanitized ref. If should have a slash at the
+   * Returns a sanitized blockchain state reference (path). It should have a slash at the
    * beginning and no slash at the end.
-   * @param ref
+   * @param {string} ref The blockchain state reference (path).
+   * @returns {string} The blockchain state reference sanitized.
    */
   static sanitizeRef(ref?: string): string {
     if (!ref) return '/';
