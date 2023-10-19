@@ -59,6 +59,25 @@ export default class Wallet {
   }
 
   /**
+   * Counts the given number's decimal number.
+   * @param {number} value
+   * @returns {number} The decimal number.
+   */
+  static countDecimals(value: number): number {
+    const decimalExponentRegex = /(\d*\.{0,1}\d*)e-(\d+)/gm;
+
+    if (Math.floor(value) === value) {
+      return 0;
+    }
+    const valueString = value.toString();
+    const matches = decimalExponentRegex.exec(valueString);
+    if (matches) {
+      return Number(matches[2]) + Wallet.countDecimals(Number(matches[1]));
+    }
+    return valueString.split('.')[1].length || 0; 
+  }
+
+  /**
    * Creates new accounts and adds them to the wallet.
    * @param {number} numberOfAccounts The number of accounts to create.
    * @returns {Array<string>} The newly created accounts.

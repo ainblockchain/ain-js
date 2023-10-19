@@ -1,5 +1,6 @@
 // @ts-nocheck
 import Ain from '../src/ain';
+import Wallet from '../src/wallet';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
 import { fail, eraseProtoVer } from './test_util';
@@ -73,7 +74,57 @@ describe('ain-js', function() {
   });
 
   describe('Wallet', function() {
-    let addresses = []
+    it('countDecimals', function() {
+      expect(Wallet.countDecimals(0)).toBe(0);
+      expect(Wallet.countDecimals(1)).toBe(0);
+      expect(Wallet.countDecimals(10)).toBe(0);
+      expect(Wallet.countDecimals(100)).toBe(0);
+      expect(Wallet.countDecimals(1000)).toBe(0);
+      expect(Wallet.countDecimals(10000)).toBe(0);
+      expect(Wallet.countDecimals(100000)).toBe(0);
+      expect(Wallet.countDecimals(1000000)).toBe(0);
+      expect(Wallet.countDecimals(10000000)).toBe(0);
+      expect(Wallet.countDecimals(100000000)).toBe(0);
+      expect(Wallet.countDecimals(123456789)).toBe(0);
+      expect(Wallet.countDecimals(11)).toBe(0);
+      expect(Wallet.countDecimals(101)).toBe(0);
+      expect(Wallet.countDecimals(1001)).toBe(0);
+      expect(Wallet.countDecimals(10001)).toBe(0);
+      expect(Wallet.countDecimals(100001)).toBe(0);
+      expect(Wallet.countDecimals(1000001)).toBe(0);
+      expect(Wallet.countDecimals(10000001)).toBe(0);
+      expect(Wallet.countDecimals(100000001)).toBe(0);
+      expect(Wallet.countDecimals(1)).toBe(0);
+      expect(Wallet.countDecimals(0.1)).toBe(1);
+      expect(Wallet.countDecimals(0.01)).toBe(2);
+      expect(Wallet.countDecimals(0.001)).toBe(3);
+      expect(Wallet.countDecimals(0.0001)).toBe(4);
+      expect(Wallet.countDecimals(0.00001)).toBe(5);
+      expect(Wallet.countDecimals(0.000001)).toBe(6);
+      expect(Wallet.countDecimals(0.0000001)).toBe(7);
+      expect(Wallet.countDecimals(0.00000001)).toBe(8);
+      expect(Wallet.countDecimals(0.000000001)).toBe(9);
+      expect(Wallet.countDecimals(1.2)).toBe(1);
+      expect(Wallet.countDecimals(0.12)).toBe(2);
+      expect(Wallet.countDecimals(0.012)).toBe(3);
+      expect(Wallet.countDecimals(0.0012)).toBe(4);
+      expect(Wallet.countDecimals(0.00012)).toBe(5);
+      expect(Wallet.countDecimals(0.000012)).toBe(6);
+      expect(Wallet.countDecimals(0.0000012)).toBe(7);
+      expect(Wallet.countDecimals(0.00000012)).toBe(8);
+      expect(Wallet.countDecimals(0.000000012)).toBe(9);
+      expect(Wallet.countDecimals(0.0000000012)).toBe(10);
+      expect(Wallet.countDecimals(1.03)).toBe(2);
+      expect(Wallet.countDecimals(1.003)).toBe(3);
+      expect(Wallet.countDecimals(1.0003)).toBe(4);
+      expect(Wallet.countDecimals(1.00003)).toBe(5);
+      expect(Wallet.countDecimals(1.000003)).toBe(6);
+      expect(Wallet.countDecimals(1.0000003)).toBe(7);
+      expect(Wallet.countDecimals(1.00000003)).toBe(8);
+      expect(Wallet.countDecimals(1.000000003)).toBe(9);
+      expect(Wallet.countDecimals(1.0000000003)).toBe(10);
+    });
+
     it('create', function() {
       const beforeLength = ain.wallet.length;
       ain.wallet.create(2);
