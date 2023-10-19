@@ -273,6 +273,32 @@ describe('ain-js', function() {
       expect(balanceAfter).toBe(balanceBefore - 100);
     });
 
+    it('transfer with a value of up to 6 decimal places', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      const response = await ain.wallet.transfer({
+          to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+          value: 0.000001,  // of 6 decimal places
+          nonce: -1 });
+      const balanceAfter = await ain.wallet.getBalance();
+      expect(balanceAfter).toBe(balanceBefore - 0.000001);
+    });
+
+    it('transfer with a value of more than 6 decimal places', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      try {
+        const response = await ain.wallet.transfer({
+            to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+            value: 0.0000001,  // of 7 decimal places
+            nonce: -1 });
+        fail('should not happen');
+      } catch(e) {
+        expect(e.message).toBe('Transfer value of more than 6 decimal places.');
+      } finally {
+        const balanceAfter = await ain.wallet.getBalance();
+        expect(balanceAfter).toBe(balanceBefore);
+      }
+    });
+
     it('chainId', function() {
       // chainId = 0
       ain.setProvider(test_node_2, 0);

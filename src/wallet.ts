@@ -3,6 +3,7 @@ import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
+const MAX_TRANSFERABLE_DECIMALS = 6; /* The maximum transferable decimal places of values */
 
 /**
  * A class for AI Network wallets.
@@ -255,6 +256,10 @@ export default class Wallet {
   transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}, isDryrun: boolean = false): Promise<any> {
     const address = this.getImpliedAddress(input.from);
     const toAddress = Ain.utils.toChecksumAddress(input.to);
+    const numDecimalPlaces = Wallet.countDecimals(input.value);
+    if (numDecimalPlaces > MAX_TRANSFERABLE_DECIMALS) {
+      throw Error(`Transfer value of more than ${MAX_TRANSFERABLE_DECIMALS} decimal places.`);
+    }
     const transferRef = this.ain.db.ref(`/transfer/${address}/${toAddress}`).push() as Reference;
     return transferRef.setValue({
         ref: '/value', address, value: input.value, nonce: input.nonce, gas_price: input.gas_price }, isDryrun);
