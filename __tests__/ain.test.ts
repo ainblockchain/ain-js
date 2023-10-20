@@ -75,54 +75,56 @@ describe('ain-js', function() {
 
   describe('Wallet', function() {
     it('countDecimals', function() {
-      expect(Wallet.countDecimals(0)).toBe(0);
-      expect(Wallet.countDecimals(1)).toBe(0);
-      expect(Wallet.countDecimals(10)).toBe(0);
-      expect(Wallet.countDecimals(100)).toBe(0);
-      expect(Wallet.countDecimals(1000)).toBe(0);
-      expect(Wallet.countDecimals(10000)).toBe(0);
-      expect(Wallet.countDecimals(100000)).toBe(0);
-      expect(Wallet.countDecimals(1000000)).toBe(0);
-      expect(Wallet.countDecimals(10000000)).toBe(0);
-      expect(Wallet.countDecimals(100000000)).toBe(0);
-      expect(Wallet.countDecimals(123456789)).toBe(0);
-      expect(Wallet.countDecimals(11)).toBe(0);
-      expect(Wallet.countDecimals(101)).toBe(0);
-      expect(Wallet.countDecimals(1001)).toBe(0);
-      expect(Wallet.countDecimals(10001)).toBe(0);
-      expect(Wallet.countDecimals(100001)).toBe(0);
-      expect(Wallet.countDecimals(1000001)).toBe(0);
-      expect(Wallet.countDecimals(10000001)).toBe(0);
-      expect(Wallet.countDecimals(100000001)).toBe(0);
-      expect(Wallet.countDecimals(1)).toBe(0);
-      expect(Wallet.countDecimals(0.1)).toBe(1);
-      expect(Wallet.countDecimals(0.01)).toBe(2);
-      expect(Wallet.countDecimals(0.001)).toBe(3);
-      expect(Wallet.countDecimals(0.0001)).toBe(4);
-      expect(Wallet.countDecimals(0.00001)).toBe(5);
-      expect(Wallet.countDecimals(0.000001)).toBe(6);
-      expect(Wallet.countDecimals(0.0000001)).toBe(7);
-      expect(Wallet.countDecimals(0.00000001)).toBe(8);
-      expect(Wallet.countDecimals(0.000000001)).toBe(9);
-      expect(Wallet.countDecimals(1.2)).toBe(1);
-      expect(Wallet.countDecimals(0.12)).toBe(2);
-      expect(Wallet.countDecimals(0.012)).toBe(3);
-      expect(Wallet.countDecimals(0.0012)).toBe(4);
-      expect(Wallet.countDecimals(0.00012)).toBe(5);
-      expect(Wallet.countDecimals(0.000012)).toBe(6);
-      expect(Wallet.countDecimals(0.0000012)).toBe(7);
-      expect(Wallet.countDecimals(0.00000012)).toBe(8);
-      expect(Wallet.countDecimals(0.000000012)).toBe(9);
-      expect(Wallet.countDecimals(0.0000000012)).toBe(10);
-      expect(Wallet.countDecimals(1.03)).toBe(2);
-      expect(Wallet.countDecimals(1.003)).toBe(3);
-      expect(Wallet.countDecimals(1.0003)).toBe(4);
-      expect(Wallet.countDecimals(1.00003)).toBe(5);
-      expect(Wallet.countDecimals(1.000003)).toBe(6);
-      expect(Wallet.countDecimals(1.0000003)).toBe(7);
-      expect(Wallet.countDecimals(1.00000003)).toBe(8);
-      expect(Wallet.countDecimals(1.000000003)).toBe(9);
-      expect(Wallet.countDecimals(1.0000000003)).toBe(10);
+      expect(Wallet.countDecimals(0)).toBe(0);  // '0'
+      expect(Wallet.countDecimals(1)).toBe(0);  // '1'
+      expect(Wallet.countDecimals(10)).toBe(0);  // '10'
+      expect(Wallet.countDecimals(100)).toBe(0);  // '100'
+      expect(Wallet.countDecimals(1000)).toBe(0);  // '1000'
+      expect(Wallet.countDecimals(10000)).toBe(0);  // '10000'
+      expect(Wallet.countDecimals(100000)).toBe(0);  // '100000'
+      expect(Wallet.countDecimals(1000000)).toBe(0);  // '1000000'
+      expect(Wallet.countDecimals(10000000)).toBe(0);  // '10000000'
+      expect(Wallet.countDecimals(100000000)).toBe(0);  // '100000000'
+      expect(Wallet.countDecimals(1000000000)).toBe(0);  // '1000000000'
+      expect(Wallet.countDecimals(1234567890)).toBe(0);  // '1234567890'
+      expect(Wallet.countDecimals(11)).toBe(0);  // '11'
+      expect(Wallet.countDecimals(101)).toBe(0);  // '101'
+      expect(Wallet.countDecimals(1001)).toBe(0);  // '1001'
+      expect(Wallet.countDecimals(10001)).toBe(0);  // '10001'
+      expect(Wallet.countDecimals(100001)).toBe(0);  // '100001'
+      expect(Wallet.countDecimals(1000001)).toBe(0);  // '1000001'
+      expect(Wallet.countDecimals(10000001)).toBe(0);  // '10000001'
+      expect(Wallet.countDecimals(100000001)).toBe(0);  // '100000001'
+      expect(Wallet.countDecimals(1000000001)).toBe(0);  // '1000000001'
+      expect(Wallet.countDecimals(0.1)).toBe(1);  // '0.1'
+      expect(Wallet.countDecimals(0.01)).toBe(2);  // '0.01'
+      expect(Wallet.countDecimals(0.001)).toBe(3);  // '0.001'
+      expect(Wallet.countDecimals(0.0001)).toBe(4);  // '0.0001'
+      expect(Wallet.countDecimals(0.00001)).toBe(5);  // '0.00001'
+      expect(Wallet.countDecimals(0.000001)).toBe(6);  // '0.000001'
+      expect(Wallet.countDecimals(0.0000001)).toBe(7);  // '1e-7'
+      expect(Wallet.countDecimals(0.00000001)).toBe(8);  // '1e-8'
+      expect(Wallet.countDecimals(0.000000001)).toBe(9);  // '1e-9'
+      expect(Wallet.countDecimals(0.0000000001)).toBe(10);  // '1e-10'
+      expect(Wallet.countDecimals(1.2)).toBe(1);  // '1.2'
+      expect(Wallet.countDecimals(0.12)).toBe(2);  // '0.12'
+      expect(Wallet.countDecimals(0.012)).toBe(3);  // '0.012'
+      expect(Wallet.countDecimals(0.0012)).toBe(4);  // '0.0012'
+      expect(Wallet.countDecimals(0.00012)).toBe(5);  // '0.00012'
+      expect(Wallet.countDecimals(0.000012)).toBe(6);  // '0.000012'
+      expect(Wallet.countDecimals(0.0000012)).toBe(7);  // '0.0000012'
+      expect(Wallet.countDecimals(0.00000012)).toBe(8);  // '1.2e-7'
+      expect(Wallet.countDecimals(0.000000012)).toBe(9);  // '1.2e-8'
+      expect(Wallet.countDecimals(0.0000000012)).toBe(10);  // '1.2e-9'
+      expect(Wallet.countDecimals(1.03)).toBe(2);  // '1.03'
+      expect(Wallet.countDecimals(1.003)).toBe(3);  // '1.003'
+      expect(Wallet.countDecimals(1.0003)).toBe(4);  // '1.0003'
+      expect(Wallet.countDecimals(1.00003)).toBe(5);  // '1.00003'
+      expect(Wallet.countDecimals(1.000003)).toBe(6);  // '1.000003'
+      expect(Wallet.countDecimals(1.0000003)).toBe(7);  // '1.0000003'
+      expect(Wallet.countDecimals(1.00000003)).toBe(8);  // '1.00000003'
+      expect(Wallet.countDecimals(1.000000003)).toBe(9);  // '1.000000003'
+      expect(Wallet.countDecimals(1.0000000003)).toBe(10);  // '1.0000000003'
     });
 
     it('create', function() {
