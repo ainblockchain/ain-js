@@ -256,6 +256,9 @@ export default class Wallet {
   transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}, isDryrun: boolean = false): Promise<any> {
     const address = this.getImpliedAddress(input.from);
     const toAddress = Ain.utils.toChecksumAddress(input.to);
+    if (!(input.value > 0)) {
+      throw Error(`Non-positive transfer value.`);
+    }
     const numDecimalPlaces = Wallet.countDecimals(input.value);
     if (numDecimalPlaces > MAX_TRANSFERABLE_DECIMALS) {
       throw Error(`Transfer value of more than ${MAX_TRANSFERABLE_DECIMALS} decimal places.`);
