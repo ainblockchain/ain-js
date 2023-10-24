@@ -60,12 +60,12 @@ export default class Wallet {
   }
 
   /**
-   * Counts the given number's decimal number.
-   * @param {number} value
-   * @returns {number} The decimal number.
+   * Counts the given number's decimals.
+   * @param {number} value The number.
+   * @returns {number} The decimal count.
    */
   static countDecimals(value: number): number {
-    const decimalExponentRegex = /(\d*\.{0,1}\d*)e-(\d+)/gm;
+    const decimalExponentRegex = /^-{0,1}(\d*\.{0,1}\d*)e-(\d+)$/gm;
 
     if (Math.floor(value) === value) {
       return 0;
