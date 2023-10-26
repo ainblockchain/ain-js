@@ -2,6 +2,7 @@ import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions } fro
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
+// TODO(platfowner): Migrate to Ethereum HD derivation path 'm/44'/60'/0'/0/'.
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/";  // The hardware wallet derivation path of AIN
 const MAX_TRANSFERABLE_DECIMALS = 6;  // The maximum decimals of transferable values
 
