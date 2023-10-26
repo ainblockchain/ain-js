@@ -2,8 +2,9 @@ import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions } fro
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
-const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
-const MAX_TRANSFERABLE_DECIMALS = 6; /* The maximum transferable decimal places of values */
+// TODO(platfowner): Migrate to Ethereum HD derivation path 'm/44'/60'/0'/0/'.
+const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/";  // The hardware wallet derivation path of AIN
+const MAX_TRANSFERABLE_DECIMALS = 6;  // The maximum decimals of transferable values
 
 /**
  * A class for AI Network wallets.
@@ -60,12 +61,12 @@ export default class Wallet {
   }
 
   /**
-   * Counts the given number's decimal number.
-   * @param {number} value
-   * @returns {number} The decimal number.
+   * Counts the given number's decimals.
+   * @param {number} value The number.
+   * @returns {number} The decimal count.
    */
   static countDecimals(value: number): number {
-    const decimalExponentRegex = /(\d*\.{0,1}\d*)e-(\d+)/gm;
+    const decimalExponentRegex = /^-{0,1}(\d*\.{0,1}\d*)e-(\d+)$/gm;
 
     if (Math.floor(value) === value) {
       return 0;
@@ -259,9 +260,9 @@ export default class Wallet {
     if (!(input.value > 0)) {
       throw Error(`Non-positive transfer value.`);
     }
-    const numDecimalPlaces = Wallet.countDecimals(input.value);
-    if (numDecimalPlaces > MAX_TRANSFERABLE_DECIMALS) {
-      throw Error(`Transfer value of more than ${MAX_TRANSFERABLE_DECIMALS} decimal places.`);
+    const decimalCount = Wallet.countDecimals(input.value);
+    if (decimalCount > MAX_TRANSFERABLE_DECIMALS) {
+      throw Error(`Transfer value of more than ${MAX_TRANSFERABLE_DECIMALS} decimals.`);
     }
     const transferRef = this.ain.db.ref(`/transfer/${address}/${toAddress}`).push() as Reference;
     return transferRef.setValue({

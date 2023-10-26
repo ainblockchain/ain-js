@@ -87,6 +87,8 @@ describe('ain-js', function() {
       expect(Wallet.countDecimals(100000000)).toBe(0);  // '100000000'
       expect(Wallet.countDecimals(1000000000)).toBe(0);  // '1000000000'
       expect(Wallet.countDecimals(1234567890)).toBe(0);  // '1234567890'
+      expect(Wallet.countDecimals(-1)).toBe(0);  // '-1'
+      expect(Wallet.countDecimals(-1000000000)).toBe(0);  // '-1000000000'
       expect(Wallet.countDecimals(11)).toBe(0);  // '11'
       expect(Wallet.countDecimals(101)).toBe(0);  // '101'
       expect(Wallet.countDecimals(1001)).toBe(0);  // '1001'
@@ -96,6 +98,8 @@ describe('ain-js', function() {
       expect(Wallet.countDecimals(10000001)).toBe(0);  // '10000001'
       expect(Wallet.countDecimals(100000001)).toBe(0);  // '100000001'
       expect(Wallet.countDecimals(1000000001)).toBe(0);  // '1000000001'
+      expect(Wallet.countDecimals(-11)).toBe(0);  // '-11'
+      expect(Wallet.countDecimals(-1000000001)).toBe(0);  // '-1000000001'
       expect(Wallet.countDecimals(0.1)).toBe(1);  // '0.1'
       expect(Wallet.countDecimals(0.01)).toBe(2);  // '0.01'
       expect(Wallet.countDecimals(0.001)).toBe(3);  // '0.001'
@@ -106,6 +110,8 @@ describe('ain-js', function() {
       expect(Wallet.countDecimals(0.00000001)).toBe(8);  // '1e-8'
       expect(Wallet.countDecimals(0.000000001)).toBe(9);  // '1e-9'
       expect(Wallet.countDecimals(0.0000000001)).toBe(10);  // '1e-10'
+      expect(Wallet.countDecimals(-0.1)).toBe(1);  // '-0.1'
+      expect(Wallet.countDecimals(-0.0000000001)).toBe(10);  // '-1e-10'
       expect(Wallet.countDecimals(1.2)).toBe(1);  // '1.2'
       expect(Wallet.countDecimals(0.12)).toBe(2);  // '0.12'
       expect(Wallet.countDecimals(0.012)).toBe(3);  // '0.012'
@@ -116,6 +122,8 @@ describe('ain-js', function() {
       expect(Wallet.countDecimals(0.00000012)).toBe(8);  // '1.2e-7'
       expect(Wallet.countDecimals(0.000000012)).toBe(9);  // '1.2e-8'
       expect(Wallet.countDecimals(0.0000000012)).toBe(10);  // '1.2e-9'
+      expect(Wallet.countDecimals(-1.2)).toBe(1);  // '-1.2'
+      expect(Wallet.countDecimals(-0.0000000012)).toBe(10);  // '-1.2e-9'
       expect(Wallet.countDecimals(1.03)).toBe(2);  // '1.03'
       expect(Wallet.countDecimals(1.003)).toBe(3);  // '1.003'
       expect(Wallet.countDecimals(1.0003)).toBe(4);  // '1.0003'
@@ -125,6 +133,8 @@ describe('ain-js', function() {
       expect(Wallet.countDecimals(1.00000003)).toBe(8);  // '1.00000003'
       expect(Wallet.countDecimals(1.000000003)).toBe(9);  // '1.000000003'
       expect(Wallet.countDecimals(1.0000000003)).toBe(10);  // '1.0000000003'
+      expect(Wallet.countDecimals(-1.03)).toBe(2);  // '-1.03'
+      expect(Wallet.countDecimals(-1.0000000003)).toBe(10);  // '-1.0000000003'
     });
 
     it('create', function() {
@@ -307,7 +317,7 @@ describe('ain-js', function() {
       }
     });
 
-    it('transfer with a value of up to 6 decimal places', async function() {
+    it('transfer with a value of up to 6 decimals', async function() {
       const balanceBefore = await ain.wallet.getBalance();
       const response = await ain.wallet.transfer({
           to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
@@ -317,7 +327,7 @@ describe('ain-js', function() {
       expect(balanceAfter).toBe(balanceBefore - 0.000001);
     });
 
-    it('transfer with a value of more than 6 decimal places', async function() {
+    it('transfer with a value of more than 6 decimals', async function() {
       const balanceBefore = await ain.wallet.getBalance();
       try {
         const response = await ain.wallet.transfer({
@@ -326,7 +336,7 @@ describe('ain-js', function() {
             nonce: -1 });
         fail('should not happen');
       } catch(e) {
-        expect(e.message).toBe('Transfer value of more than 6 decimal places.');
+        expect(e.message).toBe('Transfer value of more than 6 decimals.');
       } finally {
         const balanceAfter = await ain.wallet.getBalance();
         expect(balanceAfter).toBe(balanceBefore);
