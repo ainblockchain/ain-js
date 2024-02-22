@@ -360,6 +360,18 @@ export default class Reference {
     return this._ain.provider.send('ain_getStateProof', request);
   }
 
+  /**
+   * Fetches the proof hash of a global blockchain state path.
+   * @param {StateInfoInput} params The state info input.
+   * @returns {Promise<any>} The return value of the blockchain API.
+   */
+  getProofHash(params?: StateInfoInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_getProofHash', request);
+  }
+
   // TODO(liayoo): Add this function.
   ///**
   // * Attaches an listener for database events.

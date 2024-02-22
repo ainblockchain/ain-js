@@ -171,51 +171,6 @@ Object {
 
 exports[`ain-js Database getProofHash 1`] = `"0x88496dfee3566db91f487aa4cbf69a0c42a3e2a5d0a65bfd4897d699e8734785"`;
 
-exports[`ain-js Database getStateProof 1`] = `
-Object {
-  "#radix:6": Object {
-    "#radix_ph": "0xa06dd3aacf18938d94658591ce23d93e67f539748d3320c08cd873f038ea6e51",
-  },
-  "#radix:7": Object {
-    "#radix:2756c6573": Object {
-      "#radix_ph": "0xbda5b6fd030d53bcd367787535cbcff5de449ab85565ddfa0cec3be0749318a4",
-    },
-    "#radix:6616c756573": Object {
-      "#radix_ph": "0xd27dcab3ff99f783e2564dd324f642e2c1c88c69c37aa240fed6f27dbd591ec5",
-      "#state:values": Object {
-        "#radix:6": Object {
-          "#radix:1": Object {
-            "#radix_ph": "0x964ebfa47b1824c3ff0301dfa5f96923f8b4272a279d65b94198c5a299b07716",
-          },
-          "#radix:26c6f636b636861696e5f706172616d73": Object {
-            "#radix_ph": "0xe10c863f031396b266a9747b2f5216983f76888d300db5cab3a262bec6e8f08a",
-            "#state:blockchain_params": Object {
-              "#state_ph": "0x88496dfee3566db91f487aa4cbf69a0c42a3e2a5d0a65bfd4897d699e8734785",
-            },
-          },
-          "#radix:36f6e73656e737573": Object {
-            "#radix_ph": "0x17243462699180f55e2aa8a29670052cc2cb12694554f088e5531a0f5ca20410",
-          },
-          "#radix:46576656c6f70657273": Object {
-            "#radix_ph": "0x172e61328ba517136b218fa330bb5920cf8f3c42b1a93d0ae8b8f4f05bf13130",
-          },
-          "#radix:d616e6167655f617070": Object {
-            "#radix_ph": "0x6e09a2bf321fedee02dd4dd24228332d82eda5e538aa6e8d1ccee26a7649a1c1",
-          },
-          "#radix_ph": "0x6b4fce79db15e82c2e78e483ed8ac61188b81f02d10db65d63205ce374367d24",
-        },
-        "#radix:7": Object {
-          "#radix_ph": "0x13148488ac9ca1ddba1b8ddc0bc76da61a288256f64f88250b505030df763a4b",
-        },
-        "#state_ph": "0xa3459466b4f6d10efb63a825ff046338a4dc9fab8cf9b942ff7ff2ff840f5bc6",
-      },
-    },
-    "#radix_ph": "0x1f5f883f7da05be1e8763e515056f3712879b8b13c84d0dd7d62a3c4b1623349",
-  },
-  "#state_ph": "0xa48820f13e509b091b1409da3108b383da642c80a1523851368f63029785e45a",
-}
-`;
-
 exports[`ain-js Database matchFunction 1`] = `
 Object {
   "matched_config": Object {
