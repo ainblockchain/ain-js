@@ -292,6 +292,13 @@ export interface MatchInput {
 }
 
 /**
+ * An interface for state information input.
+ */
+export interface StateInfoInput {
+  ref?: string;
+}
+
+/**
  * An interface for state usage information.
  */
 export interface StateUsageInfo {
