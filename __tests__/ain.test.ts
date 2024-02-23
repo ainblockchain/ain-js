@@ -3,7 +3,7 @@ import Ain from '../src/ain';
 import Wallet from '../src/wallet';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
-import { fail, eraseProtoVer } from './test_util';
+import { fail, eraseProtoVer, eraseStateVersion } from './test_util';
 const {
   test_keystore,
   test_pw,
@@ -1255,6 +1255,17 @@ describe('ain-js', function() {
       await ain.db.ref('/values/blockchain_params').getProofHash()
       .then(res => {
         expect(res).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getStateInfo', async function() {
+      await ain.db.ref('/rules/transfer/$from/$to/$key/value').getStateInfo()
+      .then(res => {
+        expect(eraseStateVersion(res)).toMatchSnapshot();
       })
       .catch(error => {
         console.log("error:", error);
