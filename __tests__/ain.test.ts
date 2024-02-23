@@ -1240,6 +1240,28 @@ describe('ain-js', function() {
       })
     });
 
+    it('getStateProof', async function() {
+      await ain.db.ref('/values/blockchain_params').getStateProof()
+      .then(res => {
+        expect(res).not.toBeNull();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getProofHash', async function() {
+      await ain.db.ref('/values/blockchain_params').getProofHash()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
     /*it('on and off', function(done) {
       try {
         ain.db.ref().on('value', (snap:any) => console.log)
