@@ -267,6 +267,11 @@ describe('ain-js', function() {
       expect(balance).toBeGreaterThan(0);
     });
 
+    it('getNonce', async function() {
+      const nonce = await ain.wallet.getNonce();
+      expect(nonce).toBeNull();
+    });
+
     it('transfer with isDryrun = true', async function() {
       const balanceBefore = await ain.wallet.getBalance();
       const response = await ain.wallet.transfer({

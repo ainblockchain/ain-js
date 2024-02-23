@@ -249,6 +249,26 @@ export default class Wallet {
   }
 
   /**
+   * Fetches an account's nonce value, which is the current transaction count of the account.
+   * @param {object} args The ferch options.
+   * It may contain a string 'address' value and a string 'from' value.
+   * The 'address' is the address of the account to get the nonce of,
+   * and the 'from' is the source of the data.
+   * It could be either the pending transaction pool ("pending") or
+   * the committed blocks ("committed"). The default value is "committed".
+   * @returns {Promise<number>} The nonce value.
+   */
+  getNonce(args: { address?: string, from?: string }): Promise<number> {
+    if (!args) { args = {}; }
+    const address = args.address ? Ain.utils.toChecksumAddress(args.address)
+      : this.getImpliedAddress(args.address);
+    if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
+      throw Error("'from' should be either 'pending' or 'committed'");
+    }
+    return this.ain.provider.send('ain_getNonce', { address, from: args.from })
+  }
+
+  /**
    * Sends a transfer transaction to the network.
    * @param {{to: string, value: number, from?: string, nonce?: number, gas_price?: number}} input The input parameters of the transaction.
    * @param {boolean} isDryrun The dryrun option.
