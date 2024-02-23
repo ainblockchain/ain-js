@@ -131,3 +131,4 @@ export class DefaultSigner implements Signer {
     const billing = transactionInput.billing;
     return Object.assign(tx, { nonce, timestamp, gas_price: gasPrice, billing });
   }
+  };

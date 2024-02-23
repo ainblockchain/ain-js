@@ -269,7 +269,12 @@ describe('ain-js', function() {
 
     it('getNonce', async function() {
       const nonce = await ain.wallet.getNonce();
-      expect(nonce).toBeNull();
+      expect(nonce).toBe(0);
+    });
+
+    it('getTimestamp', async function() {
+      const timestamp = await ain.wallet.getTimestamp();
+      expect(timestamp).toBe(0);
     });
 
     it('transfer with isDryrun = true', async function() {
