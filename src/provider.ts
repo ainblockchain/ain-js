@@ -38,6 +38,14 @@ export default class Provider {
   }
 
   /**
+   * Fetches the blockchain node's address.
+   * @returns {Promise<number>} The address value.
+   */
+  getAddress(): Promise<number> {
+    return this.send('ain_getAddress', {})
+  }
+
+  /**
    * Creates a JSON-RPC payload and sends it to the network.
    * @param {string} rpcMethod The JSON-RPC method.
    * @param {any} params The JSON-RPC parameters.

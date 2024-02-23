@@ -73,6 +73,13 @@ describe('ain-js', function() {
     });
   });
 
+  describe('Provider', function() {
+    it('getAddress', async function() {
+      const address = await ain.provider.getAddress();
+      expect(address).not.toBeNull();
+    });
+  });
+
   describe('Wallet', function() {
     it('countDecimals', function() {
       expect(Wallet.countDecimals(0)).toBe(0);  // '0'
