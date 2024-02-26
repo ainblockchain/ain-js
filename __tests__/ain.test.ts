@@ -782,6 +782,11 @@ describe('ain-js', function() {
       expect(thrownError.message).toEqual('Invalid batch transaction format.');
     });
 
+    it('getPendingTransactions', async function () {
+      const txs = await ain.getPendingTransactions();
+      expect(txs).not.toBeNull();
+    });
+
     it('getTransactionByBlockHashAndIndex', async function () {
       // TODO(platfowner): Migrate to getLastBlock().
       const genesisBlockHash = '0x31075a91beeea98fe8030c848d40b592411f2533c77d347d7937be84eae83745';
