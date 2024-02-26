@@ -125,12 +125,48 @@ export default class Ain {
   }
 
   /**
+   * Fetches pending transaction.
+   * @returns {Promise<any>}
+   */
+  getPendingTransactions(): Promise<any> {
+    return this.provider.send('ain_getPendingTransactions', {});
+  }
+
+  /**
+   * Fetches transaction pool size utilization.
+   * @returns {Promise<any>}
+   */
+  getTransactionPoolSizeUtilization(): Promise<any> {
+    return this.provider.send('ain_getTransactionPoolSizeUtilization', {});
+  }
+
+  /**
    * Fetches a transaction's information with a transaction hash.
    * @param {string} transactionHash The transaction hash.
    * @returns {Promise<TransactionInfo>}
    */
-  getTransaction(transactionHash: string): Promise<TransactionInfo> {
+  getTransactionByHash(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
+  }
+
+  /**
+   * Fetches a transaction's information with a block hash and an index.
+   * @param {string} blockHash The block hash.
+   * @param {number} index The transaction index in the block
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionByBlockHashAndIndex(blockHash: string, index: Number): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionByBlockHashAndIndex', { block_hash: blockHash, index });
+  }
+ 
+  /**
+   * Fetches a transaction's information with a block hash and an index.
+   * @param {string} blockNumber The block number.
+   * @param {number} index The transaction index in the block
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionByBlockNumberAndIndex(blockNumber: Number, index: Number): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionByBlockNumberAndIndex', { block_number: blockNumber, index });
   }
 
   /**

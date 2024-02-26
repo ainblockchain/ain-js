@@ -535,8 +535,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction with isDryrun = true', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction with isDryrun = true', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx).toStrictEqual(null);  // The tx is NOT in the blockchain.
     });
 
@@ -553,8 +553,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
@@ -780,6 +780,29 @@ describe('ain-js', function() {
       }
       expect(thrownError.code).toEqual(30401);
       expect(thrownError.message).toEqual('Invalid batch transaction format.');
+    });
+
+    it('getPendingTransactions', async function () {
+      const txs = await ain.getPendingTransactions();
+      expect(txs).not.toBeNull();
+    });
+
+    it('getTransactionPoolSizeUtilization', async function () {
+      const txs = await ain.getTransactionPoolSizeUtilization();
+      expect(txs).not.toBeNull();
+    });
+
+    it('getTransactionByBlockHashAndIndex', async function () {
+      const genesisBlockNumber = 0;
+      const genesisBlock = await ain.getBlock(genesisBlockNumber);
+      const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlock.hash, 0);
+      expect(tx).not.toBeNull();
+    });
+
+    it('getTransactionByBlockNumberAndIndex', async function () {
+      const genesisBlockNumber = 0;
+      const tx = await ain.getTransactionByBlockNumberAndIndex(genesisBlockNumber, 0);
+      expect(tx).not.toBeNull();
     });
   });
 
