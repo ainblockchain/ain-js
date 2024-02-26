@@ -788,6 +788,12 @@ describe('ain-js', function() {
       const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlockHash, 0);
       expect(tx).not.toBeNull();
     });
+
+    it('getTransactionByBlockNumberAndIndex', async function () {
+      const genesisBlockNumber = 0;
+      const tx = await ain.getTransactionByBlockNumberAndIndex(genesisBlockNumber, 0);
+      expect(tx).not.toBeNull();
+    });
   });
 
   describe('Database', function() {

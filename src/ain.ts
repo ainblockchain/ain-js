@@ -141,6 +141,15 @@ export default class Ain {
   getTransactionByBlockHashAndIndex(blockHash: string, index: Number): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByBlockHashAndIndex', { block_hash: blockHash, index });
   }
+ 
+  /**
+   * Fetches a transaction's information with a block hash and an index.
+   * @param {string} transactionHash The transaction hash.
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionByBlockNumberAndIndex(blockNumber: Number, index: Number): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionByBlockNumberAndIndex', { block_number: blockNumber, index });
+  }
 
   /**
    * Fetches a blockchain app's state usage information with an app name.
