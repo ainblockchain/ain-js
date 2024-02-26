@@ -781,6 +781,13 @@ describe('ain-js', function() {
       expect(thrownError.code).toEqual(30401);
       expect(thrownError.message).toEqual('Invalid batch transaction format.');
     });
+
+    it('getTransactionByBlockHashAndIndex', async function () {
+      // TODO(platfowner): Migrate to getLastBlock().
+      const genesisBlockHash = '0x31075a91beeea98fe8030c848d40b592411f2533c77d347d7937be84eae83745';
+      const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlockHash, 0);
+      expect(tx).not.toBeNull();
+    });
   });
 
   describe('Database', function() {
