@@ -372,6 +372,18 @@ export default class Reference {
     return this._ain.provider.send('ain_getProofHash', request);
   }
 
+  /**
+   * Fetches the state information of a global blockchain state path.
+   * @param {StateInfoInput} params The state info input.
+   * @returns {Promise<any>} The return value of the blockchain API.
+   */
+  getStateInfo(params?: StateInfoInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_getStateInfo', request);
+  }
+
   // TODO(liayoo): Add this function.
   ///**
   // * Attaches an listener for database events.

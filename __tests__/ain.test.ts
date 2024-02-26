@@ -3,7 +3,7 @@ import Ain from '../src/ain';
 import Wallet from '../src/wallet';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
-import { fail, eraseProtoVer } from './test_util';
+import { fail, eraseProtoVer, eraseStateVersion } from './test_util';
 const {
   test_keystore,
   test_pw,
@@ -70,6 +70,13 @@ describe('ain-js', function() {
         console.log("ERROR:", e)
         fail('should not happen');
       })
+    });
+  });
+
+  describe('Provider', function() {
+    it('getAddress', async function() {
+      const address = await ain.provider.getAddress();
+      expect(address).not.toBeNull();
     });
   });
 
@@ -265,6 +272,16 @@ describe('ain-js', function() {
     it('getBalance', async function() {
       const balance = await ain.wallet.getBalance();
       expect(balance).toBeGreaterThan(0);
+    });
+
+    it('getNonce', async function() {
+      const nonce = await ain.wallet.getNonce();
+      expect(nonce).toBe(0);
+    });
+
+    it('getTimestamp', async function() {
+      const timestamp = await ain.wallet.getTimestamp();
+      expect(timestamp).toBe(0);
     });
 
     it('transfer with isDryrun = true', async function() {
@@ -1255,6 +1272,17 @@ describe('ain-js', function() {
       await ain.db.ref('/values/blockchain_params').getProofHash()
       .then(res => {
         expect(res).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getStateInfo', async function() {
+      await ain.db.ref('/rules/transfer/$from/$to/$key/value').getStateInfo()
+      .then(res => {
+        expect(eraseStateVersion(res)).toMatchSnapshot();
       })
       .catch(error => {
         console.log("error:", error);
