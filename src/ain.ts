@@ -85,6 +85,14 @@ export default class Ain {
   }
 
   /**
+   * Fetches the last block.
+   * @returns {Promise<Block>}
+   */
+  getLastBlock(): Promise<Block> {
+    return this.provider.send('ain_getLastBlock', {});
+  }
+
+  /**
    * Fetches a block with a block hash or block number.
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.

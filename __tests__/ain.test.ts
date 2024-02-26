@@ -478,6 +478,13 @@ describe('ain-js', function() {
       await waitUntilTxFinalized(createApps.result.tx_hash);
     });
 
+    it('getLastBlock', async function () {
+      const block = await ain.getLastBlock()
+      expect(block).not.toBeNull();
+      expect(block.hash).not.toBeNull();
+      expect(block.number).not.toBeNull();
+    });
+
     it('getBlock', async function () {
       const block = await ain.getBlock(3)
       const hash = block.hash || "";
