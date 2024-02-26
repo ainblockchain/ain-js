@@ -129,7 +129,7 @@ export default class Ain {
    * @param {string} transactionHash The transaction hash.
    * @returns {Promise<TransactionInfo>}
    */
-  getTransaction(transactionHash: string): Promise<TransactionInfo> {
+  getTransactionByHash(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
   }
 

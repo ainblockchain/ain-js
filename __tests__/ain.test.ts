@@ -535,8 +535,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction with isDryrun = true', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction with isDryrun = true', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx).toStrictEqual(null);  // The tx is NOT in the blockchain.
     });
 
@@ -553,8 +553,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
