@@ -126,17 +126,17 @@ export default class Ain {
 
   /**
    * Fetches pending transaction.
-   * @returns {Promise<TransactionInfo>}
+   * @returns {Promise<any>}
    */
-  getPendingTransactions(): Promise<TransactionInfo> {
+  getPendingTransactions(): Promise<any> {
     return this.provider.send('ain_getPendingTransactions', {});
   }
 
   /**
    * Fetches transaction pool size utilization.
-   * @returns {Promise<TransactionInfo>}
+   * @returns {Promise<any>}
    */
-  getTransactionPoolSizeUtilization(): Promise<TransactionInfo> {
+  getTransactionPoolSizeUtilization(): Promise<any> {
     return this.provider.send('ain_getTransactionPoolSizeUtilization', {});
   }
 

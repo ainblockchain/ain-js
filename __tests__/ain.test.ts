@@ -793,9 +793,9 @@ describe('ain-js', function() {
     });
 
     it('getTransactionByBlockHashAndIndex', async function () {
-      // TODO(platfowner): Migrate to getLastBlock().
-      const genesisBlockHash = '0x31075a91beeea98fe8030c848d40b592411f2533c77d347d7937be84eae83745';
-      const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlockHash, 0);
+      const genesisBlockNumber = 0;
+      const genesisBlock = await ain.getBlock(genesisBlockNumber);
+      const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlock.hash, 0);
       expect(tx).not.toBeNull();
     });
 
