@@ -131,6 +131,15 @@ export default class Ain {
   getPendingTransactions(): Promise<TransactionInfo> {
     return this.provider.send('ain_getPendingTransactions', {});
   }
+
+  /**
+   * Fetches transaction pool size utilization.
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionPoolSizeUtilization(): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionPoolSizeUtilization', {});
+  }
+
   /**
    * Fetches a transaction's information with a transaction hash.
    * @param {string} transactionHash The transaction hash.
