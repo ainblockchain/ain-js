@@ -492,7 +492,7 @@ describe('ain-js', function() {
     });
 
     it('getBlockByNumber', async function () {
-      const lastBlock = await ain.getLastBlock()
+      const lastBlock = await ain.getLastBlock();
       expect(lastBlock).not.toBeNull();
       expect(lastBlock.number).not.toBeNull();
       const block = await ain.getBlockByNumber(lastBlock.number)
@@ -502,13 +502,24 @@ describe('ain-js', function() {
     });
 
     it('getBlockByHash', async function () {
-      const lastBlock = await ain.getLastBlock()
+      const lastBlock = await ain.getLastBlock();
       expect(lastBlock).not.toBeNull();
       expect(lastBlock.hash).not.toBeNull();
       const block = await ain.getBlockByHash(lastBlock.hash)
       expect(block).not.toBeNull();
       expect(block.number).toBe(lastBlock.number);
       expect(block.hash).toBe(lastBlock.hash);
+    });
+
+    it('getBlockList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
     });
 
     it('getProposer', async function () {
