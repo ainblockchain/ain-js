@@ -485,6 +485,12 @@ describe('ain-js', function() {
       expect(block.number).not.toBeNull();
     });
 
+    it('getLastBlockNumber', async function () {
+      const number = await ain.getLastBlockNumber()
+      expect(number).not.toBeNull();
+      expect(number).toBeGreaterThan(0);
+    });
+
     it('getBlock', async function () {
       const block = await ain.getBlock(3)
       const hash = block.hash || "";
