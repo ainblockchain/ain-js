@@ -101,19 +101,29 @@ export default class Ain {
   }
 
   /**
-   * Fetches a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * Fetches a block with a block number.
+   * @param {number} blockNumber The block number.
    * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
    * Otherwise, returns a block with only transaction hashes.
    * @returns {Promise<Block>}
    */
-  getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getBlockByHash' : 'ain_getBlockByNumber';
-    const data = Object.assign({},
-        { getFullTransactions: !!returnTransactionObjects,
-          [byHash ? 'hash' : 'number']: blockHashOrBlockNumber });
-    return this.provider.send(rpcMethod, data);
+  getBlockByNumber(blockNumber: number, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, number: blockNumber });
+    return this.provider.send('ain_getBlockByNumber', data);
+  }
+
+  /**
+   * Fetches a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
+   * Otherwise, returns a block with only transaction hashes.
+   * @returns {Promise<Block>}
+   */
+  getBlockByHash(blockHash: string, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, hash: blockHash });
+    return this.provider.send('ain_getBlockByHash', data);
   }
 
   /**
