@@ -522,6 +522,17 @@ describe('ain-js', function() {
       expect(blockList[1].number).toBe(lastBlockNumber);
     });
 
+    it('getBlockHeadersList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockHeadersList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
+    });
+
     it('getProposer', async function () {
       const proposer = await ain.getProposer(1);
       const hash = (await ain.getBlockByNumber(1)).hash || "";

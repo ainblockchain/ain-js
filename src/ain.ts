@@ -138,6 +138,17 @@ export default class Ain {
   }
 
   /**
+   * Fetches block headers with a block number range.
+   * @param {number} from The begining block number (inclusive).
+   * @param {number} to The ending block number (exclusive).
+   * Otherwise, returns a block with only transaction hashes.
+   * @returns {Promise<Array<Block>>}
+   */
+  getBlockHeadersList(from: number, to: number): Promise<Array<Block>> {
+    return this.provider.send('ain_getBlockHeadersList', { from, to });
+  }
+
+  /**
    * Fetches the forger's address of a block with a block hash or block number.
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @returns {Promise<string>}
