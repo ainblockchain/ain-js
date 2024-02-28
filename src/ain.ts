@@ -156,6 +156,15 @@ export default class Ain {
   }
 
   /**
+   * Fetches block transaction count with a block hash.
+   * @param {string} hash The block hash.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByHash(hash: string): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByHash', { hash });
+  }
+
+  /**
    * Fetches the forger's address of a block with a block hash or block number.
    * @param {string | number} blockHashOrBlockNumber The block hash or block number.
    * @returns {Promise<string>}
