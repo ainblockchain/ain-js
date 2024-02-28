@@ -533,6 +533,14 @@ describe('ain-js', function() {
       expect(blockList[1].number).toBe(lastBlockNumber);
     });
 
+    it('getBlockTransactionCountByNumber', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const txCount = await ain.getBlockTransactionCountByNumber(lastBlockNumber)
+      expect(txCount).not.toBeNull();
+    });
+
     it('getProposer', async function () {
       const proposer = await ain.getProposer(1);
       const hash = (await ain.getBlockByNumber(1)).hash || "";

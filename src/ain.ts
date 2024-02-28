@@ -130,7 +130,6 @@ export default class Ain {
    * Fetches blocks with a block number range.
    * @param {number} from The begining block number (inclusive).
    * @param {number} to The ending block number (exclusive).
-   * Otherwise, returns a block with only transaction hashes.
    * @returns {Promise<Array<Block>>}
    */
   getBlockList(from: number, to: number): Promise<Array<Block>> {
@@ -141,11 +140,19 @@ export default class Ain {
    * Fetches block headers with a block number range.
    * @param {number} from The begining block number (inclusive).
    * @param {number} to The ending block number (exclusive).
-   * Otherwise, returns a block with only transaction hashes.
    * @returns {Promise<Array<Block>>}
    */
   getBlockHeadersList(from: number, to: number): Promise<Array<Block>> {
     return this.provider.send('ain_getBlockHeadersList', { from, to });
+  }
+
+  /**
+   * Fetches block transaction count with a block number.
+   * @param {number} number The block number.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByNumber(number: number): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByNumber', { number });
   }
 
   /**
