@@ -478,21 +478,86 @@ describe('ain-js', function() {
       await waitUntilTxFinalized(createApps.result.tx_hash);
     });
 
-    it('getBlock', async function () {
-      const block = await ain.getBlock(3)
-      const hash = block.hash || "";
-      expect(await ain.getBlock(hash)).toStrictEqual(block);
+    it('getLastBlock', async function () {
+      const block = await ain.getLastBlock()
+      expect(block).not.toBeNull();
+      expect(block.hash).not.toBeNull();
+      expect(block.number).toBeGreaterThan(0);
+    });
+
+    it('getLastBlockNumber', async function () {
+      const number = await ain.getLastBlockNumber()
+      expect(number).not.toBeNull();
+      expect(number).toBeGreaterThan(0);
+    });
+
+    it('getBlockByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const block = await ain.getBlockByNumber(lastBlock.number)
+      expect(block).not.toBeNull();
+      expect(block.number).toBe(lastBlock.number);
+      expect(block.hash).toBe(lastBlock.hash);
+    });
+
+    it('getBlockByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const block = await ain.getBlockByHash(lastBlock.hash)
+      expect(block).not.toBeNull();
+      expect(block.number).toBe(lastBlock.number);
+      expect(block.hash).toBe(lastBlock.hash);
+    });
+
+    it('getBlockList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
+    });
+
+    it('getBlockHeadersList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockHeadersList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
+    });
+
+    it('getBlockTransactionCountByNumber', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const txCount = await ain.getBlockTransactionCountByNumber(lastBlockNumber)
+      expect(txCount).not.toBeNull();
+    });
+
+    it('getBlockTransactionCountByHash', async function () {
+      const lastBlock= await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const txCount = await ain.getBlockTransactionCountByHash(lastBlock.hash)
+      expect(txCount).not.toBeNull();
     });
 
     it('getProposer', async function () {
       const proposer = await ain.getProposer(1);
-      const hash = (await ain.getBlock(1)).hash || "";
+      const hash = (await ain.getBlockByNumber(1)).hash || "";
       expect(await ain.getProposer(hash)).toBe(proposer);
     });
 
     it('getValidators', async function () {
       const validators = await ain.getValidators(4);
-      const hash = (await ain.getBlock(4)).hash || "";
+      const hash = (await ain.getBlockByNumber(4)).hash || "";
       expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
@@ -794,7 +859,7 @@ describe('ain-js', function() {
 
     it('getTransactionByBlockHashAndIndex', async function () {
       const genesisBlockNumber = 0;
-      const genesisBlock = await ain.getBlock(genesisBlockNumber);
+      const genesisBlock = await ain.getBlockByNumber(genesisBlockNumber);
       const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlock.hash, 0);
       expect(tx).not.toBeNull();
     });

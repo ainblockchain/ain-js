@@ -85,19 +85,83 @@ export default class Ain {
   }
 
   /**
-   * Fetches a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * Fetches the last block.
+   * @returns {Promise<Block>}
+   */
+  getLastBlock(): Promise<Block> {
+    return this.provider.send('ain_getLastBlock', {});
+  }
+
+  /**
+   * Fetches the last block number.
+   * @returns {Promise<Number>}
+   */
+  getLastBlockNumber(): Promise<Block> {
+    return this.provider.send('ain_getLastBlockNumber', {});
+  }
+
+  /**
+   * Fetches a block with a block number.
+   * @param {number} blockNumber The block number.
    * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
    * Otherwise, returns a block with only transaction hashes.
    * @returns {Promise<Block>}
    */
-  getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getBlockByHash' : 'ain_getBlockByNumber';
-    const data = Object.assign({},
-        { getFullTransactions: !!returnTransactionObjects,
-          [byHash ? 'hash' : 'number']: blockHashOrBlockNumber });
-    return this.provider.send(rpcMethod, data);
+  getBlockByNumber(blockNumber: number, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, number: blockNumber });
+    return this.provider.send('ain_getBlockByNumber', data);
+  }
+
+  /**
+   * Fetches a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
+   * Otherwise, returns a block with only transaction hashes.
+   * @returns {Promise<Block>}
+   */
+  getBlockByHash(blockHash: string, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, hash: blockHash });
+    return this.provider.send('ain_getBlockByHash', data);
+  }
+
+  /**
+   * Fetches blocks with a block number range.
+   * @param {number} from The begining block number (inclusive).
+   * @param {number} to The ending block number (exclusive).
+   * @returns {Promise<Array<Block>>}
+   */
+  getBlockList(from: number, to: number): Promise<Array<Block>> {
+    return this.provider.send('ain_getBlockList', { from, to });
+  }
+
+  /**
+   * Fetches block headers with a block number range.
+   * @param {number} from The begining block number (inclusive).
+   * @param {number} to The ending block number (exclusive).
+   * @returns {Promise<Array<Block>>}
+   */
+  getBlockHeadersList(from: number, to: number): Promise<Array<Block>> {
+    return this.provider.send('ain_getBlockHeadersList', { from, to });
+  }
+
+  /**
+   * Fetches block transaction count with a block number.
+   * @param {number} number The block number.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByNumber(number: number): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByNumber', { number });
+  }
+
+  /**
+   * Fetches block transaction count with a block hash.
+   * @param {string} hash The block hash.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByHash(hash: string): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByHash', { hash });
   }
 
   /**
