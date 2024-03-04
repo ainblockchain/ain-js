@@ -549,6 +549,22 @@ describe('ain-js', function() {
       expect(txCount).not.toBeNull();
     });
 
+    it('getValidatorsByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const validators = await ain.getValidatorsByNumber(lastBlock.number);
+      expect(validators).toStrictEqual(lastBlock.validators);
+    });
+
+    it('getValidatorsByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const validators = await ain.getValidatorsByHash(lastBlock.hash);
+      expect(validators).toStrictEqual(lastBlock.validators);
+    });
+
     it('getProposerByNumber', async function () {
       const lastBlock = await ain.getLastBlock();
       expect(lastBlock).not.toBeNull();
@@ -563,12 +579,6 @@ describe('ain-js', function() {
       expect(lastBlock.hash).not.toBeNull();
       const proposer = await ain.getProposerByHash(lastBlock.hash);
       expect(proposer).toBe(lastBlock.proposer);
-    });
-
-    it('getValidators', async function () {
-      const validators = await ain.getValidators(4);
-      const hash = (await ain.getBlockByNumber(4)).hash || "";
-      expect(await ain.getValidators(hash)).toStrictEqual(validators);
     });
 
     // TODO(liayoo): add getTransactionResult method and test case for it.

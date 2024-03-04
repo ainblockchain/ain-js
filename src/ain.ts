@@ -165,6 +165,24 @@ export default class Ain {
   }
 
   /**
+   * Fetches the validator list of a block with a block number.
+   * @param {number} blockNumber The block number.
+   * @returns {Promise<string[]>}
+   */
+  getValidatorsByNumber(blockNumber: number): Promise<string[]> {
+    return this.provider.send('ain_getValidatorsByNumber', { number: blockNumber });
+  }
+
+  /**
+   * Fetches the validator list of a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @returns {Promise<string[]>}
+   */
+  getValidatorsByHash(blockHash: string): Promise<string[]> {
+    return this.provider.send('ain_getValidatorsByHash', { hash: blockHash });
+  }
+
+  /**
    * Fetches the forger's address of a block with a block number.
    * @param {number} blockNumber The block number.
    * @returns {Promise<string>}
@@ -180,18 +198,6 @@ export default class Ain {
    */
   getProposerByHash(blockHash: string): Promise<string> {
     return this.provider.send('ain_getProposerByHash', { hash: blockHash });
-  }
-
-  /**
-   * Fetches the validator list of a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
-   * @returns {Promise<string[]>}
-   */
-  getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getValidatorsByHash' : 'ain_getValidatorsByNumber';
-    return this.provider.send(rpcMethod,
-        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
   }
 
   /**
