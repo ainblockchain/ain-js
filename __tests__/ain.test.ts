@@ -549,6 +549,14 @@ describe('ain-js', function() {
       expect(txCount).not.toBeNull();
     });
 
+    it('getValidatorInfo', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.proposer).not.toBeNull();
+      const info = await ain.getValidatorInfo(lastBlock.proposer);
+      expect(info).not.toBeNull();
+    });
+
     it('getValidatorsByNumber', async function () {
       const lastBlock = await ain.getLastBlock();
       expect(lastBlock).not.toBeNull();

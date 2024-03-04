@@ -165,20 +165,29 @@ export default class Ain {
   }
 
   /**
+   * Fetches the information of the given validator address.
+   * @param {string} address The validator address.
+   * @returns {Promise<any>}
+   */
+  getValidatorInfo(address: string): Promise<any> {
+    return this.provider.send('ain_getValidatorInfo', { address });
+  }
+
+  /**
    * Fetches the validator list of a block with a block number.
    * @param {number} blockNumber The block number.
-   * @returns {Promise<string[]>}
+   * @returns {Promise<any>}
    */
-  getValidatorsByNumber(blockNumber: number): Promise<string[]> {
+  getValidatorsByNumber(blockNumber: number): Promise<any> {
     return this.provider.send('ain_getValidatorsByNumber', { number: blockNumber });
   }
 
   /**
    * Fetches the validator list of a block with a block hash.
    * @param {string} blockHash The block hash.
-   * @returns {Promise<string[]>}
+   * @returns {Promise<any>}
    */
-  getValidatorsByHash(blockHash: string): Promise<string[]> {
+  getValidatorsByHash(blockHash: string): Promise<any> {
     return this.provider.send('ain_getValidatorsByHash', { hash: blockHash });
   }
 
