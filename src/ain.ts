@@ -192,7 +192,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches the forger's address of a block with a block number.
+   * Fetches the block proproser's address of a block with a block number.
    * @param {number} blockNumber The block number.
    * @returns {Promise<string>}
    */
@@ -201,7 +201,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches the forger's address of a block with a block hash.
+   * Fetches the block proproser's address of a block with a block hash.
    * @param {string} blockHash The block hash.
    * @returns {Promise<string>}
    */
