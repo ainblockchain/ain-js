@@ -549,10 +549,20 @@ describe('ain-js', function() {
       expect(txCount).not.toBeNull();
     });
 
-    it('getProposer', async function () {
-      const proposer = await ain.getProposer(1);
-      const hash = (await ain.getBlockByNumber(1)).hash || "";
-      expect(await ain.getProposer(hash)).toBe(proposer);
+    it('getProposerByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const proposer = await ain.getProposerByNumber(lastBlock.number);
+      expect(proposer).toBe(lastBlock.proposer);
+    });
+
+    it('getProposerByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const proposer = await ain.getProposerByHash(lastBlock.hash);
+      expect(proposer).toBe(lastBlock.proposer);
     });
 
     it('getValidators', async function () {

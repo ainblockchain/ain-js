@@ -165,15 +165,21 @@ export default class Ain {
   }
 
   /**
-   * Fetches the forger's address of a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * Fetches the forger's address of a block with a block number.
+   * @param {number} blockNumber The block number.
    * @returns {Promise<string>}
    */
-  getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getProposerByHash' : 'ain_getProposerByNumber';
-    return this.provider.send(rpcMethod,
-        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
+  getProposerByNumber(blockNumber: number): Promise<string> {
+    return this.provider.send('ain_getProposerByNumber', { number: blockNumber });
+  }
+
+  /**
+   * Fetches the forger's address of a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @returns {Promise<string>}
+   */
+  getProposerByHash(blockHash: string): Promise<string> {
+    return this.provider.send('ain_getProposerByHash', { hash: blockHash });
   }
 
   /**
