@@ -274,5 +274,3 @@ Object {
   },
 }
 `;
-
-exports[`ain-js Network should set provider 1`] = `true`;

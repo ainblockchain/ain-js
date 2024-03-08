@@ -43,10 +43,24 @@ describe('ain-js', function() {
 
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
+      expect(ain.provider).not.toBeNull();
+      expect(ain.net).not.toBeNull();
+    });
+
+    it('getNetworkId', async function() {
       expect(await ain.net.getNetworkId()).toBe(0);
-      expect(await ain.net.isListening()).toMatchSnapshot();
-      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('isListening', async function() {
+      expect(await ain.net.isListening()).toBe(true);
+    });
+
+    it('isSyncing', async function() {
       expect(await ain.net.isSyncing()).toBe(false);
+    });
+
+    it('getPeerCount', async function() {
+      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
     });
 
     it('getProtocolVersion', async function() {
