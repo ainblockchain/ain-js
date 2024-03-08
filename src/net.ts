@@ -28,6 +28,13 @@ export default class Network {
   }
 
   /**
+   * Fetches the ID of the chain the blokchain node is validating.
+   */
+  getChainId(): Promise<string> {
+    return this.provider.send('net_getChainId');
+  }
+
+  /**
    * Checks whether the blockchain node is listening for network connections.
    * @returns {Promise<boolean>}
    */
@@ -49,6 +56,22 @@ export default class Network {
    */
   getPeerCount(): Promise<number> {
     return this.provider.send('net_peerCount');
+  }
+
+  /**
+   * Fetches the consensus status of the network.
+   * @returns {Promise<any>}
+   */
+  getConsensusStatus(): Promise<any> {
+    return this.provider.send('net_consensusStatus');
+  }
+
+  /**
+   * Fetches the consensus status raw data of the network.
+   * @returns {Promise<any>}
+   */
+  getRawConsensusStatus(): Promise<any> {
+    return this.provider.send('net_rawConsensusStatus');
   }
 
   /**

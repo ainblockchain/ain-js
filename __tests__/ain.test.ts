@@ -51,6 +51,10 @@ describe('ain-js', function() {
       expect(await ain.net.getNetworkId()).toBe(0);
     });
 
+    it('getChainId', async function() {
+      expect(await ain.net.getChainId()).toBe(0);
+    });
+
     it('isListening', async function() {
       expect(await ain.net.isListening()).toBe(true);
     });
@@ -61,6 +65,19 @@ describe('ain-js', function() {
 
     it('getPeerCount', async function() {
       expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('getConsensusStatus', async function() {
+      const status = await ain.net.getConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.state).toBe('RUNNING');
+    });
+
+    it('getRawConsensusStatus', async function() {
+      const status = await ain.net.getRawConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.consensus).not.toBeNull();
+      expect(status.consensus.state).toBe('RUNNING');
     });
 
     it('getProtocolVersion', async function() {
