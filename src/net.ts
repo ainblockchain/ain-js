@@ -21,6 +21,13 @@ export default class Network {
   }
 
   /**
+   * Fetches the ID of the network the blokchain node is connected to.
+   */
+  getNetworkId(): Promise<string> {
+    return this.provider.send('net_getNetworkId');
+  }
+
+  /**
    * Checks whether the blockchain node is listening for network connections.
    * @returns {Promise<boolean>}
    */
@@ -29,10 +36,19 @@ export default class Network {
   }
 
   /**
-   * Fetches the ID of the network the blokchain node is connected to.
+   * Checks whether the blockchain node is syncing with the network or not.
+   * @returns {Promise<boolean>}
    */
-  getNetworkId(): Promise<string> {
-    return this.provider.send('net_getNetworkId');
+  isSyncing(): Promise<boolean> {
+    return this.provider.send('net_syncing');
+  }
+
+  /**
+   * Fetches the number of the peers the blockchain node is connected to.
+   * @returns {Promise<number>}
+   */
+  getPeerCount(): Promise<number> {
+    return this.provider.send('net_peerCount');
   }
 
   /**
@@ -47,22 +63,6 @@ export default class Network {
    */
   getProtocolVersion(): Promise<any> {
     return this.provider.send('ain_getProtocolVersion');
-  }
-
-  /**
-   * Fetches the number of the peers the blockchain node is connected to.
-   * @returns {Promise<number>}
-   */
-  getPeerCount(): Promise<number> {
-    return this.provider.send('net_peerCount');
-  }
-
-  /**
-   * Checks whether the blockchain node is syncing with the network or not.
-   * @returns {Promise<boolean>}
-   */
-  isSyncing(): Promise<boolean> {
-    return this.provider.send('net_syncing');
   }
 
   /**
