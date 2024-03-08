@@ -3,5 +3,5 @@ export const test_pw = 'ainetwork';
 export const test_seed = 'receive ocean impact unaware march just dragon easy power muscle together flip';
 
 export const test_node_1 = 'http://localhost:8081';
-export const test_node_2 = 'http://localhost:8081';
+export const test_node_2 = 'http://localhost:8082';
 export const test_event_handler_node = 'http://localhost:8083';
