@@ -80,6 +80,13 @@ describe('ain-js', function() {
       expect(status.consensus.state).toBe('RUNNING');
     });
 
+    it('getPeerCandidateInfo', async function() {
+      const info = await ain.net.getPeerCandidateInfo();
+      expect(info.address).not.toBeNull();
+      expect(info.isAvailableForConnection).toBe(true);
+      expect(info.peerCandidateJsonRpcUrlList).not.toBeNull();
+    });
+
     it('getProtocolVersion', async function() {
       await ain.net.getProtocolVersion()
       .then(res => {

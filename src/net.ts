@@ -75,6 +75,14 @@ export default class Network {
   }
 
   /**
+   * Fetches the peer candidate information of the blockchain node.
+   * @returns {Promise<any>}
+   */
+  getPeerCandidateInfo(): Promise<any> {
+    return this.provider.send('p2p_getPeerCandidateInfo');
+  }
+
+  /**
    * Checks the protocol version compatibility with the blockchain node.
    */
   async checkProtocolVersion(): Promise<any> {
