@@ -43,10 +43,48 @@ describe('ain-js', function() {
 
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
+      expect(ain.provider).not.toBeNull();
+      expect(ain.net).not.toBeNull();
+    });
+
+    it('getNetworkId', async function() {
       expect(await ain.net.getNetworkId()).toBe(0);
-      expect(await ain.net.isListening()).toMatchSnapshot();
-      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('getChainId', async function() {
+      expect(await ain.net.getChainId()).toBe(0);
+    });
+
+    it('isListening', async function() {
+      expect(await ain.net.isListening()).toBe(true);
+    });
+
+    it('isSyncing', async function() {
       expect(await ain.net.isSyncing()).toBe(false);
+    });
+
+    it('getPeerCount', async function() {
+      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('getConsensusStatus', async function() {
+      const status = await ain.net.getConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.state).toBe('RUNNING');
+    });
+
+    it('getRawConsensusStatus', async function() {
+      const status = await ain.net.getRawConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.consensus).not.toBeNull();
+      expect(status.consensus.state).toBe('RUNNING');
+    });
+
+    it('getPeerCandidateInfo', async function() {
+      const info = await ain.net.getPeerCandidateInfo();
+      expect(info.address).not.toBeNull();
+      expect(info.isAvailableForConnection).toBe(true);
+      expect(info.peerCandidateJsonRpcUrlList).not.toBeNull();
     });
 
     it('getProtocolVersion', async function() {
