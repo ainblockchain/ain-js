@@ -11,6 +11,7 @@ import {
   EvalRuleInput,
   EvalOwnerInput,
   MatchInput,
+  StateInfoInput,
   GetOptions,
 } from '../types';
 import Ain from '../ain';
@@ -345,6 +346,42 @@ export default class Reference {
       ref: Reference.extendPath(this.path, params ? params.ref : undefined)
     }
     return this._ain.provider.send('ain_matchOwner', request);
+  }
+
+  /**
+   * Fetches the state proof of a global blockchain state path.
+   * @param {StateInfoInput} params The state info input.
+   * @returns {Promise<any>} The return value of the blockchain API.
+   */
+  getStateProof(params?: StateInfoInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_getStateProof', request);
+  }
+
+  /**
+   * Fetches the proof hash of a global blockchain state path.
+   * @param {StateInfoInput} params The state info input.
+   * @returns {Promise<any>} The return value of the blockchain API.
+   */
+  getProofHash(params?: StateInfoInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_getProofHash', request);
+  }
+
+  /**
+   * Fetches the state information of a global blockchain state path.
+   * @param {StateInfoInput} params The state info input.
+   * @returns {Promise<any>} The return value of the blockchain API.
+   */
+  getStateInfo(params?: StateInfoInput): Promise<any> {
+    const request = {
+      ref: Reference.extendPath(this.path, params ? params.ref : undefined)
+    }
+    return this._ain.provider.send('ain_getStateInfo', request);
   }
 
   // TODO(liayoo): Add this function.

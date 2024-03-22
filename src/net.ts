@@ -21,6 +21,20 @@ export default class Network {
   }
 
   /**
+   * Fetches the ID of the network the blokchain node is connected to.
+   */
+  getNetworkId(): Promise<string> {
+    return this.provider.send('net_getNetworkId');
+  }
+
+  /**
+   * Fetches the ID of the chain the blokchain node is validating.
+   */
+  getChainId(): Promise<string> {
+    return this.provider.send('net_getChainId');
+  }
+
+  /**
    * Checks whether the blockchain node is listening for network connections.
    * @returns {Promise<boolean>}
    */
@@ -29,10 +43,43 @@ export default class Network {
   }
 
   /**
-   * Fetches the ID of the network the blokchain node is connected to.
+   * Checks whether the blockchain node is syncing with the network or not.
+   * @returns {Promise<boolean>}
    */
-  getNetworkId(): Promise<string> {
-    return this.provider.send('net_getNetworkId');
+  isSyncing(): Promise<boolean> {
+    return this.provider.send('net_syncing');
+  }
+
+  /**
+   * Fetches the number of the peers the blockchain node is connected to.
+   * @returns {Promise<number>}
+   */
+  getPeerCount(): Promise<number> {
+    return this.provider.send('net_peerCount');
+  }
+
+  /**
+   * Fetches the consensus status of the network.
+   * @returns {Promise<any>}
+   */
+  getConsensusStatus(): Promise<any> {
+    return this.provider.send('net_consensusStatus');
+  }
+
+  /**
+   * Fetches the consensus status raw data of the network.
+   * @returns {Promise<any>}
+   */
+  getRawConsensusStatus(): Promise<any> {
+    return this.provider.send('net_rawConsensusStatus');
+  }
+
+  /**
+   * Fetches the peer candidate information of the blockchain node.
+   * @returns {Promise<any>}
+   */
+  getPeerCandidateInfo(): Promise<any> {
+    return this.provider.send('p2p_getPeerCandidateInfo');
   }
 
   /**
@@ -47,22 +94,6 @@ export default class Network {
    */
   getProtocolVersion(): Promise<any> {
     return this.provider.send('ain_getProtocolVersion');
-  }
-
-  /**
-   * Fetches the number of the peers the blockchain node is connected to.
-   * @returns {Promise<number>}
-   */
-  getPeerCount(): Promise<number> {
-    return this.provider.send('net_peerCount');
-  }
-
-  /**
-   * Checks whether the blockchain node is syncing with the network or not.
-   * @returns {Promise<boolean>}
-   */
-  isSyncing(): Promise<boolean> {
-    return this.provider.send('net_syncing');
   }
 
   /**

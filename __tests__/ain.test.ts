@@ -1,8 +1,9 @@
 // @ts-nocheck
 import Ain from '../src/ain';
+import Wallet from '../src/wallet';
 import { TransactionBody, SetOperation, TransactionInput } from '../src/types';
 import axios from 'axios';
-import { fail, eraseProtoVer } from './test_util';
+import { fail, eraseProtoVer, eraseStateVersion } from './test_util';
 const {
   test_keystore,
   test_pw,
@@ -42,10 +43,48 @@ describe('ain-js', function() {
 
     it('should set provider', async function() {
       ain.setProvider(test_node_2);
+      expect(ain.provider).not.toBeNull();
+      expect(ain.net).not.toBeNull();
+    });
+
+    it('getNetworkId', async function() {
       expect(await ain.net.getNetworkId()).toBe(0);
-      expect(await ain.net.isListening()).toMatchSnapshot();
-      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('getChainId', async function() {
+      expect(await ain.net.getChainId()).toBe(0);
+    });
+
+    it('isListening', async function() {
+      expect(await ain.net.isListening()).toBe(true);
+    });
+
+    it('isSyncing', async function() {
       expect(await ain.net.isSyncing()).toBe(false);
+    });
+
+    it('getPeerCount', async function() {
+      expect(await ain.net.getPeerCount()).toBeGreaterThan(0);
+    });
+
+    it('getConsensusStatus', async function() {
+      const status = await ain.net.getConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.state).toBe('RUNNING');
+    });
+
+    it('getRawConsensusStatus', async function() {
+      const status = await ain.net.getRawConsensusStatus();
+      expect(status).not.toBeNull();
+      expect(status.consensus).not.toBeNull();
+      expect(status.consensus.state).toBe('RUNNING');
+    });
+
+    it('getPeerCandidateInfo', async function() {
+      const info = await ain.net.getPeerCandidateInfo();
+      expect(info.address).not.toBeNull();
+      expect(info.isAvailableForConnection).toBe(true);
+      expect(info.peerCandidateJsonRpcUrlList).not.toBeNull();
     });
 
     it('getProtocolVersion', async function() {
@@ -72,8 +111,77 @@ describe('ain-js', function() {
     });
   });
 
+  describe('Provider', function() {
+    it('getAddress', async function() {
+      const address = await ain.provider.getAddress();
+      expect(address).not.toBeNull();
+    });
+  });
+
   describe('Wallet', function() {
-    let addresses = []
+    it('countDecimals', function() {
+      expect(Wallet.countDecimals(0)).toBe(0);  // '0'
+      expect(Wallet.countDecimals(1)).toBe(0);  // '1'
+      expect(Wallet.countDecimals(10)).toBe(0);  // '10'
+      expect(Wallet.countDecimals(100)).toBe(0);  // '100'
+      expect(Wallet.countDecimals(1000)).toBe(0);  // '1000'
+      expect(Wallet.countDecimals(10000)).toBe(0);  // '10000'
+      expect(Wallet.countDecimals(100000)).toBe(0);  // '100000'
+      expect(Wallet.countDecimals(1000000)).toBe(0);  // '1000000'
+      expect(Wallet.countDecimals(10000000)).toBe(0);  // '10000000'
+      expect(Wallet.countDecimals(100000000)).toBe(0);  // '100000000'
+      expect(Wallet.countDecimals(1000000000)).toBe(0);  // '1000000000'
+      expect(Wallet.countDecimals(1234567890)).toBe(0);  // '1234567890'
+      expect(Wallet.countDecimals(-1)).toBe(0);  // '-1'
+      expect(Wallet.countDecimals(-1000000000)).toBe(0);  // '-1000000000'
+      expect(Wallet.countDecimals(11)).toBe(0);  // '11'
+      expect(Wallet.countDecimals(101)).toBe(0);  // '101'
+      expect(Wallet.countDecimals(1001)).toBe(0);  // '1001'
+      expect(Wallet.countDecimals(10001)).toBe(0);  // '10001'
+      expect(Wallet.countDecimals(100001)).toBe(0);  // '100001'
+      expect(Wallet.countDecimals(1000001)).toBe(0);  // '1000001'
+      expect(Wallet.countDecimals(10000001)).toBe(0);  // '10000001'
+      expect(Wallet.countDecimals(100000001)).toBe(0);  // '100000001'
+      expect(Wallet.countDecimals(1000000001)).toBe(0);  // '1000000001'
+      expect(Wallet.countDecimals(-11)).toBe(0);  // '-11'
+      expect(Wallet.countDecimals(-1000000001)).toBe(0);  // '-1000000001'
+      expect(Wallet.countDecimals(0.1)).toBe(1);  // '0.1'
+      expect(Wallet.countDecimals(0.01)).toBe(2);  // '0.01'
+      expect(Wallet.countDecimals(0.001)).toBe(3);  // '0.001'
+      expect(Wallet.countDecimals(0.0001)).toBe(4);  // '0.0001'
+      expect(Wallet.countDecimals(0.00001)).toBe(5);  // '0.00001'
+      expect(Wallet.countDecimals(0.000001)).toBe(6);  // '0.000001'
+      expect(Wallet.countDecimals(0.0000001)).toBe(7);  // '1e-7'
+      expect(Wallet.countDecimals(0.00000001)).toBe(8);  // '1e-8'
+      expect(Wallet.countDecimals(0.000000001)).toBe(9);  // '1e-9'
+      expect(Wallet.countDecimals(0.0000000001)).toBe(10);  // '1e-10'
+      expect(Wallet.countDecimals(-0.1)).toBe(1);  // '-0.1'
+      expect(Wallet.countDecimals(-0.0000000001)).toBe(10);  // '-1e-10'
+      expect(Wallet.countDecimals(1.2)).toBe(1);  // '1.2'
+      expect(Wallet.countDecimals(0.12)).toBe(2);  // '0.12'
+      expect(Wallet.countDecimals(0.012)).toBe(3);  // '0.012'
+      expect(Wallet.countDecimals(0.0012)).toBe(4);  // '0.0012'
+      expect(Wallet.countDecimals(0.00012)).toBe(5);  // '0.00012'
+      expect(Wallet.countDecimals(0.000012)).toBe(6);  // '0.000012'
+      expect(Wallet.countDecimals(0.0000012)).toBe(7);  // '0.0000012'
+      expect(Wallet.countDecimals(0.00000012)).toBe(8);  // '1.2e-7'
+      expect(Wallet.countDecimals(0.000000012)).toBe(9);  // '1.2e-8'
+      expect(Wallet.countDecimals(0.0000000012)).toBe(10);  // '1.2e-9'
+      expect(Wallet.countDecimals(-1.2)).toBe(1);  // '-1.2'
+      expect(Wallet.countDecimals(-0.0000000012)).toBe(10);  // '-1.2e-9'
+      expect(Wallet.countDecimals(1.03)).toBe(2);  // '1.03'
+      expect(Wallet.countDecimals(1.003)).toBe(3);  // '1.003'
+      expect(Wallet.countDecimals(1.0003)).toBe(4);  // '1.0003'
+      expect(Wallet.countDecimals(1.00003)).toBe(5);  // '1.00003'
+      expect(Wallet.countDecimals(1.000003)).toBe(6);  // '1.000003'
+      expect(Wallet.countDecimals(1.0000003)).toBe(7);  // '1.0000003'
+      expect(Wallet.countDecimals(1.00000003)).toBe(8);  // '1.00000003'
+      expect(Wallet.countDecimals(1.000000003)).toBe(9);  // '1.000000003'
+      expect(Wallet.countDecimals(1.0000000003)).toBe(10);  // '1.0000000003'
+      expect(Wallet.countDecimals(-1.03)).toBe(2);  // '-1.03'
+      expect(Wallet.countDecimals(-1.0000000003)).toBe(10);  // '-1.0000000003'
+    });
+
     it('create', function() {
       const beforeLength = ain.wallet.length;
       ain.wallet.create(2);
@@ -204,6 +312,16 @@ describe('ain-js', function() {
       expect(balance).toBeGreaterThan(0);
     });
 
+    it('getNonce', async function() {
+      const nonce = await ain.wallet.getNonce();
+      expect(nonce).toBe(0);
+    });
+
+    it('getTimestamp', async function() {
+      const timestamp = await ain.wallet.getTimestamp();
+      expect(timestamp).toBe(0);
+    });
+
     it('transfer with isDryrun = true', async function() {
       const balanceBefore = await ain.wallet.getBalance();
       const response = await ain.wallet.transfer({
@@ -220,6 +338,64 @@ describe('ain-js', function() {
           to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813', value: 100, nonce: -1 });
       const balanceAfter = await ain.wallet.getBalance();
       expect(balanceAfter).toBe(balanceBefore - 100);
+    });
+
+    it('transfer with a zero value', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      try {
+        const response = await ain.wallet.transfer({
+            to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+            value: 0,  // a zero value
+            nonce: -1 });
+        fail('should not happen');
+      } catch(e) {
+        expect(e.message).toBe('Non-positive transfer value.');
+      } finally {
+        const balanceAfter = await ain.wallet.getBalance();
+        expect(balanceAfter).toBe(balanceBefore);
+      }
+    });
+
+    it('transfer with a negative value', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      try {
+        const response = await ain.wallet.transfer({
+            to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+            value: -0.1,  // a negative value
+            nonce: -1 });
+        fail('should not happen');
+      } catch(e) {
+        expect(e.message).toBe('Non-positive transfer value.');
+      } finally {
+        const balanceAfter = await ain.wallet.getBalance();
+        expect(balanceAfter).toBe(balanceBefore);
+      }
+    });
+
+    it('transfer with a value of up to 6 decimals', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      const response = await ain.wallet.transfer({
+          to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+          value: 0.000001,  // of 6 decimals
+          nonce: -1 });
+      const balanceAfter = await ain.wallet.getBalance();
+      expect(balanceAfter).toBe(balanceBefore - 0.000001);
+    });
+
+    it('transfer with a value of more than 6 decimals', async function() {
+      const balanceBefore = await ain.wallet.getBalance();
+      try {
+        const response = await ain.wallet.transfer({
+            to: '0xbA58D93edD8343C001eC5f43E620712Ba8C10813',
+            value: 0.0000001,  // of 7 decimals
+            nonce: -1 });
+        fail('should not happen');
+      } catch(e) {
+        expect(e.message).toBe('Transfer value of more than 6 decimals.');
+      } finally {
+        const balanceAfter = await ain.wallet.getBalance();
+        expect(balanceAfter).toBe(balanceBefore);
+      }
     });
 
     it('chainId', function() {
@@ -340,22 +516,115 @@ describe('ain-js', function() {
       await waitUntilTxFinalized(createApps.result.tx_hash);
     });
 
-    it('getBlock', async function () {
-      const block = await ain.getBlock(3)
-      const hash = block.hash || "";
-      expect(await ain.getBlock(hash)).toStrictEqual(block);
+    it('getLastBlock', async function () {
+      const block = await ain.getLastBlock()
+      expect(block).not.toBeNull();
+      expect(block.hash).not.toBeNull();
+      expect(block.number).toBeGreaterThan(0);
     });
 
-    it('getProposer', async function () {
-      const proposer = await ain.getProposer(1);
-      const hash = (await ain.getBlock(1)).hash || "";
-      expect(await ain.getProposer(hash)).toBe(proposer);
+    it('getLastBlockNumber', async function () {
+      const number = await ain.getLastBlockNumber()
+      expect(number).not.toBeNull();
+      expect(number).toBeGreaterThan(0);
     });
 
-    it('getValidators', async function () {
-      const validators = await ain.getValidators(4);
-      const hash = (await ain.getBlock(4)).hash || "";
-      expect(await ain.getValidators(hash)).toStrictEqual(validators);
+    it('getBlockByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const block = await ain.getBlockByNumber(lastBlock.number)
+      expect(block).not.toBeNull();
+      expect(block.number).toBe(lastBlock.number);
+      expect(block.hash).toBe(lastBlock.hash);
+    });
+
+    it('getBlockByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const block = await ain.getBlockByHash(lastBlock.hash)
+      expect(block).not.toBeNull();
+      expect(block.number).toBe(lastBlock.number);
+      expect(block.hash).toBe(lastBlock.hash);
+    });
+
+    it('getBlockList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
+    });
+
+    it('getBlockHeadersList', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const blockList = await ain.getBlockHeadersList(lastBlockNumber - 1, lastBlockNumber + 1)
+      expect(blockList).not.toBeNull();
+      expect(blockList.length).toBe(2);
+      expect(blockList[0].number).toBe(lastBlockNumber - 1);
+      expect(blockList[1].number).toBe(lastBlockNumber);
+    });
+
+    it('getBlockTransactionCountByNumber', async function () {
+      const lastBlockNumber = await ain.getLastBlockNumber();
+      expect(lastBlockNumber).not.toBeNull();
+      expect(lastBlockNumber).toBeGreaterThanOrEqual(0);
+      const txCount = await ain.getBlockTransactionCountByNumber(lastBlockNumber)
+      expect(txCount).not.toBeNull();
+    });
+
+    it('getBlockTransactionCountByHash', async function () {
+      const lastBlock= await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const txCount = await ain.getBlockTransactionCountByHash(lastBlock.hash)
+      expect(txCount).not.toBeNull();
+    });
+
+    it('getValidatorInfo', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.proposer).not.toBeNull();
+      const info = await ain.getValidatorInfo(lastBlock.proposer);
+      expect(info).not.toBeNull();
+    });
+
+    it('getValidatorsByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const validators = await ain.getValidatorsByNumber(lastBlock.number);
+      expect(validators).toStrictEqual(lastBlock.validators);
+    });
+
+    it('getValidatorsByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const validators = await ain.getValidatorsByHash(lastBlock.hash);
+      expect(validators).toStrictEqual(lastBlock.validators);
+    });
+
+    it('getProposerByNumber', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.number).not.toBeNull();
+      const proposer = await ain.getProposerByNumber(lastBlock.number);
+      expect(proposer).toBe(lastBlock.proposer);
+    });
+
+    it('getProposerByHash', async function () {
+      const lastBlock = await ain.getLastBlock();
+      expect(lastBlock).not.toBeNull();
+      expect(lastBlock.hash).not.toBeNull();
+      const proposer = await ain.getProposerByHash(lastBlock.hash);
+      expect(proposer).toBe(lastBlock.proposer);
     });
 
     // TODO(liayoo): add getTransactionResult method and test case for it.
@@ -397,8 +666,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction with isDryrun = true', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction with isDryrun = true', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx).toStrictEqual(null);  // The tx is NOT in the blockchain.
     });
 
@@ -415,8 +684,8 @@ describe('ain-js', function() {
       })
     });
 
-    it('getTransaction for sendTransaction', async function () {
-      const tx = await ain.getTransaction(targetTxHash);
+    it('getTransactionByHash for sendTransaction', async function () {
+      const tx = await ain.getTransactionByHash(targetTxHash);
       expect(tx.transaction.tx_body.operation).toStrictEqual(targetTx);
     });
 
@@ -642,6 +911,29 @@ describe('ain-js', function() {
       }
       expect(thrownError.code).toEqual(30401);
       expect(thrownError.message).toEqual('Invalid batch transaction format.');
+    });
+
+    it('getPendingTransactions', async function () {
+      const txs = await ain.getPendingTransactions();
+      expect(txs).not.toBeNull();
+    });
+
+    it('getTransactionPoolSizeUtilization', async function () {
+      const txs = await ain.getTransactionPoolSizeUtilization();
+      expect(txs).not.toBeNull();
+    });
+
+    it('getTransactionByBlockHashAndIndex', async function () {
+      const genesisBlockNumber = 0;
+      const genesisBlock = await ain.getBlockByNumber(genesisBlockNumber);
+      const tx = await ain.getTransactionByBlockHashAndIndex(genesisBlock.hash, 0);
+      expect(tx).not.toBeNull();
+    });
+
+    it('getTransactionByBlockNumberAndIndex', async function () {
+      const genesisBlockNumber = 0;
+      const tx = await ain.getTransactionByBlockNumberAndIndex(genesisBlockNumber, 0);
+      expect(tx).not.toBeNull();
     });
   });
 
@@ -1112,6 +1404,39 @@ describe('ain-js', function() {
       await ain.db.ref(allowed_path).matchOwner()
       .then(res => {
         expect(res).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getStateProof', async function() {
+      await ain.db.ref('/values/blockchain_params').getStateProof()
+      .then(res => {
+        expect(res).not.toBeNull();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getProofHash', async function() {
+      await ain.db.ref('/values/blockchain_params').getProofHash()
+      .then(res => {
+        expect(res).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getStateInfo', async function() {
+      await ain.db.ref('/rules/transfer/$from/$to/$key/value').getStateInfo()
+      .then(res => {
+        expect(eraseStateVersion(res)).toMatchSnapshot();
       })
       .catch(error => {
         console.log("error:", error);

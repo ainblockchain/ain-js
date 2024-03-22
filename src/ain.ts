@@ -85,43 +85,144 @@ export default class Ain {
   }
 
   /**
-   * Fetches a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * Fetches the last block.
+   * @returns {Promise<Block>}
+   */
+  getLastBlock(): Promise<Block> {
+    return this.provider.send('ain_getLastBlock', {});
+  }
+
+  /**
+   * Fetches the last block number.
+   * @returns {Promise<Number>}
+   */
+  getLastBlockNumber(): Promise<Block> {
+    return this.provider.send('ain_getLastBlockNumber', {});
+  }
+
+  /**
+   * Fetches a block with a block number.
+   * @param {number} blockNumber The block number.
    * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
    * Otherwise, returns a block with only transaction hashes.
    * @returns {Promise<Block>}
    */
-  getBlock(blockHashOrBlockNumber: string | number, returnTransactionObjects?: boolean): Promise<Block> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getBlockByHash' : 'ain_getBlockByNumber';
-    const data = Object.assign({},
-        { getFullTransactions: !!returnTransactionObjects,
-          [byHash ? 'hash' : 'number']: blockHashOrBlockNumber });
-    return this.provider.send(rpcMethod, data);
+  getBlockByNumber(blockNumber: number, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, number: blockNumber });
+    return this.provider.send('ain_getBlockByNumber', data);
   }
 
   /**
-   * Fetches the forger's address of a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
+   * Fetches a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @param {boolean} returnTransactionObjects If it's true, returns a block with full transaction objects.
+   * Otherwise, returns a block with only transaction hashes.
+   * @returns {Promise<Block>}
+   */
+  getBlockByHash(blockHash: string, returnTransactionObjects?: boolean): Promise<Block> {
+    const data =
+        Object.assign({}, { getFullTransactions: !!returnTransactionObjects, hash: blockHash });
+    return this.provider.send('ain_getBlockByHash', data);
+  }
+
+  /**
+   * Fetches blocks with a block number range.
+   * @param {number} from The begining block number (inclusive).
+   * @param {number} to The ending block number (exclusive).
+   * @returns {Promise<Array<Block>>}
+   */
+  getBlockList(from: number, to: number): Promise<Array<Block>> {
+    return this.provider.send('ain_getBlockList', { from, to });
+  }
+
+  /**
+   * Fetches block headers with a block number range.
+   * @param {number} from The begining block number (inclusive).
+   * @param {number} to The ending block number (exclusive).
+   * @returns {Promise<Array<Block>>}
+   */
+  getBlockHeadersList(from: number, to: number): Promise<Array<Block>> {
+    return this.provider.send('ain_getBlockHeadersList', { from, to });
+  }
+
+  /**
+   * Fetches block transaction count with a block number.
+   * @param {number} number The block number.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByNumber(number: number): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByNumber', { number });
+  }
+
+  /**
+   * Fetches block transaction count with a block hash.
+   * @param {string} hash The block hash.
+   * @returns {Promise<Number>}
+   */
+  getBlockTransactionCountByHash(hash: string): Promise<Number> {
+    return this.provider.send('ain_getBlockTransactionCountByHash', { hash });
+  }
+
+  /**
+   * Fetches the information of the given validator address.
+   * @param {string} address The validator address.
+   * @returns {Promise<any>}
+   */
+  getValidatorInfo(address: string): Promise<any> {
+    return this.provider.send('ain_getValidatorInfo', { address });
+  }
+
+  /**
+   * Fetches the validator list of a block with a block number.
+   * @param {number} blockNumber The block number.
+   * @returns {Promise<any>}
+   */
+  getValidatorsByNumber(blockNumber: number): Promise<any> {
+    return this.provider.send('ain_getValidatorsByNumber', { number: blockNumber });
+  }
+
+  /**
+   * Fetches the validator list of a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @returns {Promise<any>}
+   */
+  getValidatorsByHash(blockHash: string): Promise<any> {
+    return this.provider.send('ain_getValidatorsByHash', { hash: blockHash });
+  }
+
+  /**
+   * Fetches the block proproser's address of a block with a block number.
+   * @param {number} blockNumber The block number.
    * @returns {Promise<string>}
    */
-  getProposer(blockHashOrBlockNumber: string | number): Promise<string> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getProposerByHash' : 'ain_getProposerByNumber';
-    return this.provider.send(rpcMethod,
-        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
+  getProposerByNumber(blockNumber: number): Promise<string> {
+    return this.provider.send('ain_getProposerByNumber', { number: blockNumber });
   }
 
   /**
-   * Fetches the validator list of a block with a block hash or block number.
-   * @param {string | number} blockHashOrBlockNumber The block hash or block number.
-   * @returns {Promise<string[]>}
+   * Fetches the block proproser's address of a block with a block hash.
+   * @param {string} blockHash The block hash.
+   * @returns {Promise<string>}
    */
-  getValidators(blockHashOrBlockNumber: string | number): Promise<string[]> {
-    const byHash = typeof blockHashOrBlockNumber === 'string'
-    const rpcMethod = byHash ? 'ain_getValidatorsByHash' : 'ain_getValidatorsByNumber';
-    return this.provider.send(rpcMethod,
-        {[byHash ? 'hash' : 'number']: blockHashOrBlockNumber});
+  getProposerByHash(blockHash: string): Promise<string> {
+    return this.provider.send('ain_getProposerByHash', { hash: blockHash });
+  }
+
+  /**
+   * Fetches pending transaction.
+   * @returns {Promise<any>}
+   */
+  getPendingTransactions(): Promise<any> {
+    return this.provider.send('ain_getPendingTransactions', {});
+  }
+
+  /**
+   * Fetches transaction pool size utilization.
+   * @returns {Promise<any>}
+   */
+  getTransactionPoolSizeUtilization(): Promise<any> {
+    return this.provider.send('ain_getTransactionPoolSizeUtilization', {});
   }
 
   /**
@@ -129,8 +230,28 @@ export default class Ain {
    * @param {string} transactionHash The transaction hash.
    * @returns {Promise<TransactionInfo>}
    */
-  getTransaction(transactionHash: string): Promise<TransactionInfo> {
+  getTransactionByHash(transactionHash: string): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByHash', { hash: transactionHash });
+  }
+
+  /**
+   * Fetches a transaction's information with a block hash and an index.
+   * @param {string} blockHash The block hash.
+   * @param {number} index The transaction index in the block
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionByBlockHashAndIndex(blockHash: string, index: Number): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionByBlockHashAndIndex', { block_hash: blockHash, index });
+  }
+ 
+  /**
+   * Fetches a transaction's information with a block hash and an index.
+   * @param {string} blockNumber The block number.
+   * @param {number} index The transaction index in the block
+   * @returns {Promise<TransactionInfo>}
+   */
+  getTransactionByBlockNumberAndIndex(blockNumber: Number, index: Number): Promise<TransactionInfo> {
+    return this.provider.send('ain_getTransactionByBlockNumberAndIndex', { block_number: blockNumber, index });
   }
 
   /**

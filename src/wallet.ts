@@ -2,7 +2,9 @@ import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions } fro
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
-const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/"; /* default wallet address for AIN */
+// TODO(platfowner): Migrate to Ethereum HD derivation path 'm/44'/60'/0'/0/'.
+const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/";  // The hardware wallet derivation path of AIN
+const MAX_TRANSFERABLE_DECIMALS = 6;  // The maximum decimals of transferable values
 
 /**
  * A class for AI Network wallets.
@@ -56,6 +58,25 @@ export default class Wallet {
     const checksummed = Ain.utils.toChecksumAddress(address);
     if (!this.accounts[checksummed]) return ''
     return this.accounts[checksummed].public_key;
+  }
+
+  /**
+   * Counts the given number's decimals.
+   * @param {number} value The number.
+   * @returns {number} The decimal count.
+   */
+  static countDecimals(value: number): number {
+    const decimalExponentRegex = /^-{0,1}(\d*\.{0,1}\d*)e-(\d+)$/gm;
+
+    if (Math.floor(value) === value) {
+      return 0;
+    }
+    const valueString = value.toString();
+    const matches = decimalExponentRegex.exec(valueString);
+    if (matches) {
+      return Number(matches[2]) + Wallet.countDecimals(Number(matches[1]));
+    }
+    return valueString.split('.')[1].length || 0; 
   }
 
   /**
@@ -228,6 +249,46 @@ export default class Wallet {
   }
 
   /**
+   * Fetches an account's nonce value, which is the current transaction count of the account.
+   * @param {object} args The ferch options.
+   * It may contain a string 'address' value and a string 'from' value.
+   * The 'address' is the address of the account to get the nonce of,
+   * and the 'from' is the source of the data.
+   * It could be either the pending transaction pool ("pending") or
+   * the committed blocks ("committed"). The default value is "committed".
+   * @returns {Promise<number>} The nonce value.
+   */
+  getNonce(args: { address?: string, from?: string }): Promise<number> {
+    if (!args) { args = {}; }
+    const address = args.address ? Ain.utils.toChecksumAddress(args.address)
+      : this.getImpliedAddress(args.address);
+    if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
+      throw Error("'from' should be either 'pending' or 'committed'");
+    }
+    return this.ain.provider.send('ain_getNonce', { address, from: args.from })
+  }
+
+  /**
+   * Fetches an account's timestamp value, which is the current transaction count of the account.
+   * @param {object} args The ferch options.
+   * It may contain a string 'address' value and a string 'from' value.
+   * The 'address' is the address of the account to get the timestamp of,
+   * and the 'from' is the source of the data.
+   * It could be either the pending transaction pool ("pending") or
+   * the committed blocks ("committed"). The default value is "committed".
+   * @returns {Promise<number>} The timestamp value.
+   */
+  getTimestamp(args: { address?: string, from?: string }): Promise<number> {
+    if (!args) { args = {}; }
+    const address = args.address ? Ain.utils.toChecksumAddress(args.address)
+      : this.getImpliedAddress(args.address);
+    if (args.from !== undefined && args.from !== 'pending' && args.from !== 'committed') {
+      throw Error("'from' should be either 'pending' or 'committed'");
+    }
+    return this.ain.provider.send('ain_getTimestamp', { address, from: args.from })
+  }
+
+  /**
    * Sends a transfer transaction to the network.
    * @param {{to: string, value: number, from?: string, nonce?: number, gas_price?: number}} input The input parameters of the transaction.
    * @param {boolean} isDryrun The dryrun option.
@@ -236,6 +297,13 @@ export default class Wallet {
   transfer(input: {to: string, value: number, from?: string, nonce?: number, gas_price?: number}, isDryrun: boolean = false): Promise<any> {
     const address = this.getImpliedAddress(input.from);
     const toAddress = Ain.utils.toChecksumAddress(input.to);
+    if (!(input.value > 0)) {
+      throw Error(`Non-positive transfer value.`);
+    }
+    const decimalCount = Wallet.countDecimals(input.value);
+    if (decimalCount > MAX_TRANSFERABLE_DECIMALS) {
+      throw Error(`Transfer value of more than ${MAX_TRANSFERABLE_DECIMALS} decimals.`);
+    }
     const transferRef = this.ain.db.ref(`/transfer/${address}/${toAddress}`).push() as Reference;
     return transferRef.setValue({
         ref: '/value', address, value: input.value, nonce: input.nonce, gas_price: input.gas_price }, isDryrun);
