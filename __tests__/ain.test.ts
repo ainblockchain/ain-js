@@ -632,6 +632,11 @@ describe('ain-js', function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
+    it('getStateUsage', async function() {
+      // with an app that does not exist yet
+      expect(eraseProtoVer(await ain.getStateUsage('test_new'))).toMatchSnapshot();
+    });
+
     it('validateAppName returns true', async function () {
       expect(eraseProtoVer(await ain.validateAppName('test_new'))).toStrictEqual({
         "is_valid": true,

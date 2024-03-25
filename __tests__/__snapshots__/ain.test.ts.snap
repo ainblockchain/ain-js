@@ -1,5 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`ain-js Core getStateUsage 1`] = `
+Object {
+  "available": Object {
+    "tree_bytes": 25000000,
+    "tree_height": 30,
+    "tree_size": 156250,
+  },
+  "protoVer": "erased",
+  "staking": Object {
+    "app": 0,
+    "total": 2,
+    "unstakeable": 0,
+  },
+  "usage": Object {
+    "tree_bytes": 0,
+    "tree_height": 0,
+    "tree_max_siblings": 0,
+    "tree_size": 0,
+  },
+}
+`;
+
 exports[`ain-js Database evalOwner 1`] = `
 Object {
   "code": 0,
