@@ -632,11 +632,6 @@ describe('ain-js', function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
     // });
 
-    it('getStateUsage', async function() {
-      // with an app that does not exist yet
-      expect(eraseProtoVer(await ain.getStateUsage('test_new'))).toMatchSnapshot();
-    });
-
     it('validateAppName returns true', async function () {
       expect(eraseProtoVer(await ain.validateAppName('test_new'))).toStrictEqual({
         "is_valid": true,
@@ -1442,6 +1437,18 @@ describe('ain-js', function() {
       await ain.db.ref('/rules/transfer/$from/$to/$key/value').getStateInfo()
       .then(res => {
         expect(eraseStateVersion(res)).toMatchSnapshot();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
+    it('getStateUsage', async function() {
+      // with an app that does not exist yet
+      await ain.getStateUsage('test_new')
+      .then(res => {
+        expect(eraseProtoVer(res)).toMatchSnapshot();
       })
       .catch(error => {
         console.log("error:", error);
