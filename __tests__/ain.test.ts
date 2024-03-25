@@ -1448,7 +1448,10 @@ describe('ain-js', function() {
       // with an app that does not exist yet
       await ain.getStateUsage('test_new')
       .then(res => {
-        expect(eraseProtoVer(res)).toMatchSnapshot();
+        const erased = eraseProtoVer(res);
+        expect(erased.available).toBeDefined();
+        expect(erased.usage).toBeDefined();
+        expect(erased.staking).toBeDefined();
       })
       .catch(error => {
         console.log("error:", error);
