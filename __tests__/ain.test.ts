@@ -627,6 +627,21 @@ describe('ain-js', function() {
       expect(proposer).toBe(lastBlock.proposer);
     });
 
+    it('getStateUsage', async function() {
+      // with an app that does not exist yet
+      await ain.getStateUsage('test_new')
+      .then(res => {
+        const erased = eraseProtoVer(res);
+        expect(erased.available).toBeDefined();
+        expect(erased.usage).toBeDefined();
+        expect(erased.staking).toBeDefined();
+      })
+      .catch(error => {
+        console.log("error:", error);
+        fail('should not happen');
+      })
+    });
+
     // TODO(liayoo): add getTransactionResult method and test case for it.
     // it('getTransactionResult', async function() {
     //   expect(await ain.getTransactionResult('0xabcdefghijklmnop')).toMatchSnapshot();
