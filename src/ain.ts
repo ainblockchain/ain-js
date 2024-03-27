@@ -210,7 +210,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches pending transaction.
+   * Fetches pending transactions.
    * @returns {Promise<any>}
    */
   getPendingTransactions(): Promise<any> {
