@@ -269,7 +269,7 @@ export default class Wallet {
   }
 
   /**
-   * Fetches an account's timestamp value, which is the current transaction count of the account.
+   * Fetches an account's timestamp value, which is the timestamp of the last transaction signed by the account with nonce = -2.
    * @param {object} args The ferch options.
    * It may contain a string 'address' value and a string 'from' value.
    * The 'address' is the address of the account to get the timestamp of,
