@@ -210,7 +210,7 @@ export default class Ain {
   }
 
   /**
-   * Fetches pending transaction.
+   * Fetches pending transactions.
    * @returns {Promise<any>}
    */
   getPendingTransactions(): Promise<any> {
@@ -240,7 +240,7 @@ export default class Ain {
    * @param {number} index The transaction index in the block
    * @returns {Promise<TransactionInfo>}
    */
-  getTransactionByBlockHashAndIndex(blockHash: string, index: Number): Promise<TransactionInfo> {
+  getTransactionByBlockHashAndIndex(blockHash: string, index: number): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByBlockHashAndIndex', { block_hash: blockHash, index });
   }
  
@@ -250,7 +250,7 @@ export default class Ain {
    * @param {number} index The transaction index in the block
    * @returns {Promise<TransactionInfo>}
    */
-  getTransactionByBlockNumberAndIndex(blockNumber: Number, index: Number): Promise<TransactionInfo> {
+  getTransactionByBlockNumberAndIndex(blockNumber: number, index: number): Promise<TransactionInfo> {
     return this.provider.send('ain_getTransactionByBlockNumberAndIndex', { block_number: blockNumber, index });
   }
 
