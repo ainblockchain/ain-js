@@ -39,9 +39,9 @@ export default class Provider {
 
   /**
    * Fetches the blockchain node's address.
-   * @returns {Promise<any>} The return value of the blockchain API.
+   * @returns {Promise<string>} The return value of the blockchain API.
    */
-  getAddress(): Promise<any> {
+  getAddress(): Promise<string> {
     return this.send('ain_getAddress', {})
   }
 
