@@ -82,6 +82,7 @@ describe('ain-js', function() {
 
     it('getPeerCandidateInfo', async function() {
       const info = await ain.net.getPeerCandidateInfo();
+      expect(info).not.toBeNull();
       expect(info.address).not.toBeNull();
       expect(info.isAvailableForConnection).toBe(true);
       expect(info.peerCandidateJsonRpcUrlList).not.toBeNull();
