@@ -1,5 +1,5 @@
 import Ain from '../ain';
-import { WebSocket } from 'ws';
+import WebSocket from 'isomorphic-ws';
 import {
   EventChannelMessageTypes,
   EventChannelMessage,
@@ -22,7 +22,7 @@ export default class EventChannelClient {
   /** The event callback manager object. */
   private readonly _eventCallbackManager: EventCallbackManager;
   /** The web socket client. */
-  private _wsClient?: WebSocket;
+  private _ws?: WebSocket;
   /** The blockchain endpoint URL. */
   private _endpointUrl?: string;
   /** Whether it's connected or not. */
@@ -38,7 +38,7 @@ export default class EventChannelClient {
   constructor(ain: Ain, eventCallbackManager: EventCallbackManager) {
     this._ain = ain;
     this._eventCallbackManager = eventCallbackManager;
-    this._wsClient = undefined;
+    this._ws = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
     this._heartbeatTimeout = undefined;
@@ -85,32 +85,36 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
-      this._wsClient = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
-      this._wsClient.on('message', (message: string) => {
-        this.handleMessage(message);
-      });
-      this._wsClient.on('error', (err) => {
-        console.error(err);
+      this._ws = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
+      this._ws.onmessage = (event: { data: unknown }) => {
+        if (typeof event.data !== 'string') {
+          return;
+        }
+        this.handleMessage(event.data);
+      };
+      this._ws.onerror = async (event: unknown) => {
+        console.error(event);
         this.disconnect();
-      });
-      this._wsClient.on('open', () => {
+      };
+      this._ws.onopen = () => {
         this._isConnected = true;
         this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve(this);
-      });
-      this._wsClient.on('ping', () => {
-        if (this._heartbeatTimeout) {
-          clearTimeout(this._heartbeatTimeout);
-        }
-        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
-      });
-      this._wsClient.on('close', () => {
+      };
+      // NOTE(jiyoung): ping is not supported in browser api
+      // this._wsClient.on('ping', () => {
+      //   if (this._heartbeatTimeout) {
+      //     clearTimeout(this._heartbeatTimeout);
+      //   }
+      //   this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
+      // });
+      this._ws.onclose = () => {
         this.disconnect();
         if (disconnectionCallback) {
-          disconnectionCallback(this._wsClient);
+          disconnectionCallback(this._ws);
         }
-      });
-    })
+      };
+    });
   }
 
   /**
@@ -118,7 +122,7 @@ export default class EventChannelClient {
    */
   disconnect() {
     this._isConnected = false;
-    this._wsClient!.terminate();
+    this._ws!.close();
     if (this._heartbeatTimeout) {
       clearTimeout(this._heartbeatTimeout);
       this._heartbeatTimeout = null;
@@ -132,7 +136,7 @@ export default class EventChannelClient {
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
       console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
-      this._wsClient!.terminate();
+      this._ws!.terminate();
     }, timeoutMs);
   }
 
@@ -231,7 +235,7 @@ export default class EventChannelClient {
     if (!this._isConnected) {
       throw Error(`Failed to send message. Event channel is not connected!`);
     }
-    this._wsClient!.send(JSON.stringify(message));
+    this._ws!.send(JSON.stringify(message));
   }
 
   /**
