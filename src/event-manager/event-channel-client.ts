@@ -1,5 +1,5 @@
 import Ain from '../ain';
-import WebSocket from 'isomorphic-ws';
+import * as WebSocket from 'isomorphic-ws';
 import {
   EventChannelMessageTypes,
   EventChannelMessage,
@@ -101,7 +101,7 @@ export default class EventChannelClient {
         this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve(this);
       };
-      // NOTE(jiyoung): ping is not supported in browser api
+      // NOTE(jiyoung): implement onping method here.
       // this._wsClient.on('ping', () => {
       //   if (this._heartbeatTimeout) {
       //     clearTimeout(this._heartbeatTimeout);
@@ -136,7 +136,7 @@ export default class EventChannelClient {
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
       console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
-      this._ws!.terminate();
+      this._ws!.close();
     }, timeoutMs);
   }
 
