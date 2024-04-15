@@ -397,7 +397,6 @@ export type BlockchainEventConfig = BlockFinalizedEventConfig | ValueChangedEven
  */
 export interface EventChannelConnectionOptions {
   handshakeTimeout?: number;
-  heartbeatIntervalMs?: number;
 }
 
 /**
