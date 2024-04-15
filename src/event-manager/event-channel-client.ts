@@ -4,7 +4,6 @@ import {
   EventChannelMessageTypes,
   EventChannelMessage,
   BlockchainEventTypes,
-  EventChannelConnectionOptions,
   DisconnectionCallback,
 } from '../types';
 import EventFilter from './event-filter';
@@ -27,6 +26,8 @@ export default class EventChannelClient {
   private _endpointUrl?: string;
   /** Whether it's connected or not. */
   private _isConnected: boolean;
+  /** The handshake timeout object. */
+  private _handshakeTimeout?: ReturnType<typeof setTimeout> | null;
   /** The heartbeat timeout object. */
   private _heartbeatTimeout?: ReturnType<typeof setTimeout> | null;
 
@@ -41,6 +42,7 @@ export default class EventChannelClient {
     this._ws = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
+    this._handshakeTimeout = undefined;
     this._heartbeatTimeout = undefined;
   }
 
@@ -50,11 +52,10 @@ export default class EventChannelClient {
 
   /**
    * Opens a new event channel.
-   * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback): Promise<any> {
+  connect(disconnectionCallback?: DisconnectionCallback): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -85,8 +86,9 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
-      // TODO(platfowner): Add a custom handshake timeout.
-      this._ws = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
+      this._ws = new WebSocket(url);
+      // NOTE(platfowner): A custom handshake timeout (see https://github.com/ainblockchain/ain-js/issues/171).
+      this.startHandshakeTimer(DEFAULT_HANDSHAKE_TIMEOUT_MS);
 
       this._ws.onmessage = (event: { data: unknown }) => {
         if (typeof event.data !== 'string') {
@@ -121,18 +123,15 @@ export default class EventChannelClient {
 
       this._ws.onopen = () => {
         this._isConnected = true;
+        // Handshake timeout
+        if (this._handshakeTimeout) {
+          clearTimeout(this._handshakeTimeout);
+          this._handshakeTimeout = null;
+        }
+        // Heartbeat timeout
         this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve(this);
       };
-
-      // TODO(platfowner): Add a custom ping-poing for heartbeat.
-      // NOTE(jiyoung): implement onping method here.
-      // this._wsClient.on('ping', () => {
-      //   if (this._heartbeatTimeout) {
-      //     clearTimeout(this._heartbeatTimeout);
-      //   }
-      //   this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
-      // });
 
       this._ws.onclose = () => {
         this.disconnect();
@@ -156,12 +155,23 @@ export default class EventChannelClient {
   }
 
   /**
+   * Starts the handshake timer for the event channel.
+   * @param {number} timeoutMs The timeout value in miliseconds.
+   */
+  startHandshakeTimer(timeoutMs: number) {
+    this._handshakeTimeout = setTimeout(() => {
+      console.error(`Handshake timeouted! Closing the websocket.`);
+      this._ws!.close();
+    }, timeoutMs);
+  }
+
+  /**
    * Starts the heartbeat timer for the event channel.
    * @param {number} timeoutMs The timeout value in miliseconds.
    */
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
-      console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
+      console.error(`Heartbeat timeouted! Closing the websocket.`);
       this._ws!.close();
     }, timeoutMs);
   }
@@ -215,6 +225,7 @@ export default class EventChannelClient {
    */
   handlePing() {
     this.sendPong();
+    // Heartbeat timeout
     if (this._heartbeatTimeout) {
       clearTimeout(this._heartbeatTimeout);
     }

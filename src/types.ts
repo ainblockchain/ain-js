@@ -396,13 +396,6 @@ export interface TxStateChangedEventConfig {
 export type BlockchainEventConfig = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
 
 /**
- * An interface for event-channel-connection options (blockchain event handler).
- */
-export interface EventChannelConnectionOptions {
-  handshakeTimeout?: number;
-}
-
-/**
  * An interface for error handling callbacks (blockchain event handler).
  */
 export interface ErrorFirstCallback<T> {
