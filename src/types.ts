@@ -350,6 +350,9 @@ export enum EventChannelMessageTypes {
   DEREGISTER_FILTER = 'DEREGISTER_FILTER',
   EMIT_EVENT = 'EMIT_EVENT',
   EMIT_ERROR = 'EMIT_ERROR',
+  // NOTE(platfowner): Message types for custom ping-pong (see https://github.com/ainblockchain/ain-js/issues/171).
+  PING = 'PING',
+  PONG = 'PONG',
 }
 
 /**
