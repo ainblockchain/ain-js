@@ -228,6 +228,7 @@ export default class EventChannelClient {
     // Heartbeat timeout
     if (this._heartbeatTimeout) {
       clearTimeout(this._heartbeatTimeout);
+      this._heartbeatTimeout = null;
     }
     this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
   }
