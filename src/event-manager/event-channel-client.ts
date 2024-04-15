@@ -90,9 +90,28 @@ export default class EventChannelClient {
 
       this._ws.onmessage = (event: { data: unknown }) => {
         if (typeof event.data !== 'string') {
+          console.error(`Non-string event data: ${event.data}`);
           return;
         }
-        this.handleMessage(event.data);
+        try {
+          const parsedMessage = JSON.parse(event.data);
+          const messageType = parsedMessage.type;
+          if (!messageType) {
+            throw Error(`No message type in (${event.data})`);
+          }
+          const messageData = parsedMessage.data;
+          if (!messageData) {
+            throw Error(`No message data in (${event.data})`);
+          }
+          // NOTE(platfowner): A custom ping-pong (see https://github.com/ainblockchain/ain-js/issues/171).
+          if (messageType === EventChannelMessageTypes.PING) {
+            this.handlePing();
+          } else {
+            this.handleMessage(messageType, messageData);
+          }
+        } catch (err) {
+          console.error(err);
+        }
       };
 
       this._ws.onerror = async (event: unknown) => {
@@ -192,32 +211,32 @@ export default class EventChannelClient {
   }
 
   /**
-   * Handles a message from the event channel.
-   * @param {string} message The message.
+   * Handles a ping message from the event channel.
    */
-  handleMessage(message: string) {
-    try {
-      const parsedMessage = JSON.parse(message);
-      const messageType = parsedMessage.type;
-      if (!messageType) {
-        throw Error(`Can't find type from message (${message})`);
-      }
-      const messageData = parsedMessage.data;
-      if (!messageData) {
-        throw Error(`Can't find data from message (${message})`);
-      }
-      switch (messageType) {
-        case EventChannelMessageTypes.EMIT_EVENT:
-          this.handleEmitEventMessage(messageData);
-          break;
-        case EventChannelMessageTypes.EMIT_ERROR:
-          this.handleEmitErrorMessage(messageData);
-          break;
-        default:
-          break;
-      }
-    } catch (err) {
-      console.error(err);
+  handlePing() {
+    this.sendPong();
+    if (this._heartbeatTimeout) {
+      clearTimeout(this._heartbeatTimeout);
+    }
+    this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
+  }
+
+  /**
+   * Handles a (non-ping) message from the event channel.
+   * 
+   * @param {EventChannelMessageTypes} messageType The message type.
+   * @param {any} messageData The message data.
+   */
+  handleMessage(messageType: EventChannelMessageTypes, messageData: any) {
+    switch (messageType) {
+      case EventChannelMessageTypes.EMIT_EVENT:
+        this.handleEmitEventMessage(messageData);
+        break;
+      case EventChannelMessageTypes.EMIT_ERROR:
+        this.handleEmitErrorMessage(messageData);
+        break;
+      default:
+        break;
     }
   }
 
@@ -263,5 +282,13 @@ export default class EventChannelClient {
     const filterObj = filter.toObject();
     const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
     this.sendMessage(deregisterMessage);
+  }
+
+  /**
+   * Sends a pong message.
+   */
+  sendPong() {
+    const pongMessage = this.buildMessage(EventChannelMessageTypes.PONG, {});
+    this.sendMessage(pongMessage);
   }
 }
