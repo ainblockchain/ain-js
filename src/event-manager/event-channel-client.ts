@@ -85,6 +85,7 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
+      // TODO(platfowner): Add a custom handshake timeout.
       this._ws = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
       this._ws.onmessage = (event: { data: unknown }) => {
         if (typeof event.data !== 'string') {
@@ -101,6 +102,7 @@ export default class EventChannelClient {
         this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve(this);
       };
+      // TODO(platfowner): Add a custom ping-poing for heartbeat.
       // NOTE(jiyoung): implement onping method here.
       // this._wsClient.on('ping', () => {
       //   if (this._heartbeatTimeout) {
