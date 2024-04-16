@@ -350,6 +350,9 @@ export enum EventChannelMessageTypes {
   DEREGISTER_FILTER = 'DEREGISTER_FILTER',
   EMIT_EVENT = 'EMIT_EVENT',
   EMIT_ERROR = 'EMIT_ERROR',
+  // NOTE(platfowner): Message types for custom ping-pong (see https://github.com/ainblockchain/ain-js/issues/171).
+  PING = 'PING',
+  PONG = 'PONG',
 }
 
 /**
@@ -391,14 +394,6 @@ export interface TxStateChangedEventConfig {
  * A type for blockchain event configuration (blockchain event handler).
  */
 export type BlockchainEventConfig = BlockFinalizedEventConfig | ValueChangedEventConfig | TxStateChangedEventConfig;
-
-/**
- * An interface for event-channel-connection options (blockchain event handler).
- */
-export interface EventChannelConnectionOptions {
-  handshakeTimeout?: number;
-  heartbeatIntervalMs?: number;
-}
 
 /**
  * An interface for error handling callbacks (blockchain event handler).

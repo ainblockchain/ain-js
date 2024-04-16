@@ -4,7 +4,6 @@ import {
   EventChannelMessageTypes,
   EventChannelMessage,
   BlockchainEventTypes,
-  EventChannelConnectionOptions,
   DisconnectionCallback,
 } from '../types';
 import EventFilter from './event-filter';
@@ -27,6 +26,8 @@ export default class EventChannelClient {
   private _endpointUrl?: string;
   /** Whether it's connected or not. */
   private _isConnected: boolean;
+  /** The handshake timeout object. */
+  private _handshakeTimeout?: ReturnType<typeof setTimeout> | null;
   /** The heartbeat timeout object. */
   private _heartbeatTimeout?: ReturnType<typeof setTimeout> | null;
 
@@ -41,6 +42,7 @@ export default class EventChannelClient {
     this._ws = undefined;
     this._endpointUrl = undefined;
     this._isConnected = false;
+    this._handshakeTimeout = undefined;
     this._heartbeatTimeout = undefined;
   }
 
@@ -50,11 +52,10 @@ export default class EventChannelClient {
 
   /**
    * Opens a new event channel.
-   * @param {EventChannelConnectionOptions} connectionOption The event channel connection options.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(connectionOption: EventChannelConnectionOptions, disconnectionCallback?: DisconnectionCallback): Promise<any> {
+  connect(disconnectionCallback?: DisconnectionCallback): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -85,31 +86,53 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
-      // TODO(platfowner): Add a custom handshake timeout.
-      this._ws = new WebSocket(url, [], { handshakeTimeout: connectionOption.handshakeTimeout || DEFAULT_HANDSHAKE_TIMEOUT_MS });
+      this._ws = new WebSocket(url);
+      // NOTE(platfowner): A custom handshake timeout (see https://github.com/ainblockchain/ain-js/issues/171).
+      this.startHandshakeTimer(DEFAULT_HANDSHAKE_TIMEOUT_MS);
+
       this._ws.onmessage = (event: { data: unknown }) => {
         if (typeof event.data !== 'string') {
+          console.error(`Non-string event data: ${event.data}`);
           return;
         }
-        this.handleMessage(event.data);
+        try {
+          const parsedMessage = JSON.parse(event.data);
+          const messageType = parsedMessage.type;
+          if (!messageType) {
+            throw Error(`No message type in (${event.data})`);
+          }
+          const messageData = parsedMessage.data;
+          if (!messageData) {
+            throw Error(`No message data in (${event.data})`);
+          }
+          // NOTE(platfowner): A custom ping-pong (see https://github.com/ainblockchain/ain-js/issues/171).
+          if (messageType === EventChannelMessageTypes.PING) {
+            this.handlePing();
+          } else {
+            this.handleMessage(messageType, messageData);
+          }
+        } catch (err) {
+          console.error(err);
+        }
       };
+
       this._ws.onerror = async (event: unknown) => {
         console.error(event);
         this.disconnect();
       };
+
       this._ws.onopen = () => {
         this._isConnected = true;
-        this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
+        // Handshake timeout
+        if (this._handshakeTimeout) {
+          clearTimeout(this._handshakeTimeout);
+          this._handshakeTimeout = null;
+        }
+        // Heartbeat timeout
+        this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
         resolve(this);
       };
-      // TODO(platfowner): Add a custom ping-poing for heartbeat.
-      // NOTE(jiyoung): implement onping method here.
-      // this._wsClient.on('ping', () => {
-      //   if (this._heartbeatTimeout) {
-      //     clearTimeout(this._heartbeatTimeout);
-      //   }
-      //   this.startHeartbeatTimer(connectionOption.heartbeatIntervalMs || DEFAULT_HEARTBEAT_INTERVAL_MS);
-      // });
+
       this._ws.onclose = () => {
         this.disconnect();
         if (disconnectionCallback) {
@@ -132,12 +155,23 @@ export default class EventChannelClient {
   }
 
   /**
+   * Starts the handshake timer for the event channel.
+   * @param {number} timeoutMs The timeout value in miliseconds.
+   */
+  startHandshakeTimer(timeoutMs: number) {
+    this._handshakeTimeout = setTimeout(() => {
+      console.error(`Handshake timeouted! Closing the websocket.`);
+      this._ws!.close();
+    }, timeoutMs);
+  }
+
+  /**
    * Starts the heartbeat timer for the event channel.
    * @param {number} timeoutMs The timeout value in miliseconds.
    */
   startHeartbeatTimer(timeoutMs: number) {
     this._heartbeatTimeout = setTimeout(() => {
-      console.log(`Connection timeout! Terminate the connection. All event subscriptions are stopped.`);
+      console.error(`Heartbeat timeouted! Closing the websocket.`);
       this._ws!.close();
     }, timeoutMs);
   }
@@ -187,32 +221,34 @@ export default class EventChannelClient {
   }
 
   /**
-   * Handles a message from the event channel.
-   * @param {string} message The message.
+   * Handles a ping message from the event channel.
    */
-  handleMessage(message: string) {
-    try {
-      const parsedMessage = JSON.parse(message);
-      const messageType = parsedMessage.type;
-      if (!messageType) {
-        throw Error(`Can't find type from message (${message})`);
-      }
-      const messageData = parsedMessage.data;
-      if (!messageData) {
-        throw Error(`Can't find data from message (${message})`);
-      }
-      switch (messageType) {
-        case EventChannelMessageTypes.EMIT_EVENT:
-          this.handleEmitEventMessage(messageData);
-          break;
-        case EventChannelMessageTypes.EMIT_ERROR:
-          this.handleEmitErrorMessage(messageData);
-          break;
-        default:
-          break;
-      }
-    } catch (err) {
-      console.error(err);
+  handlePing() {
+    this.sendPong();
+    // Heartbeat timeout
+    if (this._heartbeatTimeout) {
+      clearTimeout(this._heartbeatTimeout);
+      this._heartbeatTimeout = null;
+    }
+    this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
+  }
+
+  /**
+   * Handles a (non-ping) message from the event channel.
+   * 
+   * @param {EventChannelMessageTypes} messageType The message type.
+   * @param {any} messageData The message data.
+   */
+  handleMessage(messageType: EventChannelMessageTypes, messageData: any) {
+    switch (messageType) {
+      case EventChannelMessageTypes.EMIT_EVENT:
+        this.handleEmitEventMessage(messageData);
+        break;
+      case EventChannelMessageTypes.EMIT_ERROR:
+        this.handleEmitErrorMessage(messageData);
+        break;
+      default:
+        break;
     }
   }
 
@@ -258,5 +294,13 @@ export default class EventChannelClient {
     const filterObj = filter.toObject();
     const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
     this.sendMessage(deregisterMessage);
+  }
+
+  /**
+   * Sends a pong message.
+   */
+  sendPong() {
+    const pongMessage = this.buildMessage(EventChannelMessageTypes.PONG, {});
+    this.sendMessage(pongMessage);
   }
 }
