@@ -1,19 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ain-js Database evalOwner 1`] = `
-Object {
+{
   "code": 0,
-  "matched": Object {
-    "closestOwner": Object {
-      "config": Object {
-        "owners": Object {
-          "*": Object {
+  "matched": {
+    "closestOwner": {
+      "config": {
+        "owners": {
+          "*": {
             "branch_owner": true,
             "write_function": true,
             "write_owner": true,
             "write_rule": true,
           },
-          "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
+          "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
             "branch_owner": true,
             "write_function": true,
             "write_owner": true,
@@ -21,34 +21,34 @@ Object {
           },
         },
       },
-      "path": Array [
+      "path": [
         "apps",
         "bfan",
         "users",
         "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
       ],
     },
-    "matchedOwnerPath": Array [
+    "matchedOwnerPath": [
       "apps",
       "bfan",
       "users",
       "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
     ],
-    "subtreeOwners": Array [],
+    "subtreeOwners": [],
   },
 }
 `;
 
 exports[`ain-js Database evalRule: true 1`] = `
-Object {
+{
   "code": 0,
-  "matched": Object {
-    "state": Object {
-      "closestRule": Object {
+  "matched": {
+    "state": {
+      "closestRule": {
         "config": null,
-        "path": Array [],
+        "path": [],
       },
-      "matchedRulePath": Array [
+      "matchedRulePath": [
         "apps",
         "bfan",
         "users",
@@ -56,7 +56,7 @@ Object {
         "can",
         "write",
       ],
-      "matchedValuePath": Array [
+      "matchedValuePath": [
         "apps",
         "bfan",
         "users",
@@ -64,14 +64,14 @@ Object {
         "can",
         "write",
       ],
-      "pathVars": Object {},
+      "pathVars": {},
     },
-    "write": Object {
-      "closestRule": Object {
-        "config": Object {
+    "write": {
+      "closestRule": {
+        "config": {
           "write": "true",
         },
-        "path": Array [
+        "path": [
           "apps",
           "bfan",
           "users",
@@ -80,7 +80,7 @@ Object {
           "write",
         ],
       },
-      "matchedRulePath": Array [
+      "matchedRulePath": [
         "apps",
         "bfan",
         "users",
@@ -88,7 +88,7 @@ Object {
         "can",
         "write",
       ],
-      "matchedValuePath": Array [
+      "matchedValuePath": [
         "apps",
         "bfan",
         "users",
@@ -96,8 +96,8 @@ Object {
         "can",
         "write",
       ],
-      "pathVars": Object {},
-      "subtreeRules": Array [],
+      "pathVars": {},
+      "subtreeRules": [],
     },
   },
 }
@@ -106,8 +106,8 @@ Object {
 exports[`ain-js Database get with options 1`] = `null`;
 
 exports[`ain-js Database get with options 2`] = `
-Object {
-  "can": Object {
+{
+  "can": {
     "write": -5,
   },
   "username": "test_user",
@@ -115,8 +115,8 @@ Object {
 `;
 
 exports[`ain-js Database get with options 3`] = `
-Object {
-  "can": Object {
+{
+  "can": {
     "#state_ph": "0xaf1e44f55da6d7e1aa784dd38372c2c2939570254c6b3f36f80b4878590a9efa",
   },
   "username": "test_user",
@@ -124,10 +124,10 @@ Object {
 `;
 
 exports[`ain-js Database get with options 4`] = `
-Object {
+{
   "#state_ph": "0x3c067fd41205e87fcead2107a0f346881ea7d95249cdbe34d3d72e28e7c9ecd5",
   "#state_ph:username": "0xe9acb84e18d9ec64c66358f53c4fec3945eb065a3e98de907d8d80dc1361c82f",
-  "can": Object {
+  "can": {
     "#state_ph": "0xaf1e44f55da6d7e1aa784dd38372c2c2939570254c6b3f36f80b4878590a9efa",
     "#state_ph:write": "0x60ae6f7084539f2137ca3b45aa2e0e3b6d786a17c8de32110a884e285ea6a00c",
     "write": -5,
@@ -137,7 +137,7 @@ Object {
 `;
 
 exports[`ain-js Database get with options 5`] = `
-Object {
+{
   "#num_children": 2,
   "#num_children:username": 0,
   "#num_parents": 1,
@@ -150,7 +150,7 @@ Object {
   "#tree_max_siblings:username": 1,
   "#tree_size": 4,
   "#tree_size:username": 1,
-  "can": Object {
+  "can": {
     "#num_children": 1,
     "#num_children:write": 0,
     "#num_parents": 1,
@@ -172,7 +172,7 @@ Object {
 exports[`ain-js Database getProofHash 1`] = `"0x88496dfee3566db91f487aa4cbf69a0c42a3e2a5d0a65bfd4897d699e8734785"`;
 
 exports[`ain-js Database getStateInfo 1`] = `
-Object {
+{
   "#num_children": 1,
   "#state_ph": "0x985a1f057d5047b1dee392127eb776571fbbe79da7ae6114f8f8f18c4f786135",
   "#tree_bytes": 1840,
@@ -184,10 +184,10 @@ Object {
 `;
 
 exports[`ain-js Database matchFunction 1`] = `
-Object {
-  "matched_config": Object {
-    "config": Object {
-      "0xFUNCTION_HASH": Object {
+{
+  "matched_config": {
+    "config": {
+      "0xFUNCTION_HASH": {
         "function_id": "0xFUNCTION_HASH",
         "function_type": "REST",
         "function_url": "https://events.ainetwork.ai/trigger",
@@ -195,27 +195,27 @@ Object {
     },
     "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
   },
-  "matched_path": Object {
-    "path_vars": Object {},
+  "matched_path": {
+    "path_vars": {},
     "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
     "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
   },
-  "subtree_configs": Array [],
+  "subtree_configs": [],
 }
 `;
 
 exports[`ain-js Database matchOwner 1`] = `
-Object {
-  "matched_config": Object {
-    "config": Object {
-      "owners": Object {
-        "*": Object {
+{
+  "matched_config": {
+    "config": {
+      "owners": {
+        "*": {
           "branch_owner": true,
           "write_function": true,
           "write_owner": true,
           "write_rule": true,
         },
-        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": Object {
+        "0x09A0d53FDf1c36A131938eb379b98910e55EEfe1": {
           "branch_owner": true,
           "write_function": true,
           "write_owner": true,
@@ -225,47 +225,47 @@ Object {
     },
     "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
   },
-  "matched_path": Object {
+  "matched_path": {
     "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
   },
-  "subtree_configs": Array [],
+  "subtree_configs": [],
 }
 `;
 
 exports[`ain-js Database matchRule 1`] = `
-Object {
-  "state": Object {
-    "matched_config": Object {
+{
+  "state": {
+    "matched_config": {
       "config": null,
       "path": "/",
     },
-    "matched_path": Object {
-      "path_vars": Object {},
+    "matched_path": {
+      "path_vars": {},
       "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
       "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
     },
   },
-  "write": Object {
-    "matched_config": Object {
-      "config": Object {
+  "write": {
+    "matched_config": {
+      "config": {
         "write": "true",
       },
       "path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
     },
-    "matched_path": Object {
-      "path_vars": Object {},
+    "matched_path": {
+      "path_vars": {},
       "ref_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
       "target_path": "/apps/bfan/users/0x09A0d53FDf1c36A131938eb379b98910e55EEfe1",
     },
-    "subtree_configs": Array [
-      Object {
-        "config": Object {
+    "subtree_configs": [
+      {
+        "config": {
           "write": "true",
         },
         "path": "/can/write",
       },
-      Object {
-        "config": Object {
+      {
+        "config": {
           "write": "false",
         },
         "path": "/cannot/write",
