@@ -1,13 +1,16 @@
 diff --git a/node_modules/isomorphic-ws/index.d.ts b/node_modules/isomorphic-ws/index.d.ts
-index de923a9..c63f488 100644
+index de923a9..7d56cf5 100644
 --- a/node_modules/isomorphic-ws/index.d.ts
 +++ b/node_modules/isomorphic-ws/index.d.ts
-@@ -3,6 +3,5 @@
+@@ -3,6 +3,9 @@
  // Fix for https://github.com/heineiuo/isomorphic-ws/issues/8
  // If there is still something wrong, welcome issue.
  
 -import WebSocket = require('ws')
--
++// NOTE(jiyoung): comment out for original reference.
++// import WebSocket = require('ws')
++// export = WebSocket
+ 
 -export = WebSocket
 \ No newline at end of file
 +import { WebSocket } from 'ws'
