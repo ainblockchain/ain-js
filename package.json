@@ -1,6 +1,6 @@
 {
   "name": "@ainblockchain/ain-js",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "",
   "main": "lib/ain.js",
   "scripts": {
