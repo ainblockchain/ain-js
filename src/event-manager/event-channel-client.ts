@@ -1,5 +1,7 @@
 import Ain from '../ain';
-import * as WebSocket from 'isomorphic-ws';
+// NOTE(jiyoung): comment out for original reference.
+// import * as WebSocket from 'isomorphic-ws';
+import WebSocket from 'isomorphic-ws';
 import {
   EventChannelMessageTypes,
   EventChannelMessage,

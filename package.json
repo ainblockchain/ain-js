@@ -13,7 +13,8 @@
     "test_ain_raw": "jest ain_raw.test.ts",
     "test_he": "jest he.test.ts",
     "test_em": "jest event_manager.test.ts",
-    "docs": "yarn build && typedoc --plugin @mxssfd/typedoc-theme --theme my-theme --out docs"
+    "docs": "yarn build && typedoc --plugin @mxssfd/typedoc-theme --theme my-theme --out docs",
+    "postinstall": "patch-package"
   },
   "engines": {
     "node": ">=16"
@@ -62,7 +63,9 @@
     "isomorphic-ws": "^5.0.0",
     "lodash": "^4.17.20",
     "node-seal": "^4.5.7",
+    "patch-package": "^8.0.0",
     "pbkdf2": "^3.0.17",
+    "postinstall-postinstall": "^2.1.0",
     "randombytes": "^2.1.0",
     "scryptsy": "^2.1.0",
     "semver": "^6.3.0",
