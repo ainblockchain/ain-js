@@ -1,5 +1,7 @@
 import Ain from '../ain';
-import * as WebSocket from 'isomorphic-ws';
+import isBrowser from "is-in-browser";
+import WebSocket from 'isomorphic-ws';
+import { WebSocket as WebSocketBE } from 'ws';
 import {
   EventChannelMessageTypes,
   EventChannelMessage,
@@ -21,7 +23,7 @@ export default class EventChannelClient {
   /** The event callback manager object. */
   private readonly _eventCallbackManager: EventCallbackManager;
   /** The web socket client. */
-  private _ws?: WebSocket;
+  private _ws?: WebSocket | WebSocketBE;
   /** The blockchain endpoint URL. */
   private _endpointUrl?: string;
   /** Whether it's connected or not. */
@@ -86,7 +88,8 @@ export default class EventChannelClient {
       }
 
       this._endpointUrl = url;
-      this._ws = new WebSocket(url);
+      // NOTE(platfowner): Fix WebSocket module import issue (see https://github.com/ainblockchain/ain-js/issues/177).
+      this._ws = isBrowser ? new WebSocket(url) : new WebSocketBE(url);
       // NOTE(platfowner): A custom handshake timeout (see https://github.com/ainblockchain/ain-js/issues/171).
       this.startHandshakeTimer(DEFAULT_HANDSHAKE_TIMEOUT_MS);
 
