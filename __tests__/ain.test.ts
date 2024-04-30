@@ -415,7 +415,7 @@ describe('ain-js', function() {
       let sig = ain.wallet.signTransaction(tx);
       let addr:string = String(ain.wallet.defaultAccount!.address);
       expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
-      expect(() => ain.wallet.verifySignature(tx, sig, addr, 2)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.verifySignature(tx, sig, addr, 2)).toBe(false);
       expect(ain.wallet.recover(sig)).toBe(addr);
 
       // chainId = 2
@@ -432,7 +432,7 @@ describe('ain-js', function() {
       sig = ain.wallet.signTransaction(tx);
       addr = String(ain.wallet.defaultAccount!.address);
       expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
-      expect(() => ain.wallet.verifySignature(tx, sig, addr, 0)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.verifySignature(tx, sig, addr, 0)).toBe(false);
       expect(ain.wallet.recover(sig)).toBe(addr);
     });
   });
