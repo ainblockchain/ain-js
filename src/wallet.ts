@@ -367,10 +367,11 @@ export default class Wallet {
    * @param {any} data The data used in the signing.
    * @param {string} signature The signature to verify.
    * @param {string} address The address to verify.
+   * @param {number} chainId The chain Id for test purposes only.
    * @returns {boolean}
    */
-  verifySignature(data: any, signature: string, address: string): boolean {
-    return Ain.utils.ecVerifySig(data, signature, address, this.chainId);
+  verifySignature(data: any, signature: string, address: string, chainId?: number): boolean {
+    return Ain.utils.ecVerifySig(data, signature, address, chainId !== undefined ? chainId : this.chainId);
   }
 
   /**
