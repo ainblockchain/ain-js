@@ -374,12 +374,7 @@ export default class Wallet {
     try {
       return Ain.utils.ecVerifySig(data, signature, address, chainId !== undefined ? chainId : this.chainId);
     } catch (err: unknown) {
-      let errMsg = '';
-      if (typeof err === 'string') {
-        errMsg = err;
-      } else if (err instanceof Error) {
-        errMsg = err.message;
-      }
+      let errMsg = err instanceof Error ? err.message : err;
       console.log(`Signature verification failed with error: ${errMsg}`);
       return false;
     }
