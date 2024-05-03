@@ -65,8 +65,8 @@ export default class Ain {
 
   /**
    * Sets a new provider.
-   * @param {string} providerUrl The endpoint URL of the network provider. e.g. https://testnet-api.ainetwork.ai, http://localhost:8081
-   * @param {string} eventHandlerUrl The endpoint URL of the event handler websocket server. e.g. wss://testnet-event.ainetwork.ai, ws://localhost:5100
+   * @param {string} providerUrl The endpoint URL of the network provider. e.g. http://localhost:8081, https://testnet-api.ainetwork.ai
+   * @param {string} eventHandlerUrl The endpoint URL of the event handler websocket server. e.g.  ws://localhost:5100, wss://testnet-event.ainetwork.ai
    * @param {number} chainId The chain ID of the blockchain network. e.g. 0 for local or testnet, and 1 for mainnet
    * @param {AxiosRequestConfig} axiosConfig The axios request config.
    */
