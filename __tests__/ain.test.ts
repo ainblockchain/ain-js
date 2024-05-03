@@ -27,7 +27,7 @@ describe('ain-js', function() {
     it('chainId', function() {
       expect(ain.chainId).toBe(0);
       expect(ain.wallet.chainId).toBe(0);
-      ain.setProvider(test_node_1, 2);
+      ain.setProvider(test_node_1, null, 2);
       expect(ain.chainId).toBe(2);
       expect(ain.wallet.chainId).toBe(2);
     });
@@ -401,7 +401,7 @@ describe('ain-js', function() {
 
     it('chainId', function() {
       // chainId = 0
-      ain.setProvider(test_node_2, 0);
+      ain.setProvider(test_node_2, null, 0);
       let tx: TransactionBody = {
         nonce: 17,
         gas_price: 500,
@@ -419,7 +419,7 @@ describe('ain-js', function() {
       expect(ain.wallet.recover(sig)).toBe(addr);
 
       // chainId = 2
-      ain.setProvider(test_node_2, 2);
+      ain.setProvider(test_node_2, null, 2);
       tx = {
         nonce: 17,
         timestamp: Date.now(),
@@ -476,7 +476,7 @@ describe('ain-js', function() {
     }
 
     beforeAll(async () => {
-      ain.setProvider(test_node_2, 0);
+      ain.setProvider(test_node_2, null, 0);
       const newAccounts = ain.wallet.create(2);
       defaultAddr = ain.wallet.defaultAccount!.address as string;
       addr1 = newAccounts[0];

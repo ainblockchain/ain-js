@@ -2,13 +2,15 @@
 import Ain from '../src/ain';
 import { FAILED_TO_REGISTER_ERROR_CODE } from '../src/constants';
 import { FilterDeletionReasons, TransactionStates } from '../src/types';
-
-const { test_event_handler_node } = require('./test_data');
+const {
+  test_node_3,
+  test_event_handler_node,
+} = require('./test_data');
 
 jest.setTimeout(180000);
 
 describe('Event Handler', function() {
-  let ain = new Ain(test_event_handler_node);
+  let ain = new Ain(test_node_3, test_event_handler_node);
   let eventFilterId: string;
 
   beforeAll(async () => {
