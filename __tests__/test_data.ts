@@ -4,4 +4,5 @@ export const test_seed = 'receive ocean impact unaware march just dragon easy po
 
 export const test_node_1 = 'http://localhost:8081';
 export const test_node_2 = 'http://localhost:8082';
-export const test_event_handler_node = 'http://localhost:8083';
+export const test_node_3 = 'http://localhost:8083';
+export const test_event_handler_node = 'ws://localhost:5100';

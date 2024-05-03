@@ -12,7 +12,8 @@ yarn add @ainblockchain/ain-js
 ## Examples
 ```
 const Ain = require('./lib/ain').default;
-const ain = new Ain('http://node.ainetwork.ai:8080/');
+const ain = new Ain('http://localhost:8081/', 'ws://localhost:5100/');
+// or const ain = new Ain('https://testnet-api.ainetwork.ai/', 'wss://testnet-event.ainetwork.ai/');
 
 ain.wallet.create(1);
 

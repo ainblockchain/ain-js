@@ -27,7 +27,7 @@ describe('ain-js', function() {
     it('chainId', function() {
       expect(ain.chainId).toBe(0);
       expect(ain.wallet.chainId).toBe(0);
-      ain.setProvider(test_node_1, 2);
+      ain.setProvider(test_node_1, null, 2);
       expect(ain.chainId).toBe(2);
       expect(ain.wallet.chainId).toBe(2);
     });
@@ -273,7 +273,7 @@ describe('ain-js', function() {
       ain.wallet.setDefaultAccount(TEST_ADDR);
       const sig = ain.wallet.sign(message);
       const addr:string = String(ain.wallet.defaultAccount!.address);
-      expect(Ain.utils.ecVerifySig(message, sig, addr)).toBe(true);
+      expect(ain.wallet.verifySignature(message, sig, addr)).toBe(true);
     });
 
     it('signTransaction', function() {
@@ -289,7 +289,7 @@ describe('ain-js', function() {
       }
       const sig = ain.wallet.signTransaction(tx);
       const addr:string = String(ain.wallet.defaultAccount!.address);
-      expect(Ain.utils.ecVerifySig(tx, sig, addr)).toBe(true);
+      expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
     });
 
     it('recover', function() {
@@ -401,7 +401,7 @@ describe('ain-js', function() {
 
     it('chainId', function() {
       // chainId = 0
-      ain.setProvider(test_node_2, 0);
+      ain.setProvider(test_node_2, null, 0);
       let tx: TransactionBody = {
         nonce: 17,
         gas_price: 500,
@@ -415,11 +415,11 @@ describe('ain-js', function() {
       let sig = ain.wallet.signTransaction(tx);
       let addr:string = String(ain.wallet.defaultAccount!.address);
       expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
-      expect(() => Ain.utils.ecVerifySig(tx, sig, addr, 2)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.verifySignature(tx, sig, addr, 2)).toBe(false);
       expect(ain.wallet.recover(sig)).toBe(addr);
 
       // chainId = 2
-      ain.setProvider(test_node_2, 2);
+      ain.setProvider(test_node_2, null, 2);
       tx = {
         nonce: 17,
         timestamp: Date.now(),
@@ -432,7 +432,7 @@ describe('ain-js', function() {
       sig = ain.wallet.signTransaction(tx);
       addr = String(ain.wallet.defaultAccount!.address);
       expect(ain.wallet.verifySignature(tx, sig, addr)).toBe(true);
-      expect(() => Ain.utils.ecVerifySig(tx, sig, addr, 0)).toThrow('[ain-util] ecRecoverPub: Invalid signature v value');
+      expect(ain.wallet.verifySignature(tx, sig, addr, 0)).toBe(false);
       expect(ain.wallet.recover(sig)).toBe(addr);
     });
   });
@@ -476,7 +476,7 @@ describe('ain-js', function() {
     }
 
     beforeAll(async () => {
-      ain.setProvider(test_node_2, 0);
+      ain.setProvider(test_node_2, null, 0);
       const newAccounts = ain.wallet.create(2);
       defaultAddr = ain.wallet.defaultAccount!.address as string;
       addr1 = newAccounts[0];

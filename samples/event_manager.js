@@ -1,5 +1,5 @@
 const Ain = require('@ainblockchain/ain-js').default;
-const ain = new Ain('https://testnet-event.ainetwork.ai/');
+const ain = new Ain('https://testnet-api.ainetwork.ai/', 'wss://testnet-event.ainetwork.ai/');
 
 async function main() {
   await ain.em.connect(); // NOTE: https://docs.ainetwork.ai/reference/blockchain-sdk/ain-js/ain.em#connect
