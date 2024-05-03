@@ -24,8 +24,6 @@ export default class EventChannelClient {
   private readonly _eventCallbackManager: EventCallbackManager;
   /** The web socket client. */
   private _ws?: WebSocket | WebSocketBE;
-  /** The blockchain endpoint URL. */
-  private _endpointUrl?: string;
   /** Whether it's connected or not. */
   private _isConnected: boolean;
   /** The handshake timeout object. */
@@ -42,7 +40,6 @@ export default class EventChannelClient {
     this._ain = ain;
     this._eventCallbackManager = eventCallbackManager;
     this._ws = undefined;
-    this._endpointUrl = undefined;
     this._isConnected = false;
     this._handshakeTimeout = undefined;
     this._heartbeatTimeout = undefined;
@@ -63,6 +60,13 @@ export default class EventChannelClient {
         reject(new Error(`Can't connect multiple channels`));
         return;
       }
+      const url = this._ain.eventHandlerUrl;
+      if (!url) {
+        reject(new Error(`eventHandlerUrl is not set properly: ${url}`));
+        return;
+      }
+      // TODO(platfowner): Remove or re-implement without using getEventHandlerNetworkInfo() below.
+      /*
       const eventHandlerNetworkInfo = await this._ain.net.getEventHandlerNetworkInfo();
       const url = eventHandlerNetworkInfo.url;
       if (!url) {
@@ -86,8 +90,8 @@ export default class EventChannelClient {
         reject(new Error(`Exceed event channel limit! (node:${url})`));
         return;
       }
+      */
 
-      this._endpointUrl = url;
       // NOTE(platfowner): Fix WebSocket module import issue (see https://github.com/ainblockchain/ain-js/issues/177).
       this._ws = isBrowser ? new WebSocket(url) : new WebSocketBE(url);
       // NOTE(platfowner): A custom handshake timeout (see https://github.com/ainblockchain/ain-js/issues/171).

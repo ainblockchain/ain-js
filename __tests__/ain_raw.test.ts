@@ -15,7 +15,7 @@ const TEST_ADDR = '0x08Aed7AF9354435c38d52143EE50ac839D20696b';
 jest.setTimeout(180000);
 
 describe('ain-js', function() {
-  const ain = new Ain(test_node_1, 0, { rawResultMode: true });
+  const ain = new Ain(test_node_1, null, 0, { rawResultMode: true });
 
   beforeAll(() => {
     ain.wallet.add(TEST_SK);
@@ -61,7 +61,7 @@ describe('ain-js', function() {
     }
 
     beforeAll(async () => {
-      ain.setProvider(test_node_2, 0);
+      ain.setProvider(test_node_2, null, 0);
       const newAccounts = ain.wallet.create(2);
       defaultAddr = ain.wallet.defaultAccount!.address as string;
       addr1 = newAccounts[0];

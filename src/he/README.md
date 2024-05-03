@@ -29,7 +29,8 @@ This is a function developed for testing purposes. It returns the secret key cur
 
 ## Usage
 ```ts
-const ain = new Ain('http://node.ainetwork.ai:8080');
+const ain = new Ain('http://localhost:8081', 'ws://localhost:5100');
+// or const ain = new Ain('https://testnet-api.ainetwork.ai/', 'wss://testnet-event.ainetwork.ai/');
 await ain.he.init();
 const TEST_DATA = Float64Array.from({ length: ain.he.seal.encoder.slotCount }).map((x, i) => i);
 const cipherText = ain.he.encrypt(TEST_DATA);

@@ -23,6 +23,8 @@ export default class Ain {
   public axiosConfig: AxiosRequestConfig | undefined;
   /** The chain ID of the blockchain network. */
   public chainId: number;
+  /** The endpoint Url of the event handler websocket server. */
+  public eventHandlerUrl?: string | null;
   /** The network provider object. */
   public provider: Provider;
   /** The raw result mode option. */
@@ -43,12 +45,14 @@ export default class Ain {
   /**
    * Creates a new Ain object.
    * @param {string} providerUrl The endpoint URL of the network provider.
+   * @param {string} eventHandlerUrl The endpoint URL of the event handler websocket server.
    * @param {number} chainId The chain ID of the blockchain network.
    * @param {AinOptions} ainOptions The options of the class.
    */
-  constructor(providerUrl: string, chainId?: number, ainOptions?: AinOptions) {
+  constructor(providerUrl: string, eventHandlerUrl?: string, chainId?: number, ainOptions?: AinOptions) {
     this.axiosConfig = ainOptions?.axiosConfig;
     this.provider = new Provider(this, providerUrl, this.axiosConfig);
+    this.eventHandlerUrl = eventHandlerUrl;
     this.chainId = chainId || 0;
     this.rawResultMode = ainOptions?.rawResultMode || false;
     this.net = new Network(this.provider);
@@ -61,15 +65,17 @@ export default class Ain {
 
   /**
    * Sets a new provider.
-   * @param {string} providerUrl The endpoint URL of the network provider.
-   * @param {number} chainId The chain ID of the blockchain network.
+   * @param {string} providerUrl The endpoint URL of the network provider. e.g. http://localhost:8081, https://testnet-api.ainetwork.ai
+   * @param {string} eventHandlerUrl The endpoint URL of the event handler websocket server. e.g.  ws://localhost:5100, wss://testnet-event.ainetwork.ai
+   * @param {number} chainId The chain ID of the blockchain network. e.g. 0 for local or testnet, and 1 for mainnet
    * @param {AxiosRequestConfig} axiosConfig The axios request config.
    */
-  setProvider(providerUrl: string, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
+  setProvider(providerUrl: string, eventHandlerUrl?: string, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
     if (axiosConfig) {
       this.axiosConfig = axiosConfig;
     }
     this.provider = new Provider(this, providerUrl, this.axiosConfig);
+    this.eventHandlerUrl = eventHandlerUrl;
     this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
     this.net = new Network(this.provider);
