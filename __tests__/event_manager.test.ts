@@ -29,6 +29,12 @@ describe('Event Handler', function() {
     ain.em.disconnect();
   });
 
+  describe('Channel connection', () => {
+    it('isConnected()', () => {
+      expect(ain.em.isConnected()).toBe(true);
+    });
+  });
+
   describe('BLOCK_FINALIZED', () => {
     it('Subscribe to BLOCK_FINALIZED', (done) => {
       eventFilterId = ain.em.subscribe('BLOCK_FINALIZED', {

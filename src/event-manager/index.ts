@@ -29,6 +29,13 @@ export default class EventManager {
   }
 
   /**
+   * Returns whether the client in connection.
+   */
+  isConnected(): boolean {
+    return this._eventChannelClient.isConnected;
+  }
+
+  /**
    * Opens a new event channel.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    */
