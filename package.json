@@ -50,7 +50,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@ainblockchain/ain-util": "^1.1.9",
+    "@ainblockchain/ain-util": "^1.2.0",
     "@types/node": "^12.7.3",
     "@types/randombytes": "^2.0.0",
     "@types/semver": "^7.3.4",
