@@ -2,6 +2,7 @@
 import Ain from '../src/ain';
 import { FAILED_TO_REGISTER_ERROR_CODE } from '../src/constants';
 import { FilterDeletionReasons, TransactionStates } from '../src/types';
+import { sleep } from './test_util';
 const {
   test_node_3,
   test_event_handler_node,
@@ -10,11 +11,27 @@ const {
 jest.setTimeout(180000);
 
 describe('Event Handler', function() {
-  let ain = new Ain(test_node_3, test_event_handler_node);
+  const ain = new Ain(test_node_3, test_event_handler_node);
   let eventFilterId: string;
+  let connectionCount = 0;
+  let disconnectionCount = 0;
+  // Connection callback
+  const connectionCb = (websocket) => {
+    connectionCount++;
+  };
+  // Disconnection callback
+  const disconnectionCb = (websocket) => {
+    disconnectionCount++;
+  };
 
   beforeAll(async () => {
-    await ain.em.connect();
+    expect(connectionCount).toBe(0);
+    expect(disconnectionCount).toBe(0);
+
+    await ain.em.connect(connectionCb, disconnectionCb);
+
+    expect(connectionCount).toBe(1);
+    expect(disconnectionCount).toBe(0);
   });
 
   afterEach(async () => {
@@ -25,8 +42,15 @@ describe('Event Handler', function() {
     });
   })
 
-  afterAll(() => {
+  afterAll(async () => {
+    expect(connectionCount).toBe(1);
+    expect(disconnectionCount).toBe(0);
+
     ain.em.disconnect();
+
+    await sleep(3000);
+    expect(connectionCount).toBe(1);
+    expect(disconnectionCount).toBe(1);
   });
 
   describe('Channel connection', () => {
