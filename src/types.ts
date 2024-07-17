@@ -495,6 +495,11 @@ export type BlockchainErrorCallback = (error: any) => void;
 export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 
 /**
+ * A type for connection callback functions (blockchain event handler).
+ */
+export type ConnectionCallback = (webSocket) => void;
+
+/**
  * A type for disconnection callback functions (blockchain event handler).
  */
 export type DisconnectionCallback = (webSocket) => void;
