@@ -6,6 +6,7 @@ import {
   EventChannelMessageTypes,
   EventChannelMessage,
   BlockchainEventTypes,
+  ConnectionCallback,
   DisconnectionCallback,
 } from '../types';
 import EventFilter from './event-filter';
@@ -51,10 +52,11 @@ export default class EventChannelClient {
 
   /**
    * Opens a new event channel.
+   * @param {ConnectionCallback} connectionCallback The connection callback function.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(disconnectionCallback?: DisconnectionCallback): Promise<any> {
+  connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -137,11 +139,16 @@ export default class EventChannelClient {
         }
         // Heartbeat timeout
         this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
+        // Connection callback
+        if (connectionCallback) {
+          connectionCallback(this._ws);
+        }
         resolve(this);
       };
 
       this._ws.onclose = () => {
         this.disconnect();
+        // Disconnection callback
         if (disconnectionCallback) {
           disconnectionCallback(this._ws);
         }
