@@ -1,10 +1,18 @@
 import Ain from '../ain';
 import {
-  BlockFinalizedEventConfig, BlockFinalizedEvent,
+  BlockFinalizedEventConfig,
+  BlockFinalizedEvent,
   ErrorFirstCallback,
-  BlockchainEventConfig, BlockchainEventCallback,
-  TxStateChangedEventConfig, TxStateChangedEvent,
-  ValueChangedEventConfig, ValueChangedEvent, DisconnectionCallback, FilterDeletedEventCallback, BlockchainErrorCallback,
+  BlockchainEventConfig,
+  BlockchainEventCallback,
+  TxStateChangedEventConfig,
+  TxStateChangedEvent,
+  ValueChangedEventConfig,
+  ValueChangedEvent,
+  ConnectionCallback,
+  DisconnectionCallback,
+  FilterDeletedEventCallback,
+  BlockchainErrorCallback,
 } from '../types';
 import EventChannelClient from './event-channel-client';
 import EventCallbackManager from './event-callback-manager';
@@ -37,10 +45,11 @@ export default class EventManager {
 
   /**
    * Opens a new event channel.
+   * @param {ConnectionCallback} ConnectionCallback The connection callback function.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
    */
-  async connect(disconnectionCallback?: DisconnectionCallback) {
-    await this._eventChannelClient.connect(disconnectionCallback);
+  async connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback) {
+    await this._eventChannelClient.connect(connectionCallback, disconnectionCallback);
   }
 
   /**
