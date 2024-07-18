@@ -497,9 +497,9 @@ export type FilterDeletedEventCallback = (event: FilterDeletedEvent) => void;
 /**
  * A type for connection callback functions (blockchain event handler).
  */
-export type ConnectionCallback = (webSocket) => void;
+export type ConnectionCallback = (webSocket: any) => void;
 
 /**
  * A type for disconnection callback functions (blockchain event handler).
  */
-export type DisconnectionCallback = (webSocket) => void;
+export type DisconnectionCallback = (webSocket: any) => void;
