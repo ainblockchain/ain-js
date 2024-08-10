@@ -12,6 +12,7 @@ jest.setTimeout(180000);
 
 describe('Event Handler', function() {
   const ain = new Ain(test_node_3, test_event_handler_node);
+  const customClientId = 'myCustomClientId';
   let eventFilterId: string;
   let connectionCount = 0;
   let disconnectionCount = 0;
@@ -56,6 +57,13 @@ describe('Event Handler', function() {
   describe('Channel connection', () => {
     it('isConnected()', () => {
       expect(ain.em.isConnected()).toBe(true);
+    });
+  });
+
+  describe('Custom client id setting', () => {
+    it('setCustomClientId() / getCustomClientId()', async () => {
+      await ain.em.setCustomClientId(customClientId);
+      expect(ain.em.getCustomClientId()).toBe(customClientId);
     });
   });
 

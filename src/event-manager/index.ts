@@ -59,6 +59,21 @@ export default class EventManager {
     this._eventChannelClient.disconnect();
   }
 
+  /**
+   * Sets the custom client id of the event channel.
+   * @param {string} customClientId The custom client id.
+   */
+  setCustomClientId(customClientId: string) {
+    this._eventChannelClient.setCustomClientId(customClientId);
+  }
+
+  /**
+   * Returns the custom client id of the event channel saved on the client side.
+   */
+  getCustomClientId() {
+    return this._eventChannelClient.getCustomClientId();
+  }
+
   subscribe(
     eventType: 'BLOCK_FINALIZED',
     config: BlockFinalizedEventConfig,
