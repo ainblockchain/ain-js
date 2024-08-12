@@ -57,9 +57,10 @@ export default class EventChannelClient {
    * Opens a new event channel.
    * @param {ConnectionCallback} connectionCallback The connection callback function.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   * @param {string} customClientId The custom client id to set.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback): Promise<any> {
+  connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback, customClientId?: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -142,6 +143,10 @@ export default class EventChannelClient {
         }
         // Heartbeat timeout
         this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
+        // Custom client id
+        if (customClientId) {
+          this.setCustomClientId(customClientId);
+        }
         // Connection callback
         if (connectionCallback) {
           connectionCallback(this._ws);
