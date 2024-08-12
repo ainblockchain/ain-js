@@ -47,9 +47,10 @@ export default class EventManager {
    * Opens a new event channel.
    * @param {ConnectionCallback} ConnectionCallback The connection callback function.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   * @param {string} customClientId The custom client id to set.
    */
-  async connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback) {
-    await this._eventChannelClient.connect(connectionCallback, disconnectionCallback);
+  async connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback, customClientId?: string) {
+    await this._eventChannelClient.connect(connectionCallback, disconnectionCallback, customClientId);
   }
 
   /**
@@ -57,14 +58,6 @@ export default class EventManager {
    */
   disconnect() {
     this._eventChannelClient.disconnect();
-  }
-
-  /**
-   * Sets the custom client id of the event channel.
-   * @param {string} customClientId The custom client id.
-   */
-  setCustomClientId(customClientId: string) {
-    this._eventChannelClient.setCustomClientId(customClientId);
   }
 
   /**

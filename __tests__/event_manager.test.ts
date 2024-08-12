@@ -29,7 +29,7 @@ describe('Event Handler', function() {
     expect(connectionCount).toBe(0);
     expect(disconnectionCount).toBe(0);
 
-    await ain.em.connect(connectionCb, disconnectionCb);
+    await ain.em.connect(connectionCb, disconnectionCb, customClientId);
 
     expect(connectionCount).toBe(1);
     expect(disconnectionCount).toBe(0);
@@ -61,8 +61,7 @@ describe('Event Handler', function() {
   });
 
   describe('Custom client id setting', () => {
-    it('setCustomClientId() / getCustomClientId()', async () => {
-      await ain.em.setCustomClientId(customClientId);
+    it('getCustomClientId()', async () => {
       expect(ain.em.getCustomClientId()).toBe(customClientId);
     });
   });
