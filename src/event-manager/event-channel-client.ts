@@ -27,6 +27,8 @@ export default class EventChannelClient {
   private _ws?: WebSocket | WebSocketBE;
   /** Whether it's connected or not. */
   private _isConnected: boolean;
+  /** The custom client id of the event channel. */
+  private _customClientId: string;
   /** The handshake timeout object. */
   private _handshakeTimeout?: ReturnType<typeof setTimeout> | null;
   /** The heartbeat timeout object. */
@@ -42,6 +44,7 @@ export default class EventChannelClient {
     this._eventCallbackManager = eventCallbackManager;
     this._ws = undefined;
     this._isConnected = false;
+    this._customClientId = '';
     this._handshakeTimeout = undefined;
     this._heartbeatTimeout = undefined;
   }
@@ -54,9 +57,10 @@ export default class EventChannelClient {
    * Opens a new event channel.
    * @param {ConnectionCallback} connectionCallback The connection callback function.
    * @param {DisconnectionCallback} disconnectionCallback The disconnection callback function.
+   * @param {string} customClientId The custom client id to set.
    * @returns {Promise<void>} A promise for the connection success.
    */
-  connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback): Promise<any> {
+  connect(connectionCallback?: ConnectionCallback, disconnectionCallback?: DisconnectionCallback, customClientId?: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.isConnected) {
         reject(new Error(`Can't connect multiple channels`));
@@ -139,6 +143,10 @@ export default class EventChannelClient {
         }
         // Heartbeat timeout
         this.startHeartbeatTimer(DEFAULT_HEARTBEAT_INTERVAL_MS);
+        // Custom client id
+        if (customClientId) {
+          this.setCustomClientId(customClientId);
+        }
         // Connection callback
         if (connectionCallback) {
           connectionCallback(this._ws);
@@ -291,30 +299,48 @@ export default class EventChannelClient {
   }
 
   /**
-   * Sends a register-event-filter messsage to the event channel.
+   * Sends a SET_CUSTOM_CLIENT_ID messsage to the event channel.
+   * @param {string} customClientId The custom client id to set.
+   */
+  setCustomClientId(customClientId: string) {
+    this._customClientId = customClientId;
+    const data = { customClientId };
+    const message = this.buildMessage(EventChannelMessageTypes.SET_CUSTOM_CLIENT_ID, data);
+    this.sendMessage(message);
+  }
+
+  /**
+   * Returns the custom client id saved on the client side.
+   */
+  getCustomClientId() {
+    return this._customClientId;
+  }
+
+  /**
+   * Sends a REGISTER_FILTER messsage to the event channel.
    * @param {EventFilter} filter The event filter to register.
    */
   registerFilter(filter: EventFilter) {
-    const filterObj = filter.toObject();
-    const registerMessage = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, filterObj);
-    this.sendMessage(registerMessage);
+    const data = filter.toObject();
+    const message = this.buildMessage(EventChannelMessageTypes.REGISTER_FILTER, data);
+    this.sendMessage(message);
   }
 
   /**
-   * Sends a deregister-event-filter messsage to the event channel.
+   * Sends a DEREGISTER_FILTER messsage to the event channel.
    * @param {EventFilter} filter The event filter to deregister.
    */
   deregisterFilter(filter: EventFilter) {
-    const filterObj = filter.toObject();
-    const deregisterMessage = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, filterObj);
-    this.sendMessage(deregisterMessage);
+    const data = filter.toObject();
+    const message = this.buildMessage(EventChannelMessageTypes.DEREGISTER_FILTER, data);
+    this.sendMessage(message);
   }
 
   /**
-   * Sends a pong message.
+   * Sends a PONG message.
    */
   sendPong() {
-    const pongMessage = this.buildMessage(EventChannelMessageTypes.PONG, {});
-    this.sendMessage(pongMessage);
+    const message = this.buildMessage(EventChannelMessageTypes.PONG, {});
+    this.sendMessage(message);
   }
 }
