@@ -1,13 +1,13 @@
 # ain-js
-
 AI Network Blockchain SDK for javascript (or typescript).
 
+## API Documentation
+API documentation is available at https://ainblockchain.github.io/ain-js/.
 
 ## Installation
 ```
 yarn add @ainblockchain/ain-js
 ```
-
 
 ## Examples
 ```
@@ -34,28 +34,26 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
 ```
 
 ## Test How-To
+For testing, you need a blockchain node cluster running locally.
 1. Clone AIN Blockchain and install
 ```
 git clone git@github.com:ainblockchain/ain-blockchain.git
+cd ain-blockchain
 yarn install
 ```
 
 2. Start blockchain locally
 ```
+cd ain-blockchain
 bash start_local_blockchain.sh
 ```
-   * Note that the node 2 of the blockchain needs to be started with ENABLE_EVENT_HANDLER=true env variable for the event manager test cases.
+* Note that the node 2 of the blockchain needs to be started with ENABLE_EVENT_HANDLER=true env variable for the event manager test cases.
 
 3. Run tests
 ```
 yarn run test
 yarn run test_snapshot  # update test snapshot files
 ```
-
-
-## API Documentation
-
-API documentation is available at https://ainblockchain.github.io/ain-js/.
 
 ## LICENSE
 
