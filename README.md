@@ -1,13 +1,13 @@
 # ain-js
-
 AI Network Blockchain SDK for javascript (or typescript).
 
+## API Documentation
+API documentation is available at https://ainblockchain.github.io/ain-js/.
 
 ## Installation
 ```
 yarn add @ainblockchain/ain-js
 ```
-
 
 ## Examples
 ```
@@ -54,11 +54,6 @@ bash start_local_blockchain.sh
 yarn run test
 yarn run test_snapshot  # update test snapshot files
 ```
-
-
-## API Documentation
-
-API documentation is available at https://ainblockchain.github.io/ain-js/.
 
 ## LICENSE
 
