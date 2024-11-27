@@ -10,6 +10,7 @@ yarn add @ainblockchain/ain-js
 ```
 
 ## Examples
+### A Simple Example
 ```
 const Ain = require('./lib/ain').default;
 const ain = new Ain('http://localhost:8081/', 'ws://localhost:5100/');
@@ -32,6 +33,13 @@ const accounts = ain.db.ref('/accounts').getValue().then(result => {
   console.log(result);
 });
 ```
+
+### More Use Cases
+#### [ainize-js](https://github.com/ainize-team/ainize-js)
+- [AinModule](https://github.com/ainize-team/ainize-js/blob/main/src/ain.ts)
+
+#### [ainft-js](https://github.com/ainize-team/ainize-js)
+- [AinftJs](https://github.com/ainft-team/ainft-js/blob/main/src/ainft.ts)
 
 ## Test How-To
 For testing, you need a blockchain node cluster running locally.
