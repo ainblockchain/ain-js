@@ -4,6 +4,10 @@ AI Network Blockchain SDK for javascript (or typescript).
 ## API Documentation
 API documentation is available at https://ainblockchain.github.io/ain-js/.
 
+## Quick start
+Start with the quick start section in the [online docs](https://docs.ainetwork.ai/ain-blockchain/developer-guide/getting-started).
+
+
 ## Installation
 ```
 yarn add @ainblockchain/ain-js
