@@ -12,6 +12,7 @@ import Wallet from './wallet';
 import Network from './net';
 import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
+import Knowledge from './knowledge';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 
@@ -39,6 +40,8 @@ export default class Ain {
   public he: HomomorphicEncryption;
   /** The event manager object. */
   public em: EventManager;
+  /** The knowledge module object. */
+  public knowledge: Knowledge;
   /** The signer object. */
   public signer: Signer;
 
@@ -59,6 +62,7 @@ export default class Ain {
     this.wallet = new Wallet(this, this.chainId);
     this.db = new Database(this, this.provider);
     this.he = new HomomorphicEncryption();
+    this.knowledge = new Knowledge(this, this.provider);
     this.em = new EventManager(this);
     this.signer = new DefaultSigner(this.wallet, this.provider);
   }
@@ -78,6 +82,7 @@ export default class Ain {
     this.eventHandlerUrl = eventHandlerUrl;
     this.chainId = chainId || 0;
     this.db = new Database(this, this.provider);
+    this.knowledge = new Knowledge(this, this.provider);
     this.net = new Network(this.provider);
     this.wallet.setChainId(this.chainId);
   }
