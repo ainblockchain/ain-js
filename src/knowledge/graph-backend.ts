@@ -43,6 +43,9 @@ export interface GraphBackend {
   initialize(): Promise<void>;
   close(): Promise<void>;
 
+  // --- Transaction batching ---
+  withTransaction<T>(fn: () => Promise<T>): Promise<T>;
+
   // --- Write (append-only) ---
   createNode(node: GraphNode): Promise<void>;
   mergeNode(label: string, id: string, properties: Record<string, any>): Promise<void>;

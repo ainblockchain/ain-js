@@ -57,40 +57,42 @@ export class KnowledgeGraph {
     topicPath: string,
     info: { title: string; description: string }
   ): Promise<void> {
-    const now = Date.now();
-    const topicProps = {
-      path: topicPath,
-      title: info.title,
-      description: info.description,
-      created_at: now,
-      created_by: this.address,
-    };
+    return this.runInTransaction(async () => {
+      const now = Date.now();
+      const topicProps = {
+        path: topicPath,
+        title: info.title,
+        description: info.description,
+        created_at: now,
+        created_by: this.address,
+      };
 
-    await this.backend.mergeNode('Topic', topicPath, topicProps);
+      await this.backend.mergeNode('Topic', topicPath, topicProps);
 
-    // If the topic has a parent, create the PARENT_OF edge
-    const parts = topicPath.split('/');
-    if (parts.length > 1) {
-      const parentPath = parts.slice(0, -1).join('/');
-      await this.backend.mergeEdge({
-        type: 'PARENT_OF',
-        from: parentPath,
-        to: topicPath,
+      // If the topic has a parent, create the PARENT_OF edge
+      const parts = topicPath.split('/');
+      if (parts.length > 1) {
+        const parentPath = parts.slice(0, -1).join('/');
+        await this.backend.mergeEdge({
+          type: 'PARENT_OF',
+          from: parentPath,
+          to: topicPath,
+        });
+      }
+
+      // TxLog
+      const txId = PushId.generate();
+      await this.backend.createNode({
+        label: 'TxLog',
+        id: txId,
+        properties: {
+          op: 'registerTopic',
+          actor: this.address,
+          target_id: topicPath,
+          target_type: 'Topic',
+          timestamp: now,
+        },
       });
-    }
-
-    // TxLog
-    const txId = PushId.generate();
-    await this.backend.createNode({
-      label: 'TxLog',
-      id: txId,
-      properties: {
-        op: 'registerTopic',
-        actor: this.address,
-        target_id: topicPath,
-        target_type: 'Topic',
-        timestamp: now,
-      },
     });
   }
 
@@ -119,65 +121,67 @@ export class KnowledgeGraph {
       updated_at: now,
     };
 
-    // Merge User node (idempotent)
-    await this.backend.mergeNode('User', this.address, { address: this.address });
+    return this.runInTransaction(async () => {
+      // Merge User node (idempotent)
+      await this.backend.mergeNode('User', this.address, { address: this.address });
 
-    // Create Exploration node (append-only: always new)
-    await this.backend.createNode({
-      label: 'Exploration',
-      id: entryId,
-      properties: { ...exploration },
-    });
+      // Create Exploration node (append-only: always new)
+      await this.backend.createNode({
+        label: 'Exploration',
+        id: entryId,
+        properties: { ...exploration },
+      });
 
-    // Edges: CREATED, IN_TOPIC, EXPLORED (with count increment)
-    await this.backend.createEdge({
-      type: 'CREATED',
-      from: this.address,
-      to: entryId,
-    });
+      // Edges: CREATED, IN_TOPIC, EXPLORED (with count increment)
+      await this.backend.createEdge({
+        type: 'CREATED',
+        from: this.address,
+        to: entryId,
+      });
 
-    await this.backend.createEdge({
-      type: 'IN_TOPIC',
-      from: entryId,
-      to: input.topicPath,
-    });
+      await this.backend.createEdge({
+        type: 'IN_TOPIC',
+        from: entryId,
+        to: input.topicPath,
+      });
 
-    await this.backend.incrementEdgeProperty(
-      'EXPLORED',
-      this.address,
-      input.topicPath,
-      'count',
-      1
-    );
+      await this.backend.incrementEdgeProperty(
+        'EXPLORED',
+        this.address,
+        input.topicPath,
+        'count',
+        1
+      );
 
-    // Parse builds-on tags and create BUILDS_ON edges
-    const tags = input.tags.split(',').map((t) => t.trim());
-    for (const tag of tags) {
-      if (tag.startsWith('builds-on:')) {
-        const parentId = tag.slice('builds-on:'.length);
-        await this.backend.createEdge({
-          type: 'BUILDS_ON',
-          from: entryId,
-          to: parentId,
-        });
+      // Parse builds-on tags and create BUILDS_ON edges
+      const tags = input.tags.split(',').map((t) => t.trim());
+      for (const tag of tags) {
+        if (tag.startsWith('builds-on:')) {
+          const parentId = tag.slice('builds-on:'.length);
+          await this.backend.createEdge({
+            type: 'BUILDS_ON',
+            from: entryId,
+            to: parentId,
+          });
+        }
       }
-    }
 
-    // TxLog
-    const txId = PushId.generate();
-    await this.backend.createNode({
-      label: 'TxLog',
-      id: txId,
-      properties: {
-        op: 'explore',
-        actor: this.address,
-        target_id: entryId,
-        target_type: 'Exploration',
-        timestamp: now,
-      },
+      // TxLog
+      const txId = PushId.generate();
+      await this.backend.createNode({
+        label: 'TxLog',
+        id: txId,
+        properties: {
+          op: 'explore',
+          actor: this.address,
+          target_id: entryId,
+          target_type: 'Exploration',
+          timestamp: now,
+        },
+      });
+
+      return entryId;
     });
-
-    return entryId;
   }
 
   // ---------------------------------------------------------------------------
@@ -318,29 +322,31 @@ export class KnowledgeGraph {
     topicPath: string,
     entryId: string
   ): Promise<AccessResult> {
-    const expNode = await this.backend.getNode('Exploration', entryId);
-    if (!expNode) {
-      throw new Error(`Exploration not found: ${entryId}`);
-    }
+    return this.runInTransaction(async () => {
+      const expNode = await this.backend.getNode('Exploration', entryId);
+      if (!expNode) {
+        throw new Error(`Exploration not found: ${entryId}`);
+      }
 
-    // Record access as PAID_FOR edge
-    const now = Date.now();
-    await this.backend.mergeEdge({
-      type: 'PAID_FOR',
-      from: this.address,
-      to: entryId,
-      properties: {
-        amount: '0',
-        currency: 'FREE',
-        tx_hash: '',
-        accessed_at: now,
-      },
+      // Record access as PAID_FOR edge
+      const now = Date.now();
+      await this.backend.mergeEdge({
+        type: 'PAID_FOR',
+        from: this.address,
+        to: entryId,
+        properties: {
+          amount: '0',
+          currency: 'FREE',
+          tx_hash: '',
+          accessed_at: now,
+        },
+      });
+
+      return {
+        content: expNode.properties.content || '',
+        paid: false,
+      };
     });
-
-    return {
-      content: expNode.properties.content || '',
-      paid: false,
-    };
   }
 
   // ---------------------------------------------------------------------------
@@ -399,35 +405,37 @@ export class KnowledgeGraph {
     rel_count: number;
     tx_count: number;
   }> {
-    const now = Date.now();
-    const snapshotId = PushId.generate();
+    return this.runInTransaction(async () => {
+      const now = Date.now();
+      const snapshotId = PushId.generate();
 
-    const nodeCount = await this.backend.nodeCount();
-    const relCount = await this.backend.edgeCount();
-    const txLogs = await this.backend.findNodes('TxLog');
-    const txCount = txLogs.length;
+      const nodeCount = await this.backend.nodeCount();
+      const relCount = await this.backend.edgeCount();
+      const txLogs = await this.backend.findNodes('TxLog');
+      const txCount = txLogs.length;
 
-    await this.backend.createNode({
-      label: 'Snapshot',
-      id: snapshotId,
-      properties: {
-        created_at: now,
-        node_count: nodeCount,
-        rel_count: relCount,
-        tx_count: txCount,
-      },
-    });
-
-    // Link snapshot to all TxLog entries
-    for (const tx of txLogs) {
-      await this.backend.createEdge({
-        type: 'INCLUDES',
-        from: snapshotId,
-        to: tx.id,
+      await this.backend.createNode({
+        label: 'Snapshot',
+        id: snapshotId,
+        properties: {
+          created_at: now,
+          node_count: nodeCount,
+          rel_count: relCount,
+          tx_count: txCount,
+        },
       });
-    }
 
-    return { id: snapshotId, node_count: nodeCount, rel_count: relCount, tx_count: txCount };
+      // Link snapshot to all TxLog entries
+      for (const tx of txLogs) {
+        await this.backend.createEdge({
+          type: 'INCLUDES',
+          from: snapshotId,
+          to: tx.id,
+        });
+      }
+
+      return { id: snapshotId, node_count: nodeCount, rel_count: relCount, tx_count: txCount };
+    });
   }
 
   /** Get all snapshots. */
@@ -494,6 +502,10 @@ export class KnowledgeGraph {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  private runInTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    return this.backend.withTransaction(fn);
+  }
 
   private nodeToExploration(node: GraphNode): Exploration {
     const p = node.properties;

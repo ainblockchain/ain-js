@@ -52,6 +52,12 @@ export class MemoryBackend implements GraphBackend {
     // No-op for in-memory backend.
   }
 
+  // --- Transaction batching ---
+
+  async withTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    return fn();
+  }
+
   async close(): Promise<void> {
     this.nodes.clear();
     this.edges = [];
