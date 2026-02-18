@@ -521,6 +521,32 @@ export default class Knowledge {
           },
         },
       },
+      // Attach native function trigger for topic info writes
+      {
+        type: 'SET_FUNCTION',
+        ref: `${APP_PATH}/topics`,
+        value: {
+          '.function': {
+            '_syncKnowledgeTopic': {
+              function_type: 'NATIVE',
+              function_id: '_syncKnowledgeTopic',
+            },
+          },
+        },
+      },
+      // Attach native function trigger for exploration writes
+      {
+        type: 'SET_FUNCTION',
+        ref: `${APP_PATH}/explorations/$addr/$topic_key/$entry_id`,
+        value: {
+          '.function': {
+            '_syncKnowledgeExploration': {
+              function_type: 'NATIVE',
+              function_id: '_syncKnowledgeExploration',
+            },
+          },
+        },
+      },
     ];
 
     const txInput: TransactionInput = {
