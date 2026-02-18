@@ -454,11 +454,11 @@ describe('Knowledge Module', function() {
 
       const result = await ain.knowledge.setupApp();
       expect(result).toEqual({ result: true });
-      expect(ain.sendTransaction).toHaveBeenCalledTimes(1);
+      expect(ain.sendTransaction).toHaveBeenCalledTimes(2);
 
-      const txCall = (ain.sendTransaction as jest.Mock).mock.calls[0][0];
+      const txCall = (ain.sendTransaction as jest.Mock).mock.calls[1][0];
       expect(txCall.operation.type).toBe('SET');
-      expect(txCall.operation.op_list.length).toBe(5);
+      expect(txCall.operation.op_list.length).toBe(7);
 
       // Verify SET_OWNER
       const ownerOp = txCall.operation.op_list[0];
@@ -492,7 +492,7 @@ describe('Knowledge Module', function() {
 
       await ain.knowledge.setupApp({ ownerAddress: '0xCustomOwner' });
 
-      const txCall = (ain.sendTransaction as jest.Mock).mock.calls[0][0];
+      const txCall = (ain.sendTransaction as jest.Mock).mock.calls[1][0];
       const ownerOp = txCall.operation.op_list[0];
       expect(ownerOp.value['.owner'].owners['0xCustomOwner']).toBeDefined();
       expect(ownerOp.value['.owner'].owners['0xCustomOwner'].branch_owner).toBe(true);
