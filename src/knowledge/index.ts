@@ -6,6 +6,7 @@ import {
   TopicInfo,
   Exploration,
   ExploreInput,
+  ExploreResult,
   TopicStats,
   TopicFrontier,
   FrontierMapEntry,
@@ -13,6 +14,11 @@ import {
   AccessResult,
   KnowledgeTxOptions,
   SetupAppOptions,
+  PublishCourseInput,
+  PublishCourseResult,
+  GraphNode,
+  GraphEdge,
+  EntryRef,
 } from './types';
 
 const APP_PATH = '/apps/knowledge';
@@ -45,6 +51,14 @@ async function hashContent(content: string): Promise<string> {
   // Node.js fallback
   const crypto = require('crypto');
   return crypto.createHash('sha256').update(content).digest('hex');
+}
+
+/**
+ * Builds a unique graph node ID from an entry reference.
+ */
+function buildNodeId(address: string, topicPath: string, entryId: string): string {
+  const topicKey = topicPathToKey(topicPath);
+  return `${address}_${topicKey}_${entryId}`;
 }
 
 /**
@@ -89,9 +103,9 @@ export default class Knowledge {
    * the content is gated (stored off-chain behind x402); only metadata is on-chain.
    * @param {ExploreInput} input The exploration input.
    * @param {KnowledgeTxOptions} options Transaction options.
-   * @returns {Promise<any>} The transaction result.
+   * @returns {Promise<ExploreResult>} The entry ID and transaction result.
    */
-  async explore(input: ExploreInput, options?: KnowledgeTxOptions): Promise<any> {
+  async explore(input: ExploreInput, options?: KnowledgeTxOptions): Promise<ExploreResult> {
     const address = this._ain.signer.getAddress(options?.address);
     const topicKey = topicPathToKey(input.topicPath);
     const entryId = PushId.generate();
@@ -120,6 +134,17 @@ export default class Knowledge {
     // Get current count for this explorer on this topic
     const currentCount = await this._ain.db.ref(indexPath).getValue() || 0;
 
+    // Build graph node
+    const nodeId = buildNodeId(address, input.topicPath, entryId);
+    const graphNode: GraphNode = {
+      address,
+      topic_path: input.topicPath,
+      entry_id: entryId,
+      title: input.title,
+      depth: input.depth,
+      created_at: now,
+    };
+
     const op_list: SetOperation[] = [
       {
         type: 'SET_VALUE',
@@ -131,7 +156,62 @@ export default class Knowledge {
         ref: indexPath,
         value: currentCount + 1,
       },
+      // Write graph node
+      {
+        type: 'SET_VALUE',
+        ref: `${APP_PATH}/graph/nodes/${nodeId}`,
+        value: graphNode,
+      },
     ];
+
+    // Build graph edges from parent and related entries
+    if (input.parentEntry) {
+      const parentNodeId = buildNodeId(
+        input.parentEntry.ownerAddress,
+        input.parentEntry.topicPath,
+        input.parentEntry.entryId
+      );
+      const edge: GraphEdge = {
+        type: 'extends',
+        created_at: now,
+        created_by: address,
+      };
+      op_list.push({
+        type: 'SET_VALUE',
+        ref: `${APP_PATH}/graph/edges/${nodeId}/${parentNodeId}`,
+        value: edge,
+      });
+      // Reverse index for lookups
+      op_list.push({
+        type: 'SET_VALUE',
+        ref: `${APP_PATH}/graph/edges/${parentNodeId}/${nodeId}`,
+        value: { ...edge, type: 'extends' as const },
+      });
+    }
+
+    if (input.relatedEntries) {
+      for (let i = 0; i < input.relatedEntries.length; i++) {
+        const rel = input.relatedEntries[i];
+        const relNodeId = buildNodeId(rel.ownerAddress, rel.topicPath, rel.entryId);
+        const edgeType = rel.type || 'related';
+        const edge: GraphEdge = {
+          type: edgeType,
+          created_at: now,
+          created_by: address,
+        };
+        op_list.push({
+          type: 'SET_VALUE',
+          ref: `${APP_PATH}/graph/edges/${nodeId}/${relNodeId}`,
+          value: edge,
+        });
+        // Reverse index
+        op_list.push({
+          type: 'SET_VALUE',
+          ref: `${APP_PATH}/graph/edges/${relNodeId}/${nodeId}`,
+          value: edge,
+        });
+      }
+    }
 
     const txInput: TransactionInput = {
       operation: {
@@ -141,7 +221,71 @@ export default class Knowledge {
       ...this._buildTxOptions(options),
     };
 
-    return this._ain.sendTransaction(txInput);
+    const txResult = await this._ain.sendTransaction(txInput);
+    return { entryId, nodeId, txResult };
+  }
+
+  /**
+   * Convenience method: publishes a gated course in one call.
+   * 1. POSTs content to the gateway server
+   * 2. Calls explore() with price + gatewayUrl (stores metadata on-chain)
+   * @param {PublishCourseInput} input The course input.
+   * @param {KnowledgeTxOptions} options Transaction options.
+   * @returns {Promise<PublishCourseResult>}
+   */
+  async publishCourse(input: PublishCourseInput, options?: KnowledgeTxOptions): Promise<PublishCourseResult> {
+    const address = this._ain.signer.getAddress(options?.address);
+
+    // Step 1: Upload content to gateway
+    const publishRes = await globalThis.fetch(`${input.gatewayBaseUrl}/api/knowledge/publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: input.content,
+        title: input.title,
+        price: input.price,
+        payTo: address,
+        description: input.summary,
+      }),
+    });
+
+    if (!publishRes.ok) {
+      const errText = await publishRes.text();
+      throw new Error(`[ain-js.knowledge.publishCourse] Gateway publish failed: ${publishRes.status} ${errText}`);
+    }
+
+    const publishData = await publishRes.json();
+    const contentId: string = publishData.contentId;
+    const gatewayUrl = `${input.gatewayBaseUrl}/api/knowledge/content/${contentId}`;
+
+    // Step 2: Record gated exploration on-chain (with graph edges)
+    const { entryId, nodeId, txResult } = await this.explore(
+      {
+        topicPath: input.topicPath,
+        title: input.title,
+        content: input.content,
+        summary: input.summary,
+        depth: input.depth,
+        tags: input.tags,
+        price: input.price,
+        gatewayUrl,
+        parentEntry: input.parentEntry || null,
+        relatedEntries: input.relatedEntries || null,
+      },
+      options,
+    );
+
+    return { contentId, gatewayUrl, entryId, txResult };
+  }
+
+  /**
+   * Configures an AIN-token x402 client for local testnet payments.
+   * After calling this, access() will auto-pay using AIN transfers.
+   */
+  setupAinX402Client(): void {
+    const { AinTransferSchemeClient } = require('./ain-x402-client');
+    const client = new AinTransferSchemeClient(this._ain);
+    this.setX402Client(client);
   }
 
   /**
@@ -247,6 +391,56 @@ export default class Knowledge {
     const data = await this._ain.db.ref(path).getValue();
     if (!data) return [];
     return Object.keys(data);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Knowledge Graph
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Gets a graph node by its ID.
+   * @param {string} nodeId The node ID (format: address_topicKey_entryId).
+   * @returns {Promise<GraphNode | null>}
+   */
+  async getGraphNode(nodeId: string): Promise<GraphNode | null> {
+    const path = `${APP_PATH}/graph/nodes/${nodeId}`;
+    return this._ain.db.ref(path).getValue();
+  }
+
+  /**
+   * Gets all edges connected to a node.
+   * @param {string} nodeId The node ID.
+   * @returns {Promise<Record<string, GraphEdge> | null>} Map of targetNodeId -> edge.
+   */
+  async getNodeEdges(nodeId: string): Promise<Record<string, GraphEdge> | null> {
+    const path = `${APP_PATH}/graph/edges/${nodeId}`;
+    return this._ain.db.ref(path).getValue();
+  }
+
+  /**
+   * Gets the full knowledge graph: all nodes and edges.
+   * @returns {Promise<{ nodes: Record<string, GraphNode>; edges: Record<string, Record<string, GraphEdge>> }>}
+   */
+  async getGraph(): Promise<{
+    nodes: Record<string, GraphNode>;
+    edges: Record<string, Record<string, GraphEdge>>;
+  }> {
+    const [nodes, edges] = await Promise.all([
+      this._ain.db.ref(`${APP_PATH}/graph/nodes`).getValue(),
+      this._ain.db.ref(`${APP_PATH}/graph/edges`).getValue(),
+    ]);
+    return {
+      nodes: nodes || {},
+      edges: edges || {},
+    };
+  }
+
+  /**
+   * Builds a node ID from an entry reference.
+   * Useful for looking up graph data for a known entry.
+   */
+  buildNodeId(address: string, topicPath: string, entryId: string): string {
+    return buildNodeId(address, topicPath, entryId);
   }
 
   // ---------------------------------------------------------------------------
@@ -359,24 +553,71 @@ export default class Knowledge {
       };
     }
 
-    // Gated content — use x402
+    // Gated content — x402 flow: request → 402 → pay → retry with proof
     if (!this._x402Client) {
       throw new Error(
-        '[ain-js.knowledge.access] x402 client not configured. Call setX402Client() first.'
+        '[ain-js.knowledge.access] x402 client not configured. Call setX402Client() or setupAinX402Client() first.'
       );
     }
 
-    const { wrapFetchWithPayment } = require('@x402/fetch');
-    const fetchWithPay = wrapFetchWithPayment(globalThis.fetch, this._x402Client);
+    // Step 1: Request content (expect 402)
+    const initialResponse = await globalThis.fetch(exploration.gateway_url);
 
-    const response = await fetchWithPay(exploration.gateway_url);
-    if (!response.ok) {
+    let content: string;
+    let txHash = '';
+    let currency = 'AIN';
+
+    if (initialResponse.status === 402) {
+      // Step 2: Parse payment requirements from 402 response
+      const paymentRequiredHeader = initialResponse.headers.get('x-payment-required');
+      let paymentRequirements: any;
+
+      if (paymentRequiredHeader) {
+        try {
+          const decoded = Buffer.from(paymentRequiredHeader, 'base64').toString('utf-8');
+          paymentRequirements = JSON.parse(decoded);
+        } catch {
+          paymentRequirements = JSON.parse(paymentRequiredHeader);
+        }
+      } else {
+        // Fallback: parse from response body
+        const body = await initialResponse.json();
+        paymentRequirements = body.requirements;
+      }
+
+      // Step 3: Execute payment via the x402 client
+      const paymentResult = await this._x402Client.handlePaymentRequired(
+        paymentRequirements,
+        initialResponse
+      );
+
+      txHash = paymentResult.payload?.txHash || '';
+      currency = paymentResult.payload?.scheme === 'ain-transfer' ? 'AIN' : 'USDC';
+
+      // Step 4: Retry request with payment proof
+      const paymentPayload = Buffer.from(JSON.stringify(paymentResult.payload)).toString('base64');
+      const paidResponse = await globalThis.fetch(exploration.gateway_url, {
+        headers: { 'X-PAYMENT': paymentPayload },
+      });
+
+      if (!paidResponse.ok) {
+        const errText = await paidResponse.text();
+        throw new Error(
+          `[ain-js.knowledge.access] Payment accepted but content retrieval failed: ${paidResponse.status} ${errText}`
+        );
+      }
+
+      content = await paidResponse.text();
+      txHash = paidResponse.headers?.get?.('x-payment-tx-hash') || txHash;
+      currency = paidResponse.headers?.get?.('x-payment-currency') || currency;
+    } else if (initialResponse.ok) {
+      // Content was free or already paid
+      content = await initialResponse.text();
+    } else {
       throw new Error(
-        `[ain-js.knowledge.access] Failed to fetch gated content: ${response.status} ${response.statusText}`
+        `[ain-js.knowledge.access] Failed to fetch gated content: ${initialResponse.status} ${initialResponse.statusText}`
       );
     }
-
-    const content = await response.text();
 
     // Verify content hash if available
     if (exploration.content_hash) {
@@ -391,14 +632,13 @@ export default class Knowledge {
     // Record access receipt on-chain
     const buyerAddress = this._ain.signer.getAddress(options?.address);
     const entryKey = `${ownerAddress}_${topicKey}_${entryId}`;
-    const txHash = response.headers?.get?.('x-payment-tx-hash') || '';
 
     const receipt: AccessReceipt = {
       seller: ownerAddress,
       topic_path: topicPath,
       entry_id: entryId,
       amount: exploration.price,
-      currency: 'USDC',
+      currency,
       tx_hash: txHash,
       accessed_at: Date.now(),
     };
@@ -518,6 +758,26 @@ export default class Knowledge {
         value: {
           '.rule': {
             write: 'auth.addr === $buyer_addr',
+          },
+        },
+      },
+      // Write rules for graph nodes: any authenticated user can write
+      {
+        type: 'SET_RULE',
+        ref: `${APP_PATH}/graph/nodes`,
+        value: {
+          '.rule': {
+            write: "auth.addr !== ''",
+          },
+        },
+      },
+      // Write rules for graph edges: any authenticated user can write
+      {
+        type: 'SET_RULE',
+        ref: `${APP_PATH}/graph/edges`,
+        value: {
+          '.rule': {
+            write: "auth.addr !== ''",
           },
         },
       },

@@ -42,6 +42,10 @@ export interface ExploreInput {
   tags: string;
   price?: string | null;
   gatewayUrl?: string | null;
+  /** Parent entry this builds upon (creates an "extends" edge in the graph). */
+  parentEntry?: EntryRef | null;
+  /** Related entries to link (creates "related" edges in the graph). */
+  relatedEntries?: Array<EntryRef & { type?: 'related' | 'prerequisite' }> | null;
 }
 
 /**
@@ -114,4 +118,71 @@ export interface AccessResult {
  */
 export interface SetupAppOptions extends KnowledgeTxOptions {
   ownerAddress?: string;
+}
+
+/**
+ * A node in the knowledge graph, stored on-chain.
+ */
+export interface GraphNode {
+  address: string;
+  topic_path: string;
+  entry_id: string;
+  title: string;
+  depth: number;
+  created_at: number;
+}
+
+/**
+ * An edge in the knowledge graph, stored on-chain.
+ */
+export interface GraphEdge {
+  type: 'extends' | 'related' | 'prerequisite';
+  created_at: number;
+  created_by: string;
+}
+
+/**
+ * A reference to an existing entry for creating graph edges.
+ */
+export interface EntryRef {
+  ownerAddress: string;
+  topicPath: string;
+  entryId: string;
+}
+
+/**
+ * Structured return from explore() so callers can get the entry ID and node ID.
+ */
+export interface ExploreResult {
+  entryId: string;
+  nodeId: string;
+  txResult: any;
+}
+
+/**
+ * Input for the publishCourse() convenience method.
+ */
+export interface PublishCourseInput {
+  topicPath: string;
+  title: string;
+  content: string;
+  summary: string;
+  depth: ExplorationDepth;
+  tags: string;
+  price: string;
+  gatewayBaseUrl: string;
+  /** Parent entry this builds upon (creates an "extends" edge in the graph). */
+  parentEntry?: EntryRef | null;
+  /** Related entries to link (creates "related" edges in the graph). */
+  relatedEntries?: Array<EntryRef & { type?: 'related' | 'prerequisite' }> | null;
+}
+
+/**
+ * Result from publishCourse().
+ */
+export interface PublishCourseResult {
+  contentId: string;
+  gatewayUrl: string;
+  entryId: string;
+  txResult: any;
 }
