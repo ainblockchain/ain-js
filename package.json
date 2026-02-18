@@ -49,6 +49,9 @@
     "typedoc-theme-hierarchy": "^4.1.2",
     "typescript": "^5.4.5"
   },
+  "overrides": {
+    "secp256k1": "^4.0.3"
+  },
   "dependencies": {
     "@ainblockchain/ain-util": "^1.2.1",
     "@types/node": "^12.7.3",
