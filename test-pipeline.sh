@@ -3,6 +3,8 @@
 cd /app/ain-blockchain
 if [[ "$1" = 'dev' ]]; then
   git checkout develop
+else
+  git checkout feat/knowledge-module || true
 fi
 yarn install
 bash ./start_local_blockchain.sh > /dev/null 2>&1

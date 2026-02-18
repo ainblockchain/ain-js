@@ -1,0 +1,188 @@
+/**
+ * Depth level for an exploration entry (1-5).
+ */
+export type ExplorationDepth = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * An interface for topic metadata stored on-chain.
+ */
+export interface TopicInfo {
+  title: string;
+  description: string;
+  created_at: number;
+  created_by: string;
+}
+
+/**
+ * An interface for an exploration entry stored on-chain.
+ */
+export interface Exploration {
+  topic_path: string;
+  title: string;
+  content: string | null;
+  summary: string;
+  depth: ExplorationDepth;
+  tags: string | null;
+  price: string | null;
+  gateway_url: string | null;
+  content_hash: string | null;
+  created_at: number;
+  updated_at: number;
+}
+
+/**
+ * An interface for the input when creating a new exploration.
+ */
+export interface ExploreInput {
+  topicPath: string;
+  title: string;
+  content: string;
+  summary: string;
+  depth: ExplorationDepth;
+  tags: string;
+  price?: string | null;
+  gatewayUrl?: string | null;
+  /** Parent entry this builds upon (creates an "extends" edge in the graph). */
+  parentEntry?: EntryRef | null;
+  /** Related entries to link (creates "related" edges in the graph). */
+  relatedEntries?: Array<EntryRef & { type?: 'related' | 'prerequisite' }> | null;
+}
+
+/**
+ * An interface for topic statistics.
+ */
+export interface TopicStats {
+  explorer_count: number;
+  max_depth: number;
+  avg_depth: number;
+}
+
+/**
+ * An interface for a topic's frontier view.
+ */
+export interface TopicFrontier {
+  info: TopicInfo | null;
+  stats: TopicStats;
+  explorers: string[];
+}
+
+/**
+ * An interface for per-subtopic stats in a frontier map.
+ */
+export interface FrontierMapEntry {
+  topic: string;
+  stats: TopicStats;
+}
+
+/**
+ * An interface for an explorer's summary within a topic.
+ */
+export interface ExplorerTopicSummary {
+  address: string;
+  count: number;
+}
+
+/**
+ * An interface for an access receipt (payment proof) stored on-chain.
+ */
+export interface AccessReceipt {
+  seller: string;
+  topic_path: string;
+  entry_id: string;
+  amount: string;
+  currency: string;
+  tx_hash: string;
+  accessed_at: number;
+}
+
+/**
+ * An interface for transaction options used by Knowledge methods.
+ */
+export interface KnowledgeTxOptions {
+  nonce?: number;
+  address?: string;
+  gas_price?: number;
+}
+
+/**
+ * An interface for the result of an access() call.
+ */
+export interface AccessResult {
+  content: string;
+  paid: boolean;
+  receipt?: AccessReceipt;
+}
+
+/**
+ * An interface for setupApp options.
+ */
+export interface SetupAppOptions extends KnowledgeTxOptions {
+  ownerAddress?: string;
+}
+
+/**
+ * A node in the knowledge graph, stored on-chain.
+ */
+export interface GraphNode {
+  address: string;
+  topic_path: string;
+  entry_id: string;
+  title: string;
+  depth: number;
+  created_at: number;
+}
+
+/**
+ * An edge in the knowledge graph, stored on-chain.
+ */
+export interface GraphEdge {
+  type: 'extends' | 'related' | 'prerequisite';
+  created_at: number;
+  created_by: string;
+}
+
+/**
+ * A reference to an existing entry for creating graph edges.
+ */
+export interface EntryRef {
+  ownerAddress: string;
+  topicPath: string;
+  entryId: string;
+}
+
+/**
+ * Structured return from explore() so callers can get the entry ID and node ID.
+ */
+export interface ExploreResult {
+  entryId: string;
+  nodeId: string;
+  txResult: any;
+}
+
+/**
+ * Input for the publishCourse() convenience method.
+ */
+export interface PublishCourseInput {
+  topicPath: string;
+  title: string;
+  content: string;
+  summary: string;
+  depth: ExplorationDepth;
+  tags: string;
+  price: string;
+  gatewayBaseUrl: string;
+  /** Parent entry this builds upon (creates an "extends" edge in the graph). */
+  parentEntry?: EntryRef | null;
+  /** Related entries to link (creates "related" edges in the graph). */
+  relatedEntries?: Array<EntryRef & { type?: 'related' | 'prerequisite' }> | null;
+}
+
+/**
+ * Result from publishCourse().
+ */
+export interface PublishCourseResult {
+  contentId: string;
+  gatewayUrl: string;
+  entryId: string;
+  txResult: any;
+}

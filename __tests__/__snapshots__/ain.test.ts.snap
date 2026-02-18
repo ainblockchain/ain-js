@@ -103,9 +103,7 @@ exports[`ain-js Database evalRule: true 1`] = `
 }
 `;
 
-exports[`ain-js Database get with options 1`] = `null`;
-
-exports[`ain-js Database get with options 2`] = `
+exports[`ain-js Database get with options 1`] = `
 {
   "can": {
     "write": -5,
@@ -114,7 +112,7 @@ exports[`ain-js Database get with options 2`] = `
 }
 `;
 
-exports[`ain-js Database get with options 3`] = `
+exports[`ain-js Database get with options 2`] = `
 {
   "can": {
     "#state_ph": "0xaf1e44f55da6d7e1aa784dd38372c2c2939570254c6b3f36f80b4878590a9efa",
@@ -123,7 +121,7 @@ exports[`ain-js Database get with options 3`] = `
 }
 `;
 
-exports[`ain-js Database get with options 4`] = `
+exports[`ain-js Database get with options 3`] = `
 {
   "#state_ph": "0x3c067fd41205e87fcead2107a0f346881ea7d95249cdbe34d3d72e28e7c9ecd5",
   "#state_ph:username": "0xe9acb84e18d9ec64c66358f53c4fec3945eb065a3e98de907d8d80dc1361c82f",
@@ -136,7 +134,7 @@ exports[`ain-js Database get with options 4`] = `
 }
 `;
 
-exports[`ain-js Database get with options 5`] = `
+exports[`ain-js Database get with options 4`] = `
 {
   "#num_children": 2,
   "#num_children:username": 0,

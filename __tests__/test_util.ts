@@ -1,6 +1,8 @@
 import { set } from 'lodash';
 
-export declare function fail(error?: any): never;
+export function fail(error?: any): never {
+  throw new Error(error || 'Test failed');
+}
 
 export function eraseProtoVer(result) {
   const erased = JSON.parse(JSON.stringify(result));

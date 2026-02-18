@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20
 WORKDIR /app
 COPY . /app/ain-js
 RUN git clone https://github.com/ainblockchain/ain-blockchain.git
