@@ -1,7 +1,11 @@
-import { Accounts, Account, TransactionBody, V3Keystore, V3KeystoreOptions } from './types';
+import { Accounts, Account, KeyType, TransactionBody, V3Keystore, V3KeystoreOptions } from './types';
 import Ain from './ain';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import Reference from './ain-db/ref';
+import {
+  createP256Account, p256SignMessage, p256SignTransaction, p256VerifySig, isP256Signature,
+  p256GetAddressFromSignature, p256GetHashFromSignature
+} from './p256';
 // TODO(platfowner): Migrate to Ethereum HD derivation path 'm/44'/60'/0'/0/'.
 const AIN_HD_DERIVATION_PATH = "m/44'/412'/0'/0/";  // The hardware wallet derivation path of AIN
 const MAX_TRANSFERABLE_DECIMALS = 6;  // The maximum decimals of transferable values
@@ -81,15 +85,38 @@ export default class Wallet {
 
   /**
    * Creates new accounts and adds them to the wallet.
-   * @param {number} numberOfAccounts The number of accounts to create.
-   * @returns {Array<string>} The newly created accounts.
+   * @param {number | KeyType} numberOfAccountsOrKeyType The number of accounts to create, or a key type string.
+   * @param {KeyType} keyType The key type ('secp256k1' or 'p256'). Defaults to 'secp256k1'.
+   * @returns {Array<string> | string} The newly created account addresses.
    */
-  create(numberOfAccounts: number): Array<string> {
+  create(numberOfAccountsOrKeyType: number | KeyType = 1, keyType?: KeyType): Array<string> | string {
+    // Handle create('p256') shorthand: single P256 account
+    if (typeof numberOfAccountsOrKeyType === 'string') {
+      const kt = numberOfAccountsOrKeyType as KeyType;
+      let account: Account;
+      if (kt === 'p256') {
+        account = createP256Account();
+      } else {
+        const utilAccount = Ain.utils.createAccount();
+        account = { ...utilAccount, keyType: 'secp256k1' as KeyType };
+      }
+      this.accounts[account.address] = account;
+      this._length = this.accounts ? Object.keys(this.accounts).length : 0;
+      return account.address;
+    }
+
+    const numberOfAccounts = numberOfAccountsOrKeyType;
+    const kt = keyType || 'secp256k1';
     if (numberOfAccounts <= 0) throw Error("numberOfAccounts should be greater than 0.");
-    // TODO(liayoo): set maximum limit for numberOfAccounts?
     let newAccounts: Array<string> = [];
     for (let i = 0; i < numberOfAccounts; i++) {
-      let account = Ain.utils.createAccount();
+      let account: Account;
+      if (kt === 'p256') {
+        account = createP256Account();
+      } else {
+        const utilAccount = Ain.utils.createAccount();
+        account = { ...utilAccount, keyType: 'secp256k1' as KeyType };
+      }
       this.accounts[account.address] = account;
       newAccounts.push(account.address);
     }
@@ -312,25 +339,35 @@ export default class Wallet {
   /**
    * Signs a string data with the private key of the given address. It will use
    * the default account if an address is not provided.
+   * Routes to P256 signing if the account's keyType is 'p256'.
    * @param {string} data The data to sign.
    * @param {string} address The address of the account. It defaults to the default account of the wallet.
    * @returns {string} The signature.
    */
   sign(data: string, address?: string): string {
     const addr = this.getImpliedAddress(address);
-    return Ain.utils.ecSignMessage(data, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
+    const account = this.accounts[addr];
+    if (account.keyType === 'p256') {
+      return p256SignMessage(data, account.private_key);
+    }
+    return Ain.utils.ecSignMessage(data, Buffer.from(account.private_key, 'hex'), this.chainId);
   }
 
   /**
    * Signs a transaction body with the private key of the given address. It will use
    * the default account if an address is not provided.
+   * Routes to P256 signing if the account's keyType is 'p256'.
    * @param {TransactionBody} txBody The transaction body.
-   * @param {string} address The address of the account. It defaults to the adefault account of the wallet..
+   * @param {string} address The address of the account. It defaults to the default account of the wallet.
    * @returns {string} The signature.
    */
   signTransaction(txBody: TransactionBody, address?: string): string {
     const addr = this.getImpliedAddress(address);
-    return Ain.utils.ecSignTransaction(txBody, Buffer.from(this.accounts[addr].private_key, 'hex'), this.chainId);
+    const account = this.accounts[addr];
+    if (account.keyType === 'p256') {
+      return p256SignTransaction(txBody, account.private_key);
+    }
+    return Ain.utils.ecSignTransaction(txBody, Buffer.from(account.private_key, 'hex'), this.chainId);
   }
 
   /**
@@ -340,6 +377,9 @@ export default class Wallet {
    */
   getHashStrFromSig(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
+    if (isP256Signature(sigBuffer)) {
+      return '0x' + p256GetHashFromSignature(sigBuffer).toString('hex');
+    }
     const len = sigBuffer.length;
     const lenHash = len - 65;
     const hashedData = sigBuffer.slice(0, lenHash);
@@ -353,6 +393,9 @@ export default class Wallet {
    */
   recover(signature: string): string {
     const sigBuffer = Ain.utils.toBuffer(signature);
+    if (isP256Signature(sigBuffer)) {
+      return p256GetAddressFromSignature(sigBuffer);
+    }
     const len = sigBuffer.length;
     const lenHash = len - 65;
     const hashedData = sigBuffer.slice(0, lenHash);
@@ -364,6 +407,7 @@ export default class Wallet {
 
   /**
    * Verifies if the signature is valid and was signed by the address.
+   * Automatically detects P256 vs secp256k1 signatures.
    * @param {any} data The data used in the signing.
    * @param {string} signature The signature to verify.
    * @param {string} address The address to verify.
@@ -372,6 +416,10 @@ export default class Wallet {
    */
   verifySignature(data: any, signature: string, address: string, chainId?: number): boolean {
     try {
+      const sigBuffer = Ain.utils.toBuffer(signature);
+      if (isP256Signature(sigBuffer)) {
+        return p256VerifySig(data, signature, address);
+      }
       return Ain.utils.ecVerifySig(data, signature, address, chainId !== undefined ? chainId : this.chainId);
     } catch (err: unknown) {
       let errMsg = err instanceof Error ? err.message : err;
@@ -417,9 +465,27 @@ export default class Wallet {
   /**
    * Imports an account from a private key.
    * @param {Buffer} privateKey The private key.
+   * @param {KeyType} keyType The key type. Defaults to 'secp256k1'.
    * @returns {Account} The account.
    */
-  static fromPrivateKey(privateKey: Buffer): Account {
+  static fromPrivateKey(privateKey: Buffer, keyType: KeyType = 'secp256k1'): Account {
+    if (keyType === 'p256') {
+      const EC = require('elliptic').ec;
+      const createKeccakHash = require('keccak');
+      const ec = new EC('p256');
+      const keyPair = ec.keyFromPrivate(privateKey);
+      const pubPoint = keyPair.getPublic();
+      const pubUncompressed = Buffer.from(pubPoint.encode('hex', false), 'hex');
+      const pubRaw = pubUncompressed.slice(1);
+      const addressBuf = createKeccakHash('keccak256').update(pubRaw).digest().slice(-20);
+      const address = Ain.utils.toChecksumAddress('0x' + addressBuf.toString('hex'));
+      return {
+        address,
+        private_key: privateKey.toString('hex'),
+        public_key: pubRaw.toString('hex'),
+        keyType: 'p256',
+      };
+    }
     let publicKey = Ain.utils.privateToPublic(privateKey);
     return {
       address: Ain.utils.toChecksumAddress(Ain.utils.bufferToHex(Ain.utils.pubToAddress(publicKey))),

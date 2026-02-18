@@ -8,6 +8,11 @@ declare global {
 }
 
 /**
+ * A type for key curve type.
+ */
+export type KeyType = 'secp256k1' | 'p256';
+
+/**
  * An interface for account.
  */
 export interface Account {
@@ -17,6 +22,8 @@ export interface Account {
   private_key: string;
   /** The public key. */
   public_key: string;
+  /** The key type (secp256k1 or p256). Defaults to secp256k1 if not set. */
+  keyType?: KeyType;
 }
 
 /**
