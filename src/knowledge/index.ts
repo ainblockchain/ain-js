@@ -106,7 +106,7 @@ export default class Knowledge {
       content: isGated ? null : input.content,
       summary: input.summary,
       depth: input.depth,
-      tags: input.tags,
+      tags: input.tags || null,
       price: input.price || null,
       gateway_url: input.gatewayUrl || null,
       content_hash: isGated ? contentHash : null,

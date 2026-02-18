@@ -22,7 +22,7 @@ export interface Exploration {
   content: string | null;
   summary: string;
   depth: ExplorationDepth;
-  tags: string;
+  tags: string | null;
   price: string | null;
   gateway_url: string | null;
   content_hash: string | null;
