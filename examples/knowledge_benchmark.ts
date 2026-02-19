@@ -23,9 +23,9 @@ import { Neo4jBackend } from '../src/knowledge/neo4j-backend';
 // ---------------------------------------------------------------------------
 const PROVIDER_URL = 'http://localhost:8081';
 const BLOCK_TIME = 10_000;
-const NEO4J_URI = 'bolt://localhost:7687';
-const NEO4J_USER = 'neo4j';
-const NEO4J_PASS = 'testpassword';
+const NEO4J_URI = process.env.NEO4J_URI || 'bolt://localhost:7687';
+const NEO4J_USER = process.env.NEO4J_USER || 'neo4j';
+const NEO4J_PASS = process.env.NEO4J_PASS || 'testpassword';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
