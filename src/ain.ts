@@ -13,6 +13,7 @@ import Network from './net';
 import EventManager from './event-manager';
 import HomomorphicEncryption from './he';
 import Knowledge from './knowledge';
+import Llm from './llm';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 
@@ -42,6 +43,8 @@ export default class Ain {
   public em: EventManager;
   /** The knowledge module object. */
   public knowledge: Knowledge;
+  /** The LLM module object. */
+  public llm: Llm;
   /** The signer object. */
   public signer: Signer;
 
@@ -63,6 +66,7 @@ export default class Ain {
     this.db = new Database(this, this.provider);
     this.he = new HomomorphicEncryption();
     this.knowledge = new Knowledge(this, this.provider);
+    this.llm = new Llm(this.provider);
     this.em = new EventManager(this);
     this.signer = new DefaultSigner(this.wallet, this.provider);
   }
