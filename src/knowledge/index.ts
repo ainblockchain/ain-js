@@ -20,6 +20,9 @@ import {
   GraphEdge,
   EntryRef,
   AiExploreOptions,
+  AiExploreResult,
+  AiCourseResult,
+  AiAnalyzeResult,
   CourseStage,
 } from './types';
 
@@ -838,7 +841,7 @@ export default class Knowledge {
     topicPath: string,
     options?: AiExploreOptions,
     txOptions?: KnowledgeTxOptions
-  ): Promise<ExploreResult> {
+  ): Promise<AiExploreResult> {
     // Get frontier context
     const frontier = await this.getFrontierMap(topicPath).catch(() => []);
 
@@ -850,7 +853,7 @@ export default class Knowledge {
     });
 
     // Write the exploration to the blockchain
-    return this.explore({
+    const exploreResult = await this.explore({
       topicPath,
       title: llmResult.title,
       content: llmResult.content,
@@ -858,6 +861,11 @@ export default class Knowledge {
       depth: (options?.depth || llmResult.depth || 1) as 1 | 2 | 3 | 4 | 5,
       tags: llmResult.tags || '',
     }, txOptions);
+
+    return {
+      ...exploreResult,
+      thinking: llmResult.thinking || null,
+    };
   }
 
   /**
@@ -866,7 +874,7 @@ export default class Knowledge {
    * @param {Exploration[]} explorations The explorations to build the course from.
    * @returns {Promise<CourseStage[]>} The generated course stages.
    */
-  async aiGenerateCourse(topicPath: string, explorations: Exploration[]): Promise<CourseStage[]> {
+  async aiGenerateCourse(topicPath: string, explorations: Exploration[]): Promise<AiCourseResult> {
     const result: any = await this._provider.send('ain_llm_generateCourse', {
       topic_path: topicPath,
       explorations: explorations.map(e => ({
@@ -876,7 +884,10 @@ export default class Knowledge {
         content: e.content,
       })),
     });
-    return result.stages || [];
+    return {
+      stages: result.stages || [],
+      thinking: result.thinking || null,
+    };
   }
 
   /**
@@ -885,7 +896,7 @@ export default class Knowledge {
    * @param {string[]} contextNodeIds Node IDs to use as context.
    * @returns {Promise<string>} The analysis answer.
    */
-  async aiAnalyze(question: string, contextNodeIds: string[]): Promise<string> {
+  async aiAnalyze(question: string, contextNodeIds: string[]): Promise<AiAnalyzeResult> {
     // Fetch the actual node data for context
     const contextNodes: GraphNode[] = [];
     for (const nodeId of contextNodeIds) {
@@ -893,10 +904,15 @@ export default class Knowledge {
       if (node) contextNodes.push(node);
     }
 
-    return this._provider.send('ain_llm_analyze', {
+    const result: any = await this._provider.send('ain_llm_analyze', {
       question,
       context_nodes: contextNodes,
     });
+
+    return {
+      content: result.content || result,
+      thinking: result.thinking || null,
+    };
   }
 
   // ---------------------------------------------------------------------------

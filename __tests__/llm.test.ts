@@ -45,8 +45,24 @@ describe('Llm', () => {
         temperature: 0.5,
       });
       expect(result.content).toBe('Hello from LLM');
+      expect(result.thinking).toBeNull();
       expect(result.usage.promptTokens).toBe(10);
       expect(result.usage.completionTokens).toBe(5);
+    });
+
+    it('should pass through thinking field when present', async () => {
+      const provider = createMockProvider({
+        content: 'The answer',
+        thinking: 'Let me reason step by step...',
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      });
+      const llm = new Llm(provider);
+
+      const result = await llm.infer({
+        messages: [{ role: 'user', content: 'test' }],
+      });
+
+      expect(result.thinking).toBe('Let me reason step by step...');
     });
 
     it('should map snake_case usage to camelCase', async () => {

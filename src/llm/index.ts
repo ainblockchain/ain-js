@@ -29,6 +29,7 @@ export default class Llm {
     });
     return {
       content: result.content,
+      thinking: result.thinking || null,
       usage: {
         promptTokens: result.usage?.prompt_tokens || 0,
         completionTokens: result.usage?.completion_tokens || 0,

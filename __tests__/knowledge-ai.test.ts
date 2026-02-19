@@ -87,6 +87,23 @@ describe('Knowledge AI Methods', () => {
       expect(mockAin.sendTransaction).toHaveBeenCalled();
       expect(result).toHaveProperty('entryId');
       expect(result).toHaveProperty('txResult');
+      expect(result.thinking).toBeNull();
+    });
+
+    it('should pass through thinking from LLM response', async () => {
+      mockDbRef.getValue.mockResolvedValue(null);
+
+      mockProvider.send.mockResolvedValueOnce({
+        title: 'T',
+        content: 'C',
+        summary: 'S',
+        depth: 1,
+        tags: '',
+        thinking: 'I analyzed the topic and decided to focus on...',
+      });
+
+      const result = await knowledge.aiExplore('test/topic');
+      expect(result.thinking).toBe('I analyzed the topic and decided to focus on...');
     });
 
     it('should use depth from options over LLM result', async () => {
@@ -179,7 +196,7 @@ describe('Knowledge AI Methods', () => {
         { topic_path: 'ai/transformers', title: 'Multi-Head', summary: 'Deep dive', depth: 2, content: 'Content 2', created_at: 0, updated_at: 0 },
       ] as any[];
 
-      const stages = await knowledge.aiGenerateCourse('ai/transformers', explorations);
+      const result = await knowledge.aiGenerateCourse('ai/transformers', explorations);
 
       expect(mockProvider.send).toHaveBeenCalledWith('ain_llm_generateCourse', {
         topic_path: 'ai/transformers',
@@ -189,16 +206,18 @@ describe('Knowledge AI Methods', () => {
         ]),
       });
 
-      expect(stages).toHaveLength(2);
-      expect(stages[0].title).toBe('Stage 1');
-      expect(stages[1].exercise).toBe('Explain...');
+      expect(result.stages).toHaveLength(2);
+      expect(result.stages[0].title).toBe('Stage 1');
+      expect(result.stages[1].exercise).toBe('Explain...');
+      expect(result.thinking).toBeNull();
     });
 
     it('should return empty array when stages is undefined', async () => {
       mockProvider.send.mockResolvedValue({});
 
-      const stages = await knowledge.aiGenerateCourse('test', []);
-      expect(stages).toEqual([]);
+      const result = await knowledge.aiGenerateCourse('test', []);
+      expect(result.stages).toEqual([]);
+      expect(result.thinking).toBeNull();
     });
 
     it('should map exploration fields correctly', async () => {
@@ -231,6 +250,17 @@ describe('Knowledge AI Methods', () => {
       expect(sentExplorations[0]).not.toHaveProperty('price');
       expect(sentExplorations[0]).not.toHaveProperty('tags');
     });
+
+    it('should pass through thinking from LLM response', async () => {
+      mockProvider.send.mockResolvedValue({
+        stages: [{ title: 'S1', content: 'C', exercise: 'E' }],
+        thinking: 'I designed a progressive curriculum starting from basics...',
+      });
+
+      const result = await knowledge.aiGenerateCourse('test', []);
+      expect(result.stages).toHaveLength(1);
+      expect(result.thinking).toBe('I designed a progressive curriculum starting from basics...');
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -247,14 +277,18 @@ describe('Knowledge AI Methods', () => {
         .mockResolvedValueOnce(node1) // getGraphNode call 1
         .mockResolvedValueOnce(node2); // getGraphNode call 2
 
-      mockProvider.send.mockResolvedValue('Transformers use self-attention to process sequences in parallel.');
+      mockProvider.send.mockResolvedValue({
+        content: 'Transformers use self-attention to process sequences in parallel.',
+        thinking: 'Let me analyze the context nodes about transformers...',
+      });
 
       const result = await knowledge.aiAnalyze(
         'How do transformers work?',
         ['nodeId1', 'nodeId2']
       );
 
-      expect(result).toBe('Transformers use self-attention to process sequences in parallel.');
+      expect(result.content).toBe('Transformers use self-attention to process sequences in parallel.');
+      expect(result.thinking).toBe('Let me analyze the context nodes about transformers...');
 
       expect(mockProvider.send).toHaveBeenCalledWith('ain_llm_analyze', {
         question: 'How do transformers work?',
@@ -268,7 +302,7 @@ describe('Knowledge AI Methods', () => {
         .mockResolvedValueOnce(null) // This node doesn't exist
         .mockResolvedValueOnce({ address: '0x3', title: 'Also Valid', depth: 2 });
 
-      mockProvider.send.mockResolvedValue('Analysis');
+      mockProvider.send.mockResolvedValue({ content: 'Analysis', thinking: null });
 
       await knowledge.aiAnalyze('question', ['id1', 'id2', 'id3']);
 
@@ -279,15 +313,26 @@ describe('Knowledge AI Methods', () => {
     });
 
     it('should work with empty context node IDs', async () => {
-      mockProvider.send.mockResolvedValue('No context analysis');
+      mockProvider.send.mockResolvedValue({ content: 'No context analysis', thinking: null });
 
       const result = await knowledge.aiAnalyze('What is AI?', []);
 
-      expect(result).toBe('No context analysis');
+      expect(result.content).toBe('No context analysis');
+      expect(result.thinking).toBeNull();
       expect(mockProvider.send).toHaveBeenCalledWith('ain_llm_analyze', {
         question: 'What is AI?',
         context_nodes: [],
       });
+    });
+
+    it('should handle legacy string response from older nodes', async () => {
+      // Older nodes may return a plain string instead of { content, thinking }
+      mockProvider.send.mockResolvedValue('Plain string response');
+
+      const result = await knowledge.aiAnalyze('What is AI?', []);
+
+      expect(result.content).toBe('Plain string response');
+      expect(result.thinking).toBeNull();
     });
 
     it('should propagate errors from provider.send', async () => {

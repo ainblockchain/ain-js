@@ -29,6 +29,7 @@ export interface InferInput {
  */
 export interface InferResult {
   content: string;
+  thinking: string | null;
   usage: {
     promptTokens: number;
     completionTokens: number;

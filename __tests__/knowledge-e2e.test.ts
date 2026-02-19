@@ -364,9 +364,13 @@ describe('Knowledge & LLM E2E (devnet)', () => {
           nodeIds,
         );
 
-        expect(typeof analysis).toBe('string');
-        expect(analysis.length).toBeGreaterThan(0);
-        console.log(`[E2E] aiAnalyze (${analysis.length} chars): "${analysis.substring(0, 150)}..."`);
+        expect(typeof analysis).toBe('object');
+        expect(typeof analysis.content).toBe('string');
+        expect(analysis.content.length).toBeGreaterThan(0);
+        console.log(`[E2E] aiAnalyze (${analysis.content.length} chars): "${analysis.content.substring(0, 150)}..."`);
+        if (analysis.thinking) {
+          console.log(`[E2E] aiAnalyze thinking (${analysis.thinking.length} chars)`);
+        };
       } else {
         console.log(`[E2E] No graph nodes available — skipping aiAnalyze`);
       }
@@ -381,13 +385,16 @@ describe('Knowledge & LLM E2E (devnet)', () => {
 
       const entries = Object.values(explorations).slice(0, 3);
       try {
-        const stages = await ain.knowledge.aiGenerateCourse('ai/transformers/attention', entries as any);
+        const result = await ain.knowledge.aiGenerateCourse('ai/transformers/attention', entries as any);
 
-        expect(Array.isArray(stages)).toBe(true);
-        console.log(`[E2E] aiGenerateCourse: ${stages.length} stage(s)`);
-        if (stages.length > 0) {
-          expect(stages[0].title).toBeTruthy();
-          console.log(`[E2E] First stage: "${stages[0].title}"`);
+        expect(Array.isArray(result.stages)).toBe(true);
+        console.log(`[E2E] aiGenerateCourse: ${result.stages.length} stage(s)`);
+        if (result.stages.length > 0) {
+          expect(result.stages[0].title).toBeTruthy();
+          console.log(`[E2E] First stage: "${result.stages[0].title}"`);
+        }
+        if (result.thinking) {
+          console.log(`[E2E] aiGenerateCourse thinking (${result.thinking.length} chars)`);
         }
       } catch (err: any) {
         // The node's LLM engine may fail to parse JSON when the model includes
