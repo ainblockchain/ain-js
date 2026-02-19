@@ -18,7 +18,7 @@ import { ExplorationDepth } from '../src/knowledge/types';
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const PROVIDER_URL = 'http://localhost:8081';
+const PROVIDER_URL = 'https://devnet-api.ainetwork.ai';
 const BLOCK_TIME = 10_000; // ms to wait for block finalization
 
 function sleep(ms: number) {
@@ -529,7 +529,7 @@ async function registerTopics(ain: typeof Ain.prototype) {
       title: t.title,
       description: t.description,
     });
-    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.result)}`);
+    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.txResult)}`);
     await sleep(BLOCK_TIME);
   }
 }
@@ -547,7 +547,7 @@ async function writeExplorations(ain: typeof Ain.prototype) {
       depth: p.depth,
       tags: buildTags(p),
     });
-    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.result)}`);
+    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.txResult)}`);
     await sleep(BLOCK_TIME);
   }
 }
