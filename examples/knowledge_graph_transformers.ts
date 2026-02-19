@@ -18,7 +18,7 @@ import { ExplorationDepth } from '../src/knowledge/types';
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const PROVIDER_URL = 'http://localhost:8081';
+const PROVIDER_URL = process.env.AIN_PROVIDER_URL || 'http://localhost:8081';
 const BLOCK_TIME = 10_000; // ms to wait for block finalization
 
 function sleep(ms: number) {
@@ -529,7 +529,7 @@ async function registerTopics(ain: typeof Ain.prototype) {
       title: t.title,
       description: t.description,
     });
-    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.result)}`);
+    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.txResult)}`);
     await sleep(BLOCK_TIME);
   }
 }
@@ -547,7 +547,7 @@ async function writeExplorations(ain: typeof Ain.prototype) {
       depth: p.depth,
       tags: buildTags(p),
     });
-    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.result)}`);
+    console.log(`  ${label}: ${txOk(result) ? 'OK' : JSON.stringify(result?.txResult)}`);
     await sleep(BLOCK_TIME);
   }
 }
@@ -738,9 +738,9 @@ async function main() {
   const ain = new Ain(PROVIDER_URL);
 
   // Use node 0's private key (has balance on local chain)
-  const address = ain.wallet.addAndSetDefaultAccount(
-    'b22c95ffc4a5c096f7d7d0487ba963ce6ac945bdc91c79b64ce209de289bec96'
-  );
+  const sk = process.env.AIN_PRIVATE_KEY || '';
+  if (!sk) { console.error('Set AIN_PRIVATE_KEY env var'); process.exit(1); }
+  const address = ain.wallet.addAndSetDefaultAccount(sk);
   console.log(`\n===== Transformer Knowledge Graph =====`);
   console.log(`Account: ${address}\n`);
 

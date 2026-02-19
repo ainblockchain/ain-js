@@ -19,6 +19,11 @@ import {
   GraphNode,
   GraphEdge,
   EntryRef,
+  AiExploreOptions,
+  AiExploreResult,
+  AiCourseResult,
+  AiAnalyzeResult,
+  CourseStage,
 } from './types';
 
 const APP_PATH = '/apps/knowledge';
@@ -818,6 +823,96 @@ export default class Knowledge {
     };
 
     return this._ain.sendTransaction(txInput);
+  }
+
+  // ---------------------------------------------------------------------------
+  // AI-powered methods (use LLM through the AIN node)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * AI-powered exploration: generates an exploration for a topic using the node's LLM,
+   * then writes it to the blockchain via explore().
+   * @param {string} topicPath The topic path (e.g. "ai/transformers").
+   * @param {AiExploreOptions} options Optional depth and context.
+   * @param {KnowledgeTxOptions} txOptions Transaction options.
+   * @returns {Promise<ExploreResult>} The explore result with entryId and txResult.
+   */
+  async aiExplore(
+    topicPath: string,
+    options?: AiExploreOptions,
+    txOptions?: KnowledgeTxOptions
+  ): Promise<AiExploreResult> {
+    // Get frontier context
+    const frontier = await this.getFrontierMap(topicPath).catch(() => []);
+
+    // Call LLM explore via the node
+    const llmResult: any = await this._provider.send('ain_llm_explore', {
+      topic_path: topicPath,
+      context: options?.context,
+      frontier: frontier.length > 0 ? frontier : undefined,
+    });
+
+    // Write the exploration to the blockchain
+    const exploreResult = await this.explore({
+      topicPath,
+      title: llmResult.title,
+      content: llmResult.content,
+      summary: llmResult.summary,
+      depth: (options?.depth || llmResult.depth || 1) as 1 | 2 | 3 | 4 | 5,
+      tags: llmResult.tags || '',
+    }, txOptions);
+
+    return {
+      ...exploreResult,
+      thinking: llmResult.thinking || null,
+    };
+  }
+
+  /**
+   * AI-powered course generation: generates course stages from explorations using the node's LLM.
+   * @param {string} topicPath The topic path.
+   * @param {Exploration[]} explorations The explorations to build the course from.
+   * @returns {Promise<CourseStage[]>} The generated course stages.
+   */
+  async aiGenerateCourse(topicPath: string, explorations: Exploration[]): Promise<AiCourseResult> {
+    const result: any = await this._provider.send('ain_llm_generateCourse', {
+      topic_path: topicPath,
+      explorations: explorations.map(e => ({
+        title: e.title,
+        summary: e.summary,
+        depth: e.depth,
+        content: e.content,
+      })),
+    });
+    return {
+      stages: result.stages || [],
+      thinking: result.thinking || null,
+    };
+  }
+
+  /**
+   * AI-powered analysis: answers a question using context from graph nodes.
+   * @param {string} question The question to answer.
+   * @param {string[]} contextNodeIds Node IDs to use as context.
+   * @returns {Promise<string>} The analysis answer.
+   */
+  async aiAnalyze(question: string, contextNodeIds: string[]): Promise<AiAnalyzeResult> {
+    // Fetch the actual node data for context
+    const contextNodes: GraphNode[] = [];
+    for (const nodeId of contextNodeIds) {
+      const node = await this.getGraphNode(nodeId);
+      if (node) contextNodes.push(node);
+    }
+
+    const result: any = await this._provider.send('ain_llm_analyze', {
+      question,
+      context_nodes: contextNodes,
+    });
+
+    return {
+      content: result.content || result,
+      thinking: result.thinking || null,
+    };
   }
 
   // ---------------------------------------------------------------------------

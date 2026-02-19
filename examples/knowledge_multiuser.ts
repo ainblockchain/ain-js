@@ -10,12 +10,12 @@
  */
 import Ain from '../src/ain';
 
-const PROVIDER_URL = 'http://localhost:8081';
+const PROVIDER_URL = process.env.AIN_PROVIDER_URL || 'http://localhost:8081';
 const BLOCK_TIME = 10000;
 
-// Node private keys from start_local_blockchain.sh
-const ALICE_SK = 'b22c95ffc4a5c096f7d7d0487ba963ce6ac945bdc91c79b64ce209de289bec96';
-const BOB_SK = '921cc48e48c876fc6ed1eb02a76ad520e8d16a91487f9c7e03441da8e35a0947';
+// Node private keys from start_local_blockchain.sh (set via env for production)
+const ALICE_SK = process.env.AIN_PRIVATE_KEY || process.env.ALICE_SK || '';
+const BOB_SK = process.env.BOB_SK || '';
 
 async function main() {
   // --- Setup two independent clients ---
