@@ -2,7 +2,7 @@
 /**
  * End-to-end tests for the Knowledge and LLM modules against AIN devnet.
  *
- * These tests hit the real devnet at https://devnet-api.ainetwork.ai.
+ * These tests hit the provider specified by AIN_PROVIDER_URL env var.
  * They assume the knowledge app + transformer papers have already been seeded
  * (via examples/knowledge_graph_transformers.ts).
  *
@@ -11,10 +11,10 @@
  */
 import Ain from '../src/ain';
 
-const DEVNET_URL = 'https://devnet-api.ainetwork.ai';
+const DEVNET_URL = process.env.AIN_PROVIDER_URL || 'http://localhost:8081';
 
 // Genesis account private key (has balance on devnet)
-const GENESIS_SK = 'b22c95ffc4a5c096f7d7d0487ba963ce6ac945bdc91c79b64ce209de289bec96';
+const GENESIS_SK = process.env.AIN_PRIVATE_KEY || '';
 
 const BLOCK_TIME = 12_000; // ms — devnet block interval with some margin
 

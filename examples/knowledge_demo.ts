@@ -5,16 +5,16 @@
  */
 import Ain from '../src/ain';
 
-const PROVIDER_URL = 'http://localhost:8081';
+const PROVIDER_URL = process.env.AIN_PROVIDER_URL || 'http://localhost:8081';
 const BLOCK_TIME = 10000; // Wait time for block finalization
 
 async function main() {
   const ain = new Ain(PROVIDER_URL);
 
   // Use node 0's private key (has balance on local chain)
-  const address = ain.wallet.addAndSetDefaultAccount(
-    'b22c95ffc4a5c096f7d7d0487ba963ce6ac945bdc91c79b64ce209de289bec96'
-  );
+  const sk = process.env.AIN_PRIVATE_KEY || '';
+  if (!sk) { console.error('Set AIN_PRIVATE_KEY env var'); process.exit(1); }
+  const address = ain.wallet.addAndSetDefaultAccount(sk);
   console.log(`\n=== Account: ${address} ===\n`);
 
   // -------------------------------------------------------------------------

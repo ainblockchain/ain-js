@@ -452,9 +452,9 @@ async function main() {
   // Try blockchain (with 3s timeout to avoid hanging)
   try {
     ain = new Ain(PROVIDER_URL);
-    ain.wallet.addAndSetDefaultAccount(
-      'b22c95ffc4a5c096f7d7d0487ba963ce6ac945bdc91c79b64ce209de289bec96'
-    );
+    const sk = process.env.AIN_PRIVATE_KEY || '';
+    if (!sk) throw new Error('AIN_PRIVATE_KEY not set');
+    ain.wallet.addAndSetDefaultAccount(sk);
     const bcCheck = ain.provider.send('ain_getAddress', { protoVer: '1.1.3' });
     const bcTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
     await Promise.race([bcCheck, bcTimeout]);
