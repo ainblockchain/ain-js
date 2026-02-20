@@ -31,8 +31,25 @@ export default class Cogito {
   async registerRecipe(markdown: string): Promise<any> {
     const recipe = parseRecipe(markdown);
     const address = this._ain.signer.getAddress();
+    // AIN state DB doesn't support arrays — serialize to comma-separated strings
     return this._ain.db.ref(`${Cogito.RECIPES_PATH}/${address}/${recipe.name}`).setValue({
-      value: { ...recipe, registered_at: Date.now() },
+      value: {
+        name: recipe.name,
+        version: recipe.version,
+        watch: {
+          tags: recipe.watch.tags.join(','),
+          topics: recipe.watch.topics.join(','),
+          exclude_tags: recipe.watch.exclude_tags.join(','),
+        },
+        output: {
+          tags: recipe.output.tags.join(','),
+          price: recipe.output.price,
+          depth: recipe.output.depth,
+        },
+        llm: recipe.llm,
+        systemPrompt: recipe.systemPrompt,
+        registered_at: Date.now(),
+      },
     });
   }
 
@@ -44,7 +61,8 @@ export default class Cogito {
   async listRecipes(address?: string): Promise<ParsedRecipe[]> {
     const addr = address || this._ain.signer.getAddress();
     const data = await this._ain.db.ref(`${Cogito.RECIPES_PATH}/${addr}`).getValue();
-    return Object.values(data || {});
+    // Deserialize comma-separated strings back to arrays
+    return Object.values(data || {}).map(deserializeRecipe);
   }
 
   /**
@@ -131,4 +149,31 @@ function toStringArray(val: unknown): string[] {
   if (Array.isArray(val)) return val.map(String);
   if (typeof val === 'string') return [val];
   return [];
+}
+
+/** Deserialize a recipe read from blockchain state (comma-separated strings → arrays). */
+function deserializeRecipe(raw: any): ParsedRecipe {
+  const splitCsv = (v: unknown): string[] =>
+    typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : toStringArray(v);
+
+  return {
+    name: raw.name,
+    version: Number(raw.version ?? 1),
+    watch: {
+      tags: splitCsv(raw.watch?.tags),
+      topics: splitCsv(raw.watch?.topics),
+      exclude_tags: splitCsv(raw.watch?.exclude_tags),
+    },
+    output: {
+      tags: splitCsv(raw.output?.tags),
+      price: String(raw.output?.price ?? '0'),
+      depth: Number(raw.output?.depth ?? 3),
+    },
+    llm: {
+      temperature: Number(raw.llm?.temperature ?? 0.7),
+      max_tokens: Number(raw.llm?.max_tokens ?? 4096),
+    },
+    systemPrompt: raw.systemPrompt || '',
+    registered_at: raw.registered_at,
+  };
 }
