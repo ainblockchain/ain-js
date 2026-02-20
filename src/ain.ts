@@ -15,6 +15,7 @@ import HomomorphicEncryption from './he';
 import Knowledge from './knowledge';
 import Llm from './llm';
 import Deployment from './deployment';
+import Cogito from './cogito';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 
@@ -48,6 +49,8 @@ export default class Ain {
   public llm: Llm;
   /** The deployment module object. */
   public deployment: Deployment;
+  /** The cogito module object. */
+  public cogito: Cogito;
   /** The signer object. */
   public signer: Signer;
 
@@ -71,6 +74,7 @@ export default class Ain {
     this.knowledge = new Knowledge(this, this.provider);
     this.llm = new Llm(this.provider);
     this.deployment = new Deployment(this.provider);
+    this.cogito = new Cogito(this, this.provider);
     this.em = new EventManager(this);
     this.signer = new DefaultSigner(this.wallet, this.provider);
   }
@@ -93,6 +97,7 @@ export default class Ain {
     this.knowledge = new Knowledge(this, this.provider);
     this.net = new Network(this.provider);
     this.deployment = new Deployment(this.provider);
+    this.cogito = new Cogito(this, this.provider);
     this.wallet.setChainId(this.chainId);
   }
 
