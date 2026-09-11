@@ -6,6 +6,14 @@ Both AIN account holders must cooperate to close; a missing participant can lock
 
 ## Current failure and safety boundary — 2026-09-11
 
+An opt-in version2 implementation is now **isolated-DB tested**, not deployed on the
+live ten validators. It uses `nativeReleaseVersion:2` in `cooperativeEscrow()` and
+`microUnitEscrowRelease(close)`, with the corresponding native flag and code. The
+default/version1 policy and safety-refusal network runner remain unchanged; the
+existing locked1AIN is not migrated or recovered. Native builds and remaining
+gates are in the reproduction workspace's
+`kpi/pr/ab-m1/tools/cert-kpi/native-escrow-micro-units.md`.
+
 The real ten-node run `m2_native_escrow_live_20260911` funded 1 native development
 AIN, completed twenty 3-micro-AIN co-signed transfers and duplicate deliveries,
 and recovered its own Docker peer after SIGKILL and journal replay. **Settlement
@@ -76,6 +84,15 @@ The obsolete isomorphic-ws default-export declaration patch conflicts with the S
 current `import WebSocket = require('isomorphic-ws')` and has been removed.
 
 ## Isolated native DB check
+
+The default invocation retains the legacy precision-failure regression. With the
+new native image explicitly selected as CHAIN_IMAGE during SDK build, pass a second
+argument `micro-units` or `micro-units-fractional` to `run-native-db.sh` for the
+version2 fixtures. Each runs27 operations/12 rollback rejections, including failure
+after the first payout leg, followed by successful native payout and duplicate
+rejection. Escrow balances are canonical micro-units; ordinary account balances
+retain raw native arithmetic and are audited at1e-6AIN. These are not network-finalized
+payments. The native flag is disabled by default outside the isolated fixture.
 
 ```bash
 RUN_ID=native_db_$(date -u +%Y%m%dT%H%M%SZ) \

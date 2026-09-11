@@ -3,11 +3,16 @@ set -euo pipefail
 umask 077
 root=$(cd "$(dirname "$0")/../.." && pwd)
 out=${1:?Pass a new evidence directory}
+mode=${2:-legacy}
+[[ "$mode" == legacy || "$mode" == micro-units || "$mode" == micro-units-fractional ]] || exit 2
+mode_args=()
+if [[ "$mode" != legacy ]]; then mode_args+=("$mode"); fi
 image=${AIN_CHANNEL_IMAGE:?Set the source-built SDK image with native blockchain test dependencies}
 RUN_ID=${RUN_ID:-native_db_$(date -u +%Y%m%dT%H%M%SZ)}
 [[ "$RUN_ID" =~ ^[A-Za-z0-9_-]+$ ]] || exit 1
 mkdir "$out"
 out=$(realpath "$out")
+printf '%s\n' "$mode" > "$out/mode.txt"
 cp "$root/tools/state-channel/native-db-check.js" "$root/tools/state-channel/run-native-db.sh" "$out/"
 (cd "$out" && sha256sum native-db-check.js run-native-db.sh) > "$out/source.sha256"
 docker image inspect "$image" --format '{{.Id}}' > "$out/image-id.txt"
@@ -20,7 +25,7 @@ docker create --name "$container" --runtime runc --network none --cpus 2 --cpuse
   --env ENABLE_GAS_FEE_WORKAROUND=true --env CONSOLE_LOG=false \
   --mount "type=bind,src=$out/native-db-check.js,dst=/opt/ain-js/tools/state-channel/native-db-check.js,readonly" \
   --mount "type=bind,src=$out,dst=/evidence" \
-  "$image" /opt/ain-js/tools/state-channel/native-db-check.js > "$out/container-id.txt"
+  "$image" /opt/ain-js/tools/state-channel/native-db-check.js "${mode_args[@]}" > "$out/container-id.txt"
 docker inspect "$container" --format '{{json .HostConfig}}' > "$out/limits.json"
 result=0
 docker start -a "$container" > "$out/test.log" 2>&1 || result=$?

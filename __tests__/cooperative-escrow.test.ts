@@ -2,7 +2,7 @@ import { generateKeyPairSync } from 'crypto';
 import * as AinUtil from '@ainblockchain/ain-util';
 import Ain from '../src/ain';
 import { ChannelOpening, PaymentChannel, PaymentReceipt } from '../src/state-channel';
-import { cooperativeEscrow, ESCROW_UNITS_PER_AIN, replayCooperativeClose } from '../src/state-channel/cooperative-escrow';
+import { cooperativeEscrow, ESCROW_UNITS_PER_AIN, replayCooperativeClose, microUnitEscrowRelease } from '../src/state-channel/cooperative-escrow';
 
 const signers = [generateKeyPairSync('ed25519'), generateKeyPairSync('ed25519')];
 const accounts = [AinUtil.createAccount().address, AinUtil.createAccount().address] as [string, string];
@@ -135,4 +135,54 @@ test('zero-payment close and zero final balance preserve micro-AIN units and rej
   expect(() => cooperativeEscrow({ ...options, accounts: [accounts[0], accounts[0]] })).toThrow();
   expect(() => cooperativeEscrow({ ...options, escrowKey: '../other' })).toThrow();
   expect(cooperativeEscrow({ ...options, opening: { ...opening, balances: ['12345', '98655'] } }).totalUnits).toBe(111000);
+});
+
+test('version2 is explicit in immutable terms and never changes the default legacy policy', () => {
+  expect(policy.terms).not.toHaveProperty('native_release_version');
+  const versioned = cooperativeEscrow({ ...options, nativeReleaseVersion: 2 });
+  expect(versioned.terms.native_release_version).toBe(2);
+  expect(cooperativeEscrow({ ...options, nativeReleaseVersion: 1 })).toEqual(policy);
+  expect(() => cooperativeEscrow({ ...options, nativeReleaseVersion: 3 as 2 })).toThrow(/version/);
+});
+
+test('version2 release requires identical approved integer amounts and refuses ratio fallback', () => {
+  const versioned = cooperativeEscrow({ ...options, nativeReleaseVersion: 2 });
+  const close = replayCooperativeClose(options, payments());
+  const values = new Map<string, unknown>([[versioned.paths.balance, 1],
+    [versioned.paths.sourceApproval, close], [versioned.paths.targetApproval, close]]);
+  const release = microUnitEscrowRelease(close);
+  expect(release).toEqual({ version: 2, source_units: 499940, target_units: 500060 });
+  expect(evaluate(versioned.rules.release.settle, null, release, { addr: accounts[0] }, values)).toBe(true);
+  for (const invalid of [{ ratio: 0.50006 }, { ...release, version: 1 }, { ...release, ratio: 0.50006 },
+    { ...release, source_units: 499941 }, { ...release, target_units: 500059 }]) {
+    expect(evaluate(versioned.rules.release.settle, null, invalid, { addr: accounts[0] }, values)).toBe(false);
+  }
+  expect(evaluate(versioned.rules.release.settle, null, release, { addr: stranger }, values)).toBe(false);
+  values.delete(versioned.paths.targetApproval);
+  expect(evaluate(versioned.rules.release.settle, null, release, { addr: accounts[0] }, values)).toBe(false);
+});
+
+test('version2 guards require exact native micro-unit balance steps and recipient records', () => {
+  const versioned = cooperativeEscrow({ ...options, nativeReleaseVersion: 2 });
+  const close = replayCooperativeClose(options, payments());
+  const values = new Map<string, unknown>([[versioned.paths.sourceApproval, close],
+    [versioned.paths.targetApproval, close], [versioned.paths.release, microUnitEscrowRelease(close)]]);
+  const auth = { addr: accounts[0], fid: '_transfer', fids: ['_release', '_transfer'] };
+  expect(evaluate(versioned.balanceRule, 1, 0.49994, auth, values)).toBe(false);
+  values.set(`/transfer/${versioned.serviceAccount}/${accounts[1]}/12345/value`, 0.50006);
+  expect(evaluate(versioned.balanceRule, 1, 0.49994, auth, values)).toBe(true);
+  expect(evaluate(versioned.balanceRule, 1, 1 - 0.50006, auth, values)).toBe(false);
+  expect(evaluate(versioned.balanceRule, 0.49994, 0, auth, values)).toBe(false);
+  values.set(`/transfer/${versioned.serviceAccount}/${accounts[0]}/12345/value`, 0.49994);
+  expect(evaluate(versioned.balanceRule, 0.49994, 0, auth, values)).toBe(true);
+  expect(evaluate(versioned.balanceRule, 0.49994, 0, { ...auth, fids: ['_transfer'] }, values)).toBe(false);
+});
+
+test('version2 fractional deposits use the total unit amount, not floating addition', () => {
+  const versioned = cooperativeEscrow({ ...options, nativeReleaseVersion: 2,
+    opening: { ...opening, balances: ['100000', '200000'] } });
+  const values = new Map<string, unknown>([[versioned.paths.targetDeposit, 0.2]]);
+  const auth = { addr: accounts[1], fid: '_transfer', fids: ['_transfer'] };
+  expect(evaluate(versioned.balanceRule, 0.1, 0.3, auth, values)).toBe(true);
+  expect(evaluate(versioned.balanceRule, 0.1, 0.1 + 0.2, auth, values)).toBe(false);
 });
