@@ -18,6 +18,8 @@ import Deployment from './deployment';
 import Cogito from './cogito';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
+export { PaymentChannel, paymentStateBytes } from './state-channel';
+export type { ChannelOpening, PaymentState, PaymentProposal, PaymentReceipt } from './state-channel';
 
 /**
  * The main class of the ain-js SDK library.
