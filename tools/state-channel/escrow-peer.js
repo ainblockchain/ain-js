@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const Ain = require('../../lib/ain').default;
 const { PaymentChannel } = require('../../lib/state-channel');
 const { createPaymentPeer, postPayment } = require('../../lib/state-channel/http-peer');
+const { transferCount, transferUnits } = require('./escrow-scenario');
 
 const directory = '/evidence';
 const endpoint = 'http://127.0.0.1:19041';
@@ -65,8 +66,8 @@ async function main() {
   const key = crypto.createPrivateKey(fs.readFileSync('/private/key.pem'));
   let lastProposal;
   const timings = [];
-  for (let index = 0; index < 20; index++) {
-    lastProposal = channel.propose(0, '3', key);
+  for (let index = 0; index < transferCount; index++) {
+    lastProposal = channel.propose(0, String(transferUnits), key);
     const started = process.hrtime.bigint();
     const receipt = await postPayment(endpoint, lastProposal);
     channel.commit(receipt);
@@ -74,9 +75,9 @@ async function main() {
     assert.deepEqual(await postPayment(endpoint, lastProposal), receipt);
   }
   assert.deepEqual(await ready(), channel.snapshot());
-  assert.equal(fs.readFileSync(`${directory}/receipts.jsonl`, 'utf8').trim().split('\n').length, 20);
+  assert.equal(fs.readFileSync(`${directory}/receipts.jsonl`, 'utf8').trim().split('\n').length, transferCount);
   fs.writeFileSync(`${directory}/peer-result.json`, JSON.stringify({ state: channel.snapshot(), lastProposal, timingsMs: timings,
-    microAINTransferred: 60, scope: 'funded cooperative channel and crash recovery, not a 7000TPS benchmark' }, null, 2), { flag: 'wx' });
+    microAINTransferred: transferCount * transferUnits, scope: 'funded cooperative channel and crash recovery, not a 7000TPS benchmark' }, null, 2), { flag: 'wx' });
 }
 
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -9,7 +9,7 @@ const { NodeConfigs } = require(path.join(chainRoot, 'common/constants'));
 const { setNodeForTesting } = require(path.join(chainRoot, 'test/test-util'));
 const Ain = require('../../lib/ain').default;
 const { PaymentChannel } = require('../../lib/state-channel');
-const { cooperativeEscrow, replayCooperativeClose } = require('../../lib/state-channel/cooperative-escrow');
+const { cooperativeEscrow, replayCooperativeClose, nativeEscrowRelease } = require('../../lib/state-channel/cooperative-escrow');
 
 async function main() {
   fs.accessSync('/evidence', fs.constants.W_OK);
@@ -19,6 +19,10 @@ async function main() {
   assert.ok(NodeConfigs.CHAINS_DIR.startsWith('/tmp/'), 'use an isolated /tmp chain, never a mounted live volume');
   const node = new BlockchainNode();
   await setNodeForTesting(node, 0, true);
+  const precisionBandage = 'allow_up_to_6_decimal_transfer_value_only';
+  node.db.applyBandagesForTimerFlag(precisionBandage);
+  const transferRule = node.db.getRule('/transfer/$from/$to/$key/value');
+  assert.match(transferRule['.rule'].write, /util.countDecimals\(newData\) <= 6/);
   const owner = require(path.join(chainRoot, 'blockchain-configs/base/genesis_accounts.json')).owner;
   const parties = [Ain.utils.createAccount(), Ain.utils.createAccount()];
   const keys = [crypto.generateKeyPairSync('ed25519'), crypto.generateKeyPairSync('ed25519')];
@@ -83,13 +87,15 @@ async function main() {
   submit(parties[1], 'target-approval', 'SET_VALUE', policy.paths.targetApproval, close);
   submit(parties[0], 'wrong-ratio', 'SET_VALUE', policy.paths.release, { ratio: 1 }, true);
   const before = parties.map(party => node.db.getValue(`/accounts/${party.address}/balance`));
-  submit(parties[0], 'native-release', 'SET_VALUE', policy.paths.release, release);
+  assert.throws(() => nativeEscrowRelease(close), /native _release/);
+  submit(parties[0], 'native-release-precision-rejection', 'SET_VALUE', policy.paths.release, release, true);
+  assert.match(JSON.stringify(operations[operations.length - 1].result), /0\.49994000000000005/);
   const after = parties.map(party => node.db.getValue(`/accounts/${party.address}/balance`));
-  assert.equal(node.db.getValue(policy.paths.balance), 0);
-  assert.deepEqual(after.map((balance, index) => Math.round((balance - before[index]) * 1000000)), [close.balanceA, close.balanceB]);
-  submit(parties[1], 'duplicate-release', 'SET_VALUE', policy.paths.release, release, true);
-  fs.writeFileSync('/evidence/native-db.json', JSON.stringify({ scope: 'isolated native DB execution and rollback, NOT ten-node finalized consensus or TPS',
-    signatureBypass: false, feeFreeMode: true, pass: true, finalizedOnChain: false,
+  assert.equal(node.db.getValue(policy.paths.balance), 1);
+  assert.equal(node.db.getValue(policy.paths.release), null);
+  assert.deepEqual(after, before);
+  fs.writeFileSync('/evidence/native-db.json', JSON.stringify({ scope: 'isolated native precision-rule regression and whole-DB rollback, NOT successful payout, full live-ledger replay or TPS',
+    precisionBandage, transferRule, signatureBypass: false, feeFreeMode: true, pass: true, finalizedOnChain: false, settlementSuccessful: false,
     before, after, close, options, receipts, operations }, null, 2) + '\n', { flag: 'wx' });
 }
 

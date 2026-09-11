@@ -2,8 +2,9 @@ const assert = require('assert/strict');
 const fs = require('fs');
 const crypto = require('crypto');
 const Ain = require('../../lib/ain').default;
-const { cooperativeEscrow, replayCooperativeClose, ESCROW_UNITS_PER_AIN } = require('../../lib/state-channel/cooperative-escrow');
+const { cooperativeEscrow, replayCooperativeClose, nativeEscrowRelease, ESCROW_UNITS_PER_AIN } = require('../../lib/state-channel/cooperative-escrow');
 const { assertRuntime } = require('./chain-readiness');
+const { initialUnits, plannedClose } = require('./escrow-scenario');
 
 const directory = '/evidence';
 const privateDirectory = '/private';
@@ -151,6 +152,7 @@ async function balances(policy) {
 
 async function open() {
   assert.ok(!fs.existsSync(`${directory}/prepared.json`), 'existing channel: use its prepared state, do not open another');
+  nativeEscrowRelease(plannedClose);
   const chain = await guardChain();
   const owner = client(chain.fixtures.owner);
   const parties = [Ain.utils.createAccount(), Ain.utils.createAccount()];
@@ -160,7 +162,7 @@ async function open() {
     fs.writeFileSync(`${privateDirectory}/${role}.pem`, keys[index].privateKey.export({ format: 'pem', type: 'pkcs8' }), { flag: 'wx', mode: 0o600 });
   }
   const opening = { chainId: chain.genesisHash, channelId: runId, openingReference: '0'.repeat(64),
-    balances: [String(ESCROW_UNITS_PER_AIN / 2), String(ESCROW_UNITS_PER_AIN / 2)],
+    balances: [String(initialUnits), String(initialUnits)],
     publicKeys: keys.map(key => key.publicKey.export({ format: 'der', type: 'spki' }).toString('base64')) };
   const options = { opening, accounts: parties.map(party => party.address), escrowKey: runId };
   let policy = cooperativeEscrow(options);
@@ -217,6 +219,7 @@ async function settle() {
   assert.equal(close.stateHash, `0x${peer.state.head}`);
   assert.deepEqual([String(close.balanceA), String(close.balanceB)], peer.state.balances);
   assert.equal(readJson(`${directory}/recovery-result.json`).pass, true);
+  const release = nativeEscrowRelease(close);
   const before = await balances(policy);
   await submit(source, 'reject-missing-approval', 'SET_VALUE', policy.paths.release, { ratio: 1 }, true);
   await submit(source, 'approve-source', 'SET_VALUE', policy.paths.sourceApproval, close);
@@ -228,7 +231,7 @@ async function settle() {
   assert.deepEqual(await balances(policy), before, 'negative calls must not move native balances (gas_price=0)');
   await submit(target, 'approve-target', 'SET_VALUE', policy.paths.targetApproval, close);
   await submit(source, 'reject-wrong-ratio', 'SET_VALUE', policy.paths.release, { ratio: 1 }, true);
-  const payout = await submit(source, 'cooperative-release', 'SET_VALUE', policy.paths.release, { ratio: close.balanceB / policy.totalUnits });
+  const payout = await submit(source, 'cooperative-release', 'SET_VALUE', policy.paths.release, release);
   const after = await balances(policy);
   assert.equal(after.escrow, 0);
   assert.equal(Math.round((after.source - before.source) * ESCROW_UNITS_PER_AIN), close.balanceA);

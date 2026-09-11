@@ -4,6 +4,37 @@ Experimental, development-chain only. This is not a production payment channel,
 unilateral dispute protocol, or a 7,000 TPS result. Do not deposit valuable funds.
 Both AIN account holders must cooperate to close; a missing participant can lock funds.
 
+## Current failure and safety boundary — 2026-09-11
+
+The real ten-node run `m2_native_escrow_live_20260911` funded 1 native development
+AIN, completed twenty 3-micro-AIN co-signed transfers and duplicate deliveries,
+and recovered its own Docker peer after SIGKILL and journal replay. **Settlement
+failed.** Native `_release` computes `1 - 0.50006 = 0.49994000000000005`; the live
+transfer rule requires at most six decimal places. The earlier genesis-only DB
+experiment lacked that precision bandage and was not a valid settlement predictor.
+
+The saved release transaction
+`0x44a46ba16c8ddac56e665aa69b7a2cf42663d052eb8f6213d59fb1e7a63fe0da`
+is finalized as **REVERTED** in block26320. Independent readers node5/node9 confirm
+the same block, source/target balances9.5/9.5, escrow1, and absent release/payout
+records. Approvals remain frozen; **the 1 AIN is still locked, not recovered**.
+Do not replace the channel, reapprove different allocations, weaken rules, or
+resend the failed intent. No production funds were used.
+
+`nativeEscrowRelease()` refuses unrepresentable allocations without rounding them
+into a different native transaction. The fixed twenty-transfer runner checks its
+shared scenario before reading owner credentials, creating keys or funding, and
+checks the actual closing state before approvals. This is a fail-closed guard,
+not a native arithmetic fix or proof that other allocations settle safely. A
+compatible native protocol/policy correction is still required; changing only
+`_release` rounding would conflict with the already-frozen balance policy.
+
+`inspect-escrow.js EXISTING_EVIDENCE NEW_OUTPUT.json` is read-only and requires no
+keys. Run it with this SDK's dependencies and access to local RPC18086/18090;
+mount only the existing public experiment evidence. It verifies the saved hash,
+finalized REVERTED receipt, independent block inclusion and current balances.
+It never submits, retries, resumes or claims fund recovery.
+
 ## What is checked
 
 `cooperativeEscrow()` binds two checksummed AIN accounts, two Ed25519 channel keys,
@@ -32,7 +63,7 @@ docker build --network none -f tools/state-channel/refresh-sdk.Dockerfile \
   -t ain-cert-channel-sdk:cooperative-local .
 docker run --rm --runtime runc --network none --cpus 2 --cpuset-cpus 0-7 \
   --memory 4g --memory-swap 4g --entrypoint sh ain-cert-channel-sdk:cooperative-local \
-  -c 'npm test -- --runInBand __tests__/payment-channel.test.ts __tests__/cooperative-escrow.test.ts && node --test tools/state-channel/chain-readiness.test.js'
+  -c 'npm test -- --runInBand __tests__/payment-channel.test.ts __tests__/cooperative-escrow.test.ts __tests__/escrow-precision.test.ts && node --test tools/state-channel/chain-readiness.test.js'
 ```
 
 The dependency image is a local build artifact, not an available registry tag.
@@ -59,7 +90,7 @@ verifies real AIN transaction signatures with signature bypass disabled, execute
 native DB rules/functions with rollback enabled, and records all operations.
 Zero gas prices are explicitly enabled only for this development experiment.
 
-Verified 2026-09-11: 1 AIN escrow, 20 co-signed transfers of 3 micro-AIN, final
+Historical genesis-only check: 1 AIN escrow, 20 co-signed transfers of 3 micro-AIN, final
 allocations 499,940/500,060 micro-AIN; 24 native DB operations, including 11 negative
 cases. Failed deposits (including a negative deposit), unauthorized withdrawal,
 missing/mismatched approvals, policy replacement, owner-only function installation,
@@ -68,7 +99,14 @@ This is isolated DB execution, **not network finality or a throughput measuremen
 Earlier missing account-injection configuration and evidence-directory permission
 failures are retained in the reproduction evidence rather than counted as successes.
 
-## Ten-node preflight and future network experiment
+The current `run-native-db.sh` applies the native
+`allow_up_to_6_decimal_transfer_value_only` bandage to its isolated fixture and
+reproduces the precision rejection. Its23 operations include11 rejected operations
+with unchanged whole-DB proofs. `pass:true` means this regression passed;
+`settlementSuccessful:false` is explicit. Applying this one native bandage is not
+a full replay of the live ledger or its other upgrades.
+
+## Ten-node preflight and blocked network rerun
 
 From the reproduction workspace:
 
@@ -81,19 +119,25 @@ RUN_ID=escrow_$(date -u +%Y%m%dT%H%M%SZ) \
   kpi/harness/genesis_accounts.json kpi/evidence/escrow-NEW kpi/secrets/escrow-NEW
 ```
 
-The network runner is staged but **not successfully validated end to end**. It
+The network runner was exercised but **failed settlement**, as recorded above. It
 targets the local `ain-cert-docker` project at RPC18081–18090 and refuses missing or
 enabled `ENABLE_TX_SIG_VERIF_WORKAROUND`, non-development gas settings, a wrong owner
 or genesis, unhealthy consensus, or lack of block progress before creating keys or
 submitting transactions. Docker `healthy`/node `SERVING` alone is insufficient.
 
-On 2026-09-11 the existing ten containers enabled signature bypass; observed finalized
+Earlier on 2026-09-11 the existing ten containers enabled signature bypass; observed finalized
 blocks stayed at 23086 and native consensus health was false where the read completed.
 Some requests timed out; they are recorded as unavailable, not successful observations.
 The guarded runner refused this environment before signing, funding, or creating keys.
 Existing chain/model/trainer containers were not restarted or replaced.
 
-After the environment is independently repaired and reverified, the staged runner
+At18:38 and18:42 UTC, both ten-node native-health/advancement checks passed after
+independent chain repair, with signature bypass disabled. The funded run then
+reached the precision failure. A healthy chain is necessary, not sufficient to
+make this escrow policy safe. The current runner refuses its known-unsafe scenario;
+do not bypass the guard to repeat funding.
+
+The intended experiment
 uses a 1 AIN escrow, separate Docker HTTP peers, 20 co-signed micro-transfers and 20
 duplicate deliveries, SIGKILL/restart of only its own peer, journal replay, matching
 AIN approvals and native payout. Each client has CPU1/RAM2GiB/no GPU. Positive chain
@@ -114,3 +158,8 @@ tests), `m2_chain_preflight_20260911` (four detector tests plus failed live pref
 The earlier 100-channel HTTP test measured 667.85 average /796 peak TPS with test
 credits and on-chain checkpoints, not AIN escrow. Neither that result nor this DB
 test completes native network settlement, unilateral dispute safety, or 7,000 TPS.
+
+The actual failed live run and read-only REVERTED audit are in
+`m2_native_escrow_live_20260911`; the corrected fixture, SDK tests and no-key/no-network
+opening refusal are in `m2_native_precision_regression_20260911`,
+`m2_precision_guard_tests_20260911` and `m2_precision_open_refusal_20260911`.

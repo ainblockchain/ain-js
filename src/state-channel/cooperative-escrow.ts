@@ -28,6 +28,22 @@ function numericUnits(value: string): number {
   return amount;
 }
 
+export function nativeEscrowRelease(balances: Pick<CooperativeClose, 'balanceA' | 'balanceB'>): { ratio: number } {
+  const { balanceA, balanceB } = balances;
+  const total = balanceA + balanceB;
+  if (![balanceA, balanceB].every(balance => Number.isSafeInteger(balance) && balance >= 0)
+    || total <= 0 || total > 2 ** 32) throw new Error('invalid native escrow allocation');
+  const fundedAIN = total / ESCROW_UNITS_PER_AIN;
+  const ratio = balanceB / total;
+  const target = fundedAIN * ratio;
+  const source = fundedAIN - target;
+  if (source !== balanceA / ESCROW_UNITS_PER_AIN || target !== balanceB / ESCROW_UNITS_PER_AIN
+    || source !== Number(source.toFixed(6)) || target !== Number(target.toFixed(6))) {
+    throw new Error('native _release cannot represent this allocation at six decimals; do not fund or approve it');
+  }
+  return { ratio };
+}
+
 export function cooperativeEscrow(options: CooperativeEscrowOptions) {
   const { opening, accounts, escrowKey } = options;
   const channel = new PaymentChannel(opening);

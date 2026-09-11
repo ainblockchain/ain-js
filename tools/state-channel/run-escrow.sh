@@ -16,7 +16,7 @@ private=$(realpath "$private")
 case "$private/" in "$out/"*) echo 'Private state cannot be inside evidence' >&2; exit 1;; esac
 case "$out/" in "$private/"*) echo 'Evidence cannot be inside private state' >&2; exit 1;; esac
 mkdir "$out/source"
-cp "$root/tools/state-channel/escrow-chain.js" "$root/tools/state-channel/escrow-peer.js" "$root/tools/state-channel/run-escrow.sh" "$root/tools/state-channel/chain-readiness.js" "$out/source/"
+cp "$root/tools/state-channel/escrow-chain.js" "$root/tools/state-channel/escrow-peer.js" "$root/tools/state-channel/escrow-scenario.js" "$root/tools/state-channel/run-escrow.sh" "$root/tools/state-channel/chain-readiness.js" "$out/source/"
 (cd "$out/source" && sha256sum *) > "$out/source.sha256"
 git -C "$root" rev-parse HEAD > "$out/base-commit.txt"
 docker image inspect "$image" --format '{{.Id}}' > "$out/image-id.txt"
