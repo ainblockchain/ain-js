@@ -5,9 +5,11 @@ const Ain = require('../../lib/ain').default;
 const { PaymentChannel } = require('../../lib/state-channel');
 const { createPaymentPeer, postPayment } = require('../../lib/state-channel/http-peer');
 const { transferCount, transferUnits } = require('./escrow-scenario');
+const { loadNetwork } = require('./escrow-network');
 
 const directory = '/evidence';
-const endpoint = 'http://127.0.0.1:19041';
+const network = loadNetwork();
+const endpoint = `http://127.0.0.1:${network.peerPort}`;
 const read = name => JSON.parse(fs.readFileSync(`${directory}/${name}`));
 const prepared = read('prepared.json');
 
@@ -23,7 +25,7 @@ async function ready() {
 }
 
 async function verifyFunding() {
-  const reader = new Ain('http://127.0.0.1:18086', null, 0, { axiosConfig: { timeout: 15000 } });
+  const reader = new Ain(`http://127.0.0.1:${network.rpcPortBase + 5}`, null, 0, { axiosConfig: { timeout: 15000 } });
   const { policy, configuration } = prepared;
   assert.deepEqual(await reader.db.ref(policy.paths.config).getValue(undefined, { is_final: true }), policy.terms);
   assert.deepEqual(await reader.db.ref(policy.paths.root).getRule(undefined, { is_final: true }), policy.rules);
@@ -31,7 +33,7 @@ async function verifyFunding() {
   assert.deepEqual(await reader.db.ref(policy.paths.balance).getRule(undefined, { is_final: true }), policy.balanceRule);
   assert.deepEqual(await reader.db.ref(policy.paths.balance).getOwner(undefined, { is_final: true }), policy.owners);
   assert.equal(await reader.db.ref(policy.paths.balance).getValue(undefined, { is_final: true }), 1);
-  const response = await fetch(`http://127.0.0.1:18090/get_block_by_number?number=${configuration.number}`, { signal: AbortSignal.timeout(15000) });
+  const response = await fetch(`http://127.0.0.1:${network.rpcPortBase + 9}/get_block_by_number?number=${configuration.number}`, { signal: AbortSignal.timeout(15000) });
   const block = await response.json();
   assert.ok(block.result?.transactions?.some(transaction => transaction.hash === configuration.hash));
   console.log(JSON.stringify({ fundingVerified: true, by: process.argv[2], openingReference: configuration.hash, escrowAIN: 1 }));
@@ -49,7 +51,7 @@ async function main() {
     createPaymentPeer(channel, key, async receipt => {
       fs.writeSync(descriptor, JSON.stringify(receipt) + '\n');
       fs.fsyncSync(descriptor);
-    }).listen(19041, '127.0.0.1', () => console.log(JSON.stringify({ ready: true, recoveredSequence: channel.snapshot().sequence })));
+    }).listen(network.peerPort, '127.0.0.1', () => console.log(JSON.stringify({ ready: true, recoveredSequence: channel.snapshot().sequence })));
     return;
   }
   if (mode === 'recover') {

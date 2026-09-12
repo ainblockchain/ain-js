@@ -2,14 +2,19 @@ const assert = require('assert/strict');
 const fs = require('fs');
 const crypto = require('crypto');
 const Ain = require('../../lib/ain').default;
-const { cooperativeEscrow, replayCooperativeClose, nativeEscrowRelease, ESCROW_UNITS_PER_AIN } = require('../../lib/state-channel/cooperative-escrow');
+const { cooperativeEscrow, replayCooperativeClose, nativeEscrowRelease, microUnitEscrowRelease, ESCROW_UNITS_PER_AIN } = require('../../lib/state-channel/cooperative-escrow');
 const { assertRuntime } = require('./chain-readiness');
+const { loadNetwork, assertFreshAudit } = require('./escrow-network');
+const { waitFinalized, assertOutcome } = require('./transaction-finality');
+const { FailedTxPrecheckCodeSet } = require('/app/ain-blockchain/common/result-code');
 const { initialUnits, plannedClose } = require('./escrow-scenario');
 
 const directory = '/evidence';
 const privateDirectory = '/private';
 const runId = process.env.RUN_ID;
-const urls = Array.from({ length: 10 }, (_, index) => `http://127.0.0.1:${18081 + index}`);
+const network = loadNetwork();
+const urls = Array.from({ length: 10 }, (_, index) => `http://127.0.0.1:${network.rpcPortBase + index}`);
+const releaseFor = close => network.nativeReleaseVersion === 2 ? microUnitEscrowRelease(close) : nativeEscrowRelease(close);
 const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const readJson = path => JSON.parse(fs.readFileSync(path, 'utf8'));
 const writeJson = (path, value) => {
@@ -47,14 +52,7 @@ async function retryRead(label, load) {
 }
 
 async function finalized(ain, hash) {
-  const deadline = Date.now() + 120000;
-  let last;
-  while (Date.now() < deadline) {
-    try { last = await ain.getTransactionByHash(hash); } catch {}
-    if (last?.state === 'FINALIZED' || last?.state === 'REVERTED') return last;
-    await sleep(1000);
-  }
-  throw new Error(`transaction remains pending/unknown: ${hash}; inspect this same intent, do not submit a replacement`);
+  return waitFinalized(transactionHash => ain.getTransactionByHash(transactionHash), hash);
 }
 
 async function readState(ain, type, path) {
@@ -63,6 +61,7 @@ async function readState(ain, type, path) {
 }
 
 async function submit(ain, label, type, path, value, rejectExpected = false) {
+  const expectedValue = rejectExpected ? await readState(client(null, 5), type, path) : value;
   const intentFile = `${directory}/operations/${label}-intent.json`;
   const operation = { type, ref: path, value };
   let intent;
@@ -83,15 +82,17 @@ async function submit(ain, label, type, path, value, rejectExpected = false) {
     catch (error) { response = { transportError: error.message }; }
     writeJson(`${directory}/operations/${label}-response.json`, response);
   }
-  if (rejectExpected) {
-    assert.ok(response?.result?.code > 0, `negative case not explicitly rejected: ${label}`);
-    emit({ label, rejected: true, code: response.result.code, txHash: intent.hash });
-    return { hash: intent.hash, response, rejected: true };
+  if (FailedTxPrecheckCodeSet.has(response?.result?.code)) {
+    assert.equal(rejectExpected, true, `${label}: native admission precheck failed`);
+    const result = { hash: intent.hash, response, rejected: true, scope: 'native precheck refusal; not included in blocks' };
+    writeJson(`${directory}/operations/${label}-precheck.json`, result);
+    emit({ label, rejected: true, admissionOnly: true, code: response.result.code, txHash: intent.hash });
+    return result;
   }
-  if (response?.result?.code !== undefined) assert.equal(response.result.code, 0, `${label}: ${JSON.stringify(response.result)}`);
   const transaction = await finalized(ain, intent.hash);
-  assert.equal(transaction.state, 'FINALIZED', label);
-  assert.ok(Number.isSafeInteger(transaction.number));
+  const terminalFile = `${directory}/operations/${label}-terminal.json`;
+  if (!fs.existsSync(terminalFile)) writeJson(terminalFile, { response, transaction, rejectExpected });
+  assertOutcome(transaction, rejectExpected, label);
   const independent = client(null, 5);
   let observed;
   let block;
@@ -100,24 +101,36 @@ async function submit(ain, label, type, path, value, rejectExpected = false) {
     try {
       observed = await readState(independent, type, path);
       block = await http(9, `/get_block_by_number?number=${transaction.number}`);
-      if (JSON.stringify(observed) === JSON.stringify(value) && block?.transactions?.some(entry => entry.hash === intent.hash)) break;
-      assert.deepEqual(observed, value);
+      if (JSON.stringify(observed) === JSON.stringify(expectedValue) && block?.transactions?.some(entry => entry.hash === intent.hash)) break;
+      assert.deepEqual(observed, expectedValue);
       if (block?.transactions?.some(entry => entry.hash === intent.hash)) break;
     } catch {}
     await sleep(1000);
   }
-  assert.deepEqual(observed, value, `${label}: independent finalized state`);
+  assert.deepEqual(observed, expectedValue, `${label}: independent finalized state`);
   assert.ok(block?.transactions?.some(entry => entry.hash === intent.hash), `${label}: independent block inclusion`);
-  const result = { hash: intent.hash, number: transaction.number, response, transaction, observed, blockHash: block.hash, independentReader: urls[5], blockReader: urls[9] };
+  const independentTransaction = await independent.getTransactionByHash(intent.hash);
+  assertOutcome(independentTransaction, rejectExpected, `${label}: independent receipt`);
+  assert.equal(independentTransaction.number, transaction.number);
+  const result = { hash: intent.hash, number: transaction.number, response, transaction, observed, expectedValue,
+    rejected: rejectExpected, independentTransaction, blockHash: block.hash, independentReader: urls[5], blockReader: urls[9] };
   if (!fs.existsSync(`${directory}/operations/${label}-verified.json`)) writeJson(`${directory}/operations/${label}-verified.json`, result);
-  emit({ label, finalized: true, txHash: intent.hash, block: transaction.number });
+  emit({ label, finalized: true, rejected: rejectExpected, txHash: intent.hash, block: transaction.number });
   return result;
 }
 
 async function guardChain() {
-  assertRuntime(readJson(`${directory}/chain-runtime.json`));
+  const manifest = readJson(`${directory}/chain-runtime.json`);
+  assertRuntime(manifest, network);
+  if (network.nativeReleaseVersion === 2) {
+    const auditName = process.env.ESCROW_PROTOCOL_AUDIT ?? `${process.argv[2]}-protocol.json`;
+    assert.match(auditName, /^[a-z0-9-]+-protocol\.json$/);
+    if (process.env.ESCROW_PROTOCOL_AUDIT) assert.equal(process.argv[2], 'settle');
+    assertFreshAudit(readJson(`${directory}/${auditName}`), manifest, network);
+  }
   const fixtures = readJson('/fixtures/genesis_accounts.json');
   const genesis = await http(0, '/get_block_by_number?number=0');
+  if (network.nativeReleaseVersion === 2) assert.equal(genesis.hash, network.genesisHash);
   const admin = await retryRead('consensus admin', () => client(null).db.ref('/manage_app/consensus/config/admin').getValue(undefined, { is_final: true }));
   assert.equal(admin?.[fixtures.owner.address], true, 'not the intended development chain owner');
   const nodes = [];
@@ -126,7 +139,16 @@ async function guardChain() {
     const status = await http(index, '/node_status');
     assert.equal(status.state, 'SERVING');
     assert.equal(status.health, true, 'consensus is not healthy; do not open or fund a channel');
-    firstBlocks.push(await http(index, '/last_block'));
+    if (network.nativeReleaseVersion === 2) assert.equal(status.address, network.validators[index]);
+    const firstBlock = await http(index, '/last_block');
+    firstBlocks.push(firstBlock);
+    if (network.nativeReleaseVersion === 2) {
+      assert.ok(firstBlock.number >= network.activationBlock, 'protocol activation is not finalized');
+      assert.deepEqual(Object.keys(firstBlock.validators).sort(), [...network.validators].sort());
+      const expectedRule = require('/app/ain-blockchain/db/bandage-files/allow_up_to_6_decimal_transfer_value_only').data[0].value;
+      const actualRule = await client(null, index).db.ref('/transfer/$from/$to/$key/value').getRule(undefined, { is_final: true });
+      assert.deepEqual(actualRule, expectedRule, 'native precision transfer rule must remain intact on every validator');
+    }
     const common = await http(index, '/get_block_by_number?number=0');
     assert.equal(common.hash, genesis.hash);
     nodes.push({ url: urls[index], address: status.address, state: status.state, genesisHash: common.hash });
@@ -152,7 +174,7 @@ async function balances(policy) {
 
 async function open() {
   assert.ok(!fs.existsSync(`${directory}/prepared.json`), 'existing channel: use its prepared state, do not open another');
-  nativeEscrowRelease(plannedClose);
+  releaseFor(plannedClose);
   const chain = await guardChain();
   const owner = client(chain.fixtures.owner);
   const parties = [Ain.utils.createAccount(), Ain.utils.createAccount()];
@@ -165,6 +187,7 @@ async function open() {
     balances: [String(initialUnits), String(initialUnits)],
     publicKeys: keys.map(key => key.publicKey.export({ format: 'der', type: 'spki' }).toString('base64')) };
   const options = { opening, accounts: parties.map(party => party.address), escrowKey: runId };
+  if (network.nativeReleaseVersion === 2) options.nativeReleaseVersion = 2;
   let policy = cooperativeEscrow(options);
   assert.equal(await owner.db.ref(policy.paths.root).getValue(), null);
   assert.equal(await owner.db.ref(policy.paths.balance).getValue(), null);
@@ -219,29 +242,32 @@ async function settle() {
   assert.equal(close.stateHash, `0x${peer.state.head}`);
   assert.deepEqual([String(close.balanceA), String(close.balanceB)], peer.state.balances);
   assert.equal(readJson(`${directory}/recovery-result.json`).pass, true);
-  const release = nativeEscrowRelease(close);
+  const release = releaseFor(close);
   const before = await balances(policy);
-  await submit(source, 'reject-missing-approval', 'SET_VALUE', policy.paths.release, { ratio: 1 }, true);
+  await submit(source, 'reject-missing-approval', 'SET_VALUE', policy.paths.release, release, true);
   await submit(source, 'approve-source', 'SET_VALUE', policy.paths.sourceApproval, close);
-  await submit(source, 'reject-one-approval', 'SET_VALUE', policy.paths.release, { ratio: close.balanceB / policy.totalUnits }, true);
+  await submit(source, 'reject-one-approval', 'SET_VALUE', policy.paths.release, release, true);
   await submit(target, 'reject-inflation', 'SET_VALUE', policy.paths.targetApproval, { ...close, balanceB: close.balanceB + 1 }, true);
   await submit(target, 'reject-foreign-approval', 'SET_VALUE', policy.paths.sourceApproval, close, true);
   await submit(owner, 'reject-policy-replacement', 'SET_RULE', policy.paths.root, { '.rule': { write: true } }, true);
   await submit(source, 'reject-native-installation', 'SET_FUNCTION', `/apps/${runId}/forged`, { '.function': { _transfer: { function_type: 'NATIVE', function_id: '_transfer' } } }, true);
   assert.deepEqual(await balances(policy), before, 'negative calls must not move native balances (gas_price=0)');
   await submit(target, 'approve-target', 'SET_VALUE', policy.paths.targetApproval, close);
-  await submit(source, 'reject-wrong-ratio', 'SET_VALUE', policy.paths.release, { ratio: 1 }, true);
+  const wrongAllocation = network.nativeReleaseVersion === 2
+    ? { ...release, source_units: close.balanceA + 1, target_units: close.balanceB - 1 } : { ratio: 1 };
+  await submit(source, 'reject-wrong-allocation', 'SET_VALUE', policy.paths.release, wrongAllocation, true);
   const payout = await submit(source, 'cooperative-release', 'SET_VALUE', policy.paths.release, release);
   const after = await balances(policy);
   assert.equal(after.escrow, 0);
   assert.equal(Math.round((after.source - before.source) * ESCROW_UNITS_PER_AIN), close.balanceA);
   assert.equal(Math.round((after.target - before.target) * ESCROW_UNITS_PER_AIN), close.balanceB);
-  await submit(target, 'reject-duplicate-release', 'SET_VALUE', policy.paths.release, { ratio: close.balanceB / policy.totalUnits }, true);
+  await submit(target, 'reject-duplicate-release', 'SET_VALUE', policy.paths.release, release, true);
   assert.deepEqual(await balances(policy), after);
   writeJson(`${directory}/settled.json`, { runId, close, before, after, payout,
     journalSha256: crypto.createHash('sha256').update(journal).digest('hex'),
     nativePrecision: 'raw AIN ledger uses JavaScript numbers; allocations/read-back audited at 1e-6 AIN, raw balances and receipts retained',
-    pass: true, performance7000TPS: false, unilateralDisputeOrTimeout: false });
+    pass: true, finalizedOnChain: true, nativeReleaseVersion: network.nativeReleaseVersion,
+    performance7000TPS: false, unilateralDisputeOrTimeout: false });
   emit({ settled: true, runId, transfers: close.sequence, before, after, txHash: payout.hash });
 }
 

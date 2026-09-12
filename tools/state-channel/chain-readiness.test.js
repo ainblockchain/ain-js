@@ -1,11 +1,17 @@
 const { test } = require('node:test');
 const assert = require('assert/strict');
-const { assertRuntime, assess } = require('./chain-readiness');
+const { assertRuntime, assess, runtimeMounts } = require('./chain-readiness');
 
 const runtime = Array.from({ length: 10 }, (_, index) => ({ id: `container-${index}`, port: 18081 + index,
   running: true, dockerHealth: 'healthy', signatureBypass: 'false', feeFreeMode: 'true' }));
 const snapshots = (height, health = true) => runtime.map((node, index) => ({ url: `http://127.0.0.1:${node.port}`,
   status: { address: `validator-${index}`, state: 'SERVING', health }, block: { number: height } }));
+
+test('Docker mount enumeration order is canonicalized without hiding permission changes', () => {
+  const mounts = [{ Destination: '/network', RW: false }, { Destination: '/data', RW: true }, { Destination: '/experiment', RW: false }];
+  assert.deepEqual(runtimeMounts(mounts), runtimeMounts([...mounts].reverse()));
+  assert.notDeepEqual(runtimeMounts(mounts), runtimeMounts(mounts.map(mount => ({ ...mount, RW: true }))));
+});
 
 test('SERVING and Docker healthy cannot disguise a stalled consensus', () => {
   const result = assess(runtime, snapshots(23086, false), snapshots(23086, false));

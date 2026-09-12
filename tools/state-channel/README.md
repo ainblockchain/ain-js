@@ -6,13 +6,35 @@ Both AIN account holders must cooperate to close; a missing participant can lock
 
 ## Current failure and safety boundary — 2026-09-11
 
-An opt-in version2 implementation is now **isolated-DB tested**, not deployed on the
-live ten validators. It uses `nativeReleaseVersion:2` in `cooperativeEscrow()` and
+An opt-in version2 implementation is isolated-DB tested and now deployed on a
+**separate** ten-validator development network, not the original ten validators.
+It uses `nativeReleaseVersion:2` in `cooperativeEscrow()` and
 `microUnitEscrowRelease(close)`, with the corresponding native flag and code. The
-default/version1 policy and safety-refusal network runner remain unchanged; the
+default/version1 policy and default legacy safety refusal remain unchanged; the
 existing locked1AIN is not migrated or recovered. Native builds and remaining
 gates are in the reproduction workspace's
 `kpi/pr/ab-m1/tools/cert-kpi/native-escrow-micro-units.md`.
+
+The explicit `ESCROW_NETWORK_PLAN` mode verifies the actual ten native images,
+runtime/config/entrypoint hashes, activation and resource limits before funding.
+See `kpi/pr/ab-m1/tools/cert-kpi/native-escrow-network.md` for fresh preparation,
+the repaired existing configuration, source-image boundaries and exact commands.
+It does not upgrade the original network or recover its locked1AIN.
+
+The first funded v2 run found a harness error: RPC rule failure12103 was treated
+as a final rejection, but its signed transaction stayed in the native pool and
+paid after approvals. Exact-intent reconciliation proves both payouts in block520
+while preserving `scenarioPassed:false`. The runner now waits for finalized
+REVERTED receipts before later approvals, and audits unchanged state/independent
+receipt/block inclusion. Admission-only failures are limited to native precheck
+codes excluded from blocks. Unknown outcomes never trigger resubmission or reset.
+
+`resume-unstarted-settlement.sh` is restricted to an already-funded/recovered
+channel whose closing preflight failed **before any closing intent was signed**.
+It preserves the original failed run, uses fresh audited source/protocol evidence,
+locks against concurrent/live resumes, and never opens or funds another channel.
+Partial/uncertain closing intents require exact-hash investigation instead.
+See the separate-network guide for the actual same-channel resume command.
 
 The real ten-node run `m2_native_escrow_live_20260911` funded 1 native development
 AIN, completed twenty 3-micro-AIN co-signed transfers and duplicate deliveries,
@@ -123,7 +145,7 @@ with unchanged whole-DB proofs. `pass:true` means this regression passed;
 `settlementSuccessful:false` is explicit. Applying this one native bandage is not
 a full replay of the live ledger or its other upgrades.
 
-## Ten-node preflight and blocked network rerun
+## Default legacy preflight and blocked rerun
 
 From the reproduction workspace:
 
@@ -136,7 +158,7 @@ RUN_ID=escrow_$(date -u +%Y%m%dT%H%M%SZ) \
   kpi/harness/genesis_accounts.json kpi/evidence/escrow-NEW kpi/secrets/escrow-NEW
 ```
 
-The network runner was exercised but **failed settlement**, as recorded above. It
+The default legacy network runner was exercised but **failed settlement**. It
 targets the local `ain-cert-docker` project at RPC18081–18090 and refuses missing or
 enabled `ENABLE_TX_SIG_VERIF_WORKAROUND`, non-development gas settings, a wrong owner
 or genesis, unhealthy consensus, or lack of block progress before creating keys or

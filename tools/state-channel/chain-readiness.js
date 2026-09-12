@@ -1,6 +1,12 @@
 const assert = require('assert/strict');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
+const { loadNetwork } = require('./escrow-network');
+
+function runtimeMounts(mounts) {
+  return mounts.map(mount => ({ destination: mount.Destination, readWrite: mount.RW }))
+    .sort((left, right) => left.destination.localeCompare(right.destination));
+}
 
 function inspectRuntime(project = 'ain-cert-docker') {
   const ids = execFileSync('docker', ['ps', '-q', '--filter', `label=com.docker.compose.project=${project}`], { encoding: 'utf8' }).trim().split(/\s+/).filter(Boolean);
@@ -15,28 +21,32 @@ function inspectRuntime(project = 'ain-cert-docker') {
       startedAt: container.State.StartedAt, running: container.State.Running, dockerHealth: container.State.Health?.Status,
       port: Number(settings.PORT), signatureBypass: settings.ENABLE_TX_SIG_VERIF_WORKAROUND,
       feeFreeMode: settings.ENABLE_GAS_FEE_WORKAROUND,
+      readOnlyRoot: container.HostConfig.ReadonlyRootfs, configDirectory: settings.BLOCKCHAIN_CONFIGS_DIR,
+      command: container.Config.Cmd, entrypoint: container.Config.Entrypoint,
+      user: container.Config.User,
+      mounts: runtimeMounts(container.Mounts),
       limits: { cpuQuota: container.HostConfig.CpuQuota, cpuPeriod: container.HostConfig.CpuPeriod,
         cpuSet: container.HostConfig.CpusetCpus, memory: container.HostConfig.Memory,
         memorySwap: container.HostConfig.MemorySwap, gpu: container.HostConfig.DeviceRequests } };
   }).sort((left, right) => left.port - right.port);
 }
 
-function assertRuntime(manifest) {
+function assertRuntime(manifest, network = { rpcPortBase: 18081 }) {
   assert.equal(manifest.length, 10, 'exactly ten chain containers required');
   assert.equal(new Set(manifest.map(node => node.id)).size, 10, 'distinct containers required');
   for (let index = 0; index < manifest.length; index++) {
     const node = manifest[index];
-    assert.equal(node.port, 18081 + index, 'unexpected development-chain endpoint');
+    assert.equal(node.port, network.rpcPortBase + index, 'unexpected development-chain endpoint');
     assert.equal(node.running, true, 'chain container is not running');
     assert.equal(node.signatureBypass, 'false', 'signature verification bypass enabled or unproven; refuse native escrow');
     assert.equal(node.feeFreeMode, 'true', 'this development-only runner requires explicitly enabled zero gas prices');
   }
 }
 
-function assess(manifest, before, after) {
+function assess(manifest, before, after, network = { rpcPortBase: 18081 }) {
   const complete = before.length === 10 && after.length === 10;
   let signatureEnforced = false;
-  try { assertRuntime(manifest); signatureEnforced = true; } catch {}
+  try { assertRuntime(manifest, network); signatureEnforced = true; } catch {}
   const checks = {
     runtimePreconditions: signatureEnforced,
     tenDistinctValidators: complete && new Set(after.map(node => node.status?.address).filter(Boolean)).size === 10,
@@ -48,10 +58,10 @@ function assess(manifest, before, after) {
   return { checks, pass: Object.values(checks).every(Boolean) };
 }
 
-async function snapshot() {
+async function snapshot(network) {
   const result = [];
   for (let index = 0; index < 10; index++) {
-    const url = `http://127.0.0.1:${18081 + index}`;
+    const url = `http://127.0.0.1:${network.rpcPortBase + index}`;
     const entry = { url, at: new Date().toISOString() };
     for (const [name, path] of [['status', '/node_status'], ['block', '/last_block']]) {
       try {
@@ -70,21 +80,22 @@ async function snapshot() {
 async function main() {
   const [mode, output] = process.argv.slice(2);
   assert.ok(output && !fs.existsSync(output), 'pass a new evidence filename');
-  const manifest = inspectRuntime();
+  const network = loadNetwork();
+  const manifest = inspectRuntime(network.project);
   if (mode === 'inspect') {
     fs.writeFileSync(output, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
     return;
   }
   assert.equal(mode, 'observe');
   const startedAt = new Date().toISOString();
-  const before = await snapshot();
+  const before = await snapshot(network);
   await new Promise(resolve => setTimeout(resolve, 10000));
-  const after = await snapshot();
-  const report = { startedAt, finishedAt: new Date().toISOString(), scope: 'read-only preflight; no transactions or restarts', manifest, before, after, ...assess(manifest, before, after) };
+  const after = await snapshot(network);
+  const report = { startedAt, finishedAt: new Date().toISOString(), scope: 'read-only preflight; no transactions or restarts', manifest, before, after, ...assess(manifest, before, after, network) };
   fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify({ output, checks: report.checks, pass: report.pass }));
   process.exitCode = report.pass ? 0 : 1;
 }
 
-module.exports = { inspectRuntime, assertRuntime, assess };
+module.exports = { inspectRuntime, assertRuntime, assess, runtimeMounts };
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });
