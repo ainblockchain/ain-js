@@ -43,3 +43,20 @@ test('domain replay, balance tampering and conflicting sequence are rejected', (
   expect(() => sender.commit({ ...receipt, signatures: [receipt.signatures[0], '0'.repeat(128)] })).toThrow(/signature/);
   expect(sender.snapshot().sequence).toBe(0);
 });
+
+test('cached signer ownership remains participant-specific and received receipts still verify both signatures', () => {
+  const sender = new PaymentChannel(opening);
+  const receiver = new PaymentChannel(opening);
+  const receipt = receiver.accept(sender.propose(0, '1', participants[0].privateKey), participants[1].privateKey);
+  sender.commit(receipt);
+  expect(() => sender.propose(1, '1', participants[0].privateKey)).toThrow(/participant/);
+  const next = receiver.accept(sender.propose(0, '1', participants[0].privateKey), participants[1].privateKey);
+  for (const participant of [0, 1]) {
+    const invalid = JSON.parse(JSON.stringify(next));
+    invalid.signatures[participant] = '0'.repeat(128);
+    expect(() => sender.commit(invalid)).toThrow(/co-signature/);
+    expect(sender.snapshot().sequence).toBe(1);
+  }
+  sender.commit(next);
+  expect(sender.snapshot()).toEqual(receiver.snapshot());
+});

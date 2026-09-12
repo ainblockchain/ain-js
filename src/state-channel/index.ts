@@ -52,6 +52,8 @@ export class PaymentChannel {
   private sequence = 0;
   private head: string;
   private latest: PaymentReceipt | null = null;
+  private readonly checkedSigners: [WeakSet<KeyObject>, WeakSet<KeyObject>] = [new WeakSet(), new WeakSet()];
+  private proposed: { bytes: string; signature: string; participant: number } | null = null;
 
   constructor(opening: ChannelOpening) {
     if (!opening.chainId || !opening.channelId || !/^[a-f0-9]{64}$/.test(opening.openingReference)) throw new Error('chain, channel and opening reference required');
@@ -78,10 +80,12 @@ export class PaymentChannel {
 
   private signer(privateKey: KeyObject | string, participant: number): KeyObject {
     const key = typeof privateKey === 'string' ? createPrivateKey(privateKey) : privateKey;
+    if (this.checkedSigners[participant].has(key)) return key;
     if (key.type !== 'private' || key.asymmetricKeyType !== 'ed25519'
       || createPublicKey(key).export({ format: 'der', type: 'spki' }).toString('base64') !== this.publicKeys[participant]) {
       throw new Error('private key does not belong to participant');
     }
+    this.checkedSigners[participant].add(key);
     return key;
   }
 
@@ -117,7 +121,10 @@ export class PaymentChannel {
     const state: PaymentState = { version: 1, openingHash: this.openingHash, sequence: this.sequence + 1,
       previousHash: this.head, from, amount, balances: [next[0].toString(), next[1].toString()] };
     this.validateNext(state);
-    return { state, signature: sign(null, paymentStateBytes(state), this.signer(privateKey, from)).toString('hex') };
+    const bytes = paymentStateBytes(state);
+    const signature = sign(null, bytes, this.signer(privateKey, from)).toString('hex');
+    this.proposed = { bytes: bytes.toString('hex'), signature, participant: from };
+    return { state, signature };
   }
 
   accept(proposal: PaymentProposal, privateKey: KeyObject | string): PaymentReceipt {
@@ -131,17 +138,25 @@ export class PaymentChannel {
     signatures[state.from] = proposal.signature;
     signatures[1 - state.from] = sign(null, paymentStateBytes(state), key).toString('hex');
     const receipt = { state: clone(state), signatures };
-    this.commit(receipt);
+    this.applyVerified(receipt);
     return clone(receipt);
   }
 
   commit(receipt: PaymentReceipt): void {
     if (!receipt || !Array.isArray(receipt.signatures) || receipt.signatures.length !== 2) throw new Error('two signatures required');
     this.validateNext(receipt.state);
-    if (!receipt.signatures.every((signature, participant) => this.validSignature(receipt.state, signature, participant))) throw new Error('invalid co-signature');
+    const bytes = paymentStateBytes(receipt.state).toString('hex');
+    if (!receipt.signatures.every((signature, participant) =>
+      this.proposed?.participant === participant && this.proposed.signature === signature && this.proposed.bytes === bytes
+      || this.validSignature(receipt.state, signature, participant))) throw new Error('invalid co-signature');
+    this.applyVerified(receipt);
+  }
+
+  private applyVerified(receipt: PaymentReceipt): void {
     this.balances = [...receipt.state.balances];
     this.sequence = receipt.state.sequence;
     this.head = hash(paymentStateBytes(receipt.state));
     this.latest = clone(receipt);
+    this.proposed = null;
   }
 }
