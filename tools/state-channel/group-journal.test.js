@@ -62,3 +62,15 @@ test('replay validates complete frames, reports an uncommitted tail and rejects 
   await assert.rejects(replayGroupJournal(corrupted, () => undefined), /invalid journal frame/);
   await assert.rejects(GroupCommitJournal.create(filename), /EEXIST/);
 });
+
+test('writer refuses an oversized frame before persisting or acknowledging it', async () => {
+  let written = false;
+  const journal = new GroupCommitJournal({ write: async (buffer, offset, length) => { written = true; return { bytesWritten: length }; },
+    sync: async () => undefined, close: async () => undefined }, { maxDelayMs: 0 });
+  const oversized = entry(0);
+  oversized.receipt.state.padding = 'x'.repeat(16 * 1024 ** 2);
+  await assert.rejects(journal.append(oversized), /frame exceeds limit/);
+  assert.equal(written, false);
+  assert.equal(journal.metrics.entries, 0);
+  await assert.rejects(journal.close(), /frame exceeds limit/);
+});

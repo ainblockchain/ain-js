@@ -67,6 +67,7 @@ export class GroupCommitJournal {
         const entries = batch.map(item => item.entry);
         const encoded = JSON.stringify(entries);
         const bytes = Buffer.from(JSON.stringify({ version: 1, entries, sha256: digest(encoded) }) + '\n');
+        if (bytes.length > 16 * 1024 ** 2 + 1) throw new Error('journal frame exceeds limit');
         let offset = 0;
         while (offset < bytes.length) {
           const written = await this.sink.write(bytes, offset, bytes.length - offset, null);
