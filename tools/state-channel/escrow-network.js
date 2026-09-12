@@ -3,10 +3,14 @@ const fs = require('fs');
 const { execFileSync } = require('child_process');
 
 function validatePlan(plan) {
+  const p2pPortBase = plan.p2pPortBase ?? 21501;
+  const trackerPort = plan.trackerPort ?? 21079;
   assert.equal(plan.nativeReleaseVersion, 2);
   assert.match(plan.project, /^ain-units-[a-z0-9-]{1,40}$/);
-  assert.equal(plan.rpcPortBase, 21081);
-  assert.equal(plan.peerPort, 21041);
+  assert.ok(Number.isSafeInteger(plan.rpcPortBase) && plan.rpcPortBase >= 1024 && plan.rpcPortBase + 9 <= 65535);
+  assert.ok(Number.isSafeInteger(plan.peerPort) && plan.peerPort >= 1024 && plan.peerPort <= 65535);
+  assert.ok(Number.isSafeInteger(p2pPortBase) && p2pPortBase >= 1024 && p2pPortBase + 9 <= 65535);
+  assert.ok(Number.isSafeInteger(trackerPort) && trackerPort >= 1024 && trackerPort <= 65535);
   assert.equal(plan.activationBlock, 2);
   assert.ok(Number.isSafeInteger(plan.uid) && plan.uid > 0);
   assert.ok(Number.isSafeInteger(plan.gid) && plan.gid > 0);

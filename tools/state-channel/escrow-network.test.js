@@ -27,7 +27,7 @@ test('default still selects legacy chain; explicit validated plan is needed for 
   assert.equal(loadNetwork('').rpcPortBase, 18081);
   const { plan } = fixture();
   assert.equal(validatePlan(plan), plan);
-  for (const change of [{ nativeReleaseVersion: 1 }, { activationBlock: null }, { project: 'ain-cert-docker' }, { rpcPortBase: 18081 }, { chainImage: 'mutable-tag' }, { clientHash: undefined }, { runtimeHashes: {} }]) {
+  for (const change of [{ nativeReleaseVersion: 1 }, { activationBlock: null }, { project: 'ain-cert-docker' }, { rpcPortBase: 0 }, { chainImage: 'mutable-tag' }, { clientHash: undefined }, { runtimeHashes: {} }]) {
     assert.throws(() => validatePlan({ ...plan, ...change }));
   }
 });

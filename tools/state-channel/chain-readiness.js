@@ -33,6 +33,7 @@ function inspectRuntime(project = 'ain-cert-docker') {
 
 function assertRuntime(manifest, network = { rpcPortBase: 18081 }) {
   assert.equal(manifest.length, 10, 'exactly ten chain containers required');
+  assert.ok(Number.isSafeInteger(network.rpcPortBase) && network.rpcPortBase >= 1024 && network.rpcPortBase + 9 <= 65535);
   assert.equal(new Set(manifest.map(node => node.id)).size, 10, 'distinct containers required');
   for (let index = 0; index < manifest.length; index++) {
     const node = manifest[index];
