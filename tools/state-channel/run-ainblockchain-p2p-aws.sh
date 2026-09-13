@@ -73,7 +73,7 @@ sync_mode=peer
   -e PORT=8080 -e P2P_PORT=5000 \
   -e TRACKER_UPDATE_JSON_RPC_URL="http://$tracker_ip:8079/json-rpc" \
   -e PEER_CANDIDATE_JSON_RPC_URL="http://$tracker_ip:8080/json-rpc" \
-  -e STAKE=1000000 -e SEASON=dev -e CONSOLE_LOG=false \
+  -e STAKE=1000000 -e SEASON=custom -e CONSOLE_LOG=false \
   -e ENABLE_EXPRESS_RATE_LIMIT=false -e ENABLE_GAS_FEE_WORKAROUND=true \
   -e ENABLE_TX_SIG_VERIF_WORKAROUND=true -e TX_POOL_SIZE_LIMIT=1000000 \
   -v "$HOME/ain-data-$run_id:/home/ain_blockchain_data" \
