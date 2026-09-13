@@ -10,10 +10,17 @@ const { GroupCommitJournal, replayGroupJournal } = require('../../lib/state-chan
 
 const directory = process.env.EVIDENCE || '/evidence';
 const privateRoot = process.env.PRIVATE_KEYS || '/private';
+const statusUrl = process.env.STATUS_URL || '';
+const statusToken = process.env.STATUS_TOKEN || '';
+const statusNode = process.env.STATUS_NODE || 'p2p-node';
 const write = (name, value) => fs.writeFileSync(path.join(directory, name), JSON.stringify(value, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
 const read = name => JSON.parse(fs.readFileSync(path.join(directory, name)));
 const cgroup = () => Object.fromEntries(['cpu.max', 'cpu.weight', 'cpu.stat', 'cpuset.cpus.effective', 'memory.max', 'memory.swap.max'].map(name => [name, fs.readFileSync(`/sys/fs/cgroup/${name}`, 'utf8').trim()]));
 const monotonic = () => Number(process.hrtime.bigint()) / 1e6;
+const publishStatus = payload => {
+  if (!statusUrl || !statusToken) return;
+  fetch(statusUrl, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${statusToken}` }, body: JSON.stringify({ ...payload, nodeId: statusNode, updatedAt: Date.now() }), signal: AbortSignal.timeout(5000) }).catch(() => {});
+};
 
 async function peerState(port, channelId) {
   const response = await fetch(`http://127.0.0.1:${port}/state${channelId ? `?channelId=${encodeURIComponent(channelId)}` : ''}`, { signal: AbortSignal.timeout(15000) });
@@ -95,6 +102,12 @@ async function worker() {
   let warmed = 0;
   const timingsMs = { propose: 0, networkWait: 0, commit: 0, journalWait: 0 };
   const errors = [];
+  const progressTimer = setInterval(() => {
+    const measured = counts.reduce((total, value) => total + value, 0);
+    const elapsed = Math.max(1, Math.min(duration, monotonic() - measureAt));
+    parentPort.postMessage({ progress: { index, acknowledged, measured, currentTPS: measured * 1000 / elapsed, errors: errors.length } });
+  }, 1000);
+  progressTimer.unref();
   const channels = await Promise.all(models.map(async ({ opening, channel, key, ordinal }) => {
     while (monotonic() < deadline) {
       const started = monotonic();
@@ -123,6 +136,7 @@ async function worker() {
     const state = channel.snapshot();
     return { ordinal, state, remote, agrees: JSON.stringify(state) === JSON.stringify(remote) };
   }));
+  clearInterval(progressTimer);
   await journal.close();
   const result = { index, acknowledged, warmed, drain, counts, histogram, errors, channels, journal: journal.metrics, timingsMs,
     timingScope: 'summed operation wall times; concurrent waits overlap', cpu: process.cpuUsage(beforeCpu), cpuScope: 'whole process, do not sum workers' };
@@ -183,6 +197,18 @@ async function main() {
   assert.ok(['server', 'client'].includes(mode));
   write(`${mode}-environment.json`, { at: new Date().toISOString(), node: process.version, runId, count, workers, duration, warmup, batch, delay, transport, transportBatch, cgroup: cgroup() });
   const results = [];
+  const progress = new Map();
+  let lastPublished = 0;
+  const publishProgress = phase => {
+    if (!statusUrl || Date.now() - lastPublished < 800) return;
+    lastPublished = Date.now();
+    const values = [...progress.values()];
+    publishStatus({ runId, phase, targetTPS: 7000,
+      currentTPS: values.reduce((total, item) => total + item.currentTPS, 0),
+      measured: values.reduce((total, item) => total + item.measured, 0),
+      errors: values.reduce((total, item) => total + item.errors, 0) });
+  };
+  publishStatus({ runId, phase: mode === 'client' ? 'running' : 'ready', targetTPS: 7000, currentTPS: 0, measured: 0, errors: 0 });
   let ready = 0;
   const pool = Array.from({ length: workers }, (_, index) => new Worker(__filename,
     { workerData: { mode, index, workers, basePort, batch, delay, runId, duration, warmup, transport, transportBatch } }));
@@ -195,6 +221,10 @@ async function main() {
           const startAt = monotonic() + 500;
           for (const worker of pool) worker.postMessage({ startAt });
         }
+      }
+      if (message.progress) {
+        progress.set(message.progress.index, message.progress);
+        publishProgress('running');
       }
       if (message.result) {
         results.push(message.result);
@@ -219,6 +249,8 @@ async function main() {
             journal: results.map(result => result.journal), cgroupAfter: cgroup(),
             scope: 'parallel signed channel updates with both peers fsynced before counting; unfunded diagnostic, not complete 7000 TPS KPI' };
           write('summary.json', summary);
+          publishStatus({ runId, phase: 'complete', targetTPS: 7000, currentTPS: summary.averageTPS, averageTPS: summary.averageTPS,
+            peakTPS: summary.peakTPS, measured: summary.measured, errors: summary.errors.length });
           console.log(JSON.stringify({ runId, averageTPS: summary.averageTPS, peakTPS: summary.peakTPS, p99ms: summary.p99ms, errors: summary.errors.length }));
           if (summary.errors.length || !summary.statesAgree) process.exitCode = 1;
         }

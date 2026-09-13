@@ -64,6 +64,7 @@ base=(--runtime runc --cpus "$cpu" --cpu-shares "$shares" --cpuset-cpus 0-7
   --env "JOURNAL_BATCH=${JOURNAL_BATCH:-64}" --env "JOURNAL_DELAY_MS=${JOURNAL_DELAY_MS:-2}"
   --env "CHANNEL_TRANSPORT=${CHANNEL_TRANSPORT:-single}"
   --env "TRANSPORT_BATCH=${TRANSPORT_BATCH:-32}"
+  --env "STATUS_URL=${STATUS_URL:-}" --env "STATUS_TOKEN=${STATUS_TOKEN:-}" --env "STATUS_NODE=${STATUS_NODE:-p2p-node}"
   --mount "type=bind,src=$output,dst=/evidence" --entrypoint node)
 if [[ -n "$parent" ]]; then base+=(--cgroup-parent "$parent"); fi
 docker run --rm --network none "${base[@]}" --mount "type=bind,src=$private,dst=/private" "$image_id" tools/state-channel/parallel-load.js init
