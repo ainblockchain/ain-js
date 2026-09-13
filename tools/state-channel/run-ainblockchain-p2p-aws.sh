@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 umask 077
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 AWS_ENV_FILE=${AWS_ENV_FILE:-"$ROOT_DIR/../../../.aws_ain_prod_env"}
 AWS_REGION=${AWS_REGION:-us-east-1}
 set -a; source "$AWS_ENV_FILE"; set +a
