@@ -64,8 +64,10 @@ if [[ "$idx" == 0 ]]; then
 fi
 sleep 3
 mkdir -p "$HOME/ain-data-$run_id"
+sync_mode=peer
+[[ "$idx" == 0 ]] && sync_mode=genesis
  sudo docker run --name "ain-node-$run_id" --network host -d --cpus=32 --memory=120g \
-  -e ACCOUNT_INJECTION_OPTION=private_key -e PRIVATE_KEY="$private_key" -e SYNC_MODE=peer \
+  -e ACCOUNT_INJECTION_OPTION=private_key -e PRIVATE_KEY="$private_key" -e SYNC_MODE="$sync_mode" \
   -e BLOCKCHAIN_CONFIGS_DIR=blockchain-configs/cert-10-nodes \
   -e BLOCKCHAIN_DATA_DIR=/home/ain_blockchain_data \
   -e PORT=8080 -e P2P_PORT=5000 \
@@ -80,7 +82,8 @@ REMOTE
 done
 wait
 printf 'all nodes launched; probing node APIs\n'
-for idx in "${!IPS[@]}"; do ip=${IPS[$idx]}; for n in $(seq 1 90); do if curl -fsS --max-time 5 "http://$ip:8080/node_status" > "$EVIDENCE/node-$idx-status.json" 2>/dev/null; then break; fi; [[ $n == 90 ]] && { echo "node $idx unavailable" >&2; exit 1; }; sleep 5; done; done
+for idx in "${!IPS[@]}"; do ip=${IPS[$idx]}; for n in $(seq 1 90); do if curl -fsS --max-time 5 "http://$ip:8080/node_status" > "$EVIDENCE/node-$idx-status.json" 2>/dev/null && grep -q '"state":"SERVING"' "$EVIDENCE/node-$idx-status.json"; then break; fi; [[ $n == 90 ]] && { echo "node $idx did not reach SERVING" >&2; exit 1; }; sleep 5; done; done
 curl -fsS --max-time 10 "http://${IPS[0]}:8080/node_status" > "$EVIDENCE/node0-status.json"
-curl -fsS --max-time 10 "http://${IPS[0]}:8080/network_status" > "$EVIDENCE/network-status.json" || true
+curl -fsS --max-time 10 "http://${IPS[0]}:8079/network_status" > "$EVIDENCE/network-status.json"
+node -e "const x=require(process.argv[1]); if (x.numNodesAlive < 10) { console.error('tracker sees '+x.numNodesAlive+'/10 nodes'); process.exit(1); }" "$EVIDENCE/network-status.json"
 printf 'P2P node probe passed; evidence=%s\n' "$EVIDENCE"
