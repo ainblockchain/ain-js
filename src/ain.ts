@@ -19,6 +19,8 @@ import Cogito from './cogito';
 import { Signer } from "./signer/signer";
 import { DefaultSigner } from './signer/default-signer';
 export { PaymentChannel, paymentStateBytes } from './state-channel';
+export { ExperimentPublisher, parseKpiEvent } from './experiment';
+export type { KpiEvent, ExperimentSubmission } from './experiment';
 export type { ChannelOpening, PaymentState, PaymentProposal, PaymentReceipt } from './state-channel';
 export { cooperativeEscrow, replayCooperativeClose, ESCROW_UNITS_PER_AIN } from './state-channel/cooperative-escrow';
 export type { CooperativeEscrowOptions, CooperativeClose } from './state-channel/cooperative-escrow';
