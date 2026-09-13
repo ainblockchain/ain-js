@@ -29,6 +29,8 @@ aws ec2 create-route --route-table-id "$RT" --destination-cidr-block 0.0.0.0/0 -
 ASSOC=$(aws ec2 associate-route-table --route-table-id "$RT" --subnet-id "$SUBNET" --query AssociationId --output text)
 SG=$(aws ec2 create-security-group --group-name "$RUN_ID" --description "AIN P2P experiment" --vpc-id "$VPC" --query GroupId --output text)
 aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 22 --cidr "$MY_IP/32" >/dev/null
+aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 8079 --cidr "$MY_IP/32" >/dev/null
+aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 8080 --cidr "$MY_IP/32" >/dev/null
 aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol -1 --source-group "$SG" >/dev/null
 KP="$RUN_ID"; aws ec2 create-key-pair --key-name "$KP" --key-type ed25519 --query KeyMaterial --output text > "$KEY"; chmod 600 "$KEY"
 mapfile -t IDS < <(aws ec2 run-instances --image-id "$AMI" --instance-type m6i.8xlarge --count 10 --key-name "$KP" --network-interfaces "DeviceIndex=0,SubnetId=$SUBNET,Groups=$SG,AssociatePublicIpAddress=true" --block-device-mappings 'DeviceName=/dev/xvda,Ebs={VolumeSize=40,VolumeType=gp3,DeleteOnTermination=true,Encrypted=true}' --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$RUN_ID},{Key=Project,Value=ain-p2p},{Key=RunId,Value=$RUN_ID}]" "ResourceType=volume,Tags=[{Key=Project,Value=ain-p2p},{Key=RunId,Value=$RUN_ID}]" --query 'Instances[].InstanceId' --output text | tr '\t' '\n')
