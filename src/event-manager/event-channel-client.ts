@@ -1,6 +1,6 @@
 import Ain from '../ain';
 import isBrowser from "is-in-browser";
-import WebSocket from 'isomorphic-ws';
+import WebSocket = require('isomorphic-ws');
 import { WebSocket as WebSocketBE } from 'ws';
 import {
   EventChannelMessageTypes,
