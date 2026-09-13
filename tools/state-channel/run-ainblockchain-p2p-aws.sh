@@ -44,9 +44,9 @@ printf '%s\n' "${IPS[@]}" > "$EVIDENCE/public-ips.txt"
 printf 'run=%s nodes=10\n' "$RUN_ID" | tee "$EVIDENCE/run.txt"
 SSH=(ssh -i "$KEY" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$WORK/known_hosts")
 for ip in "${IPS[@]}"; do for n in $(seq 1 60); do if "${SSH[@]}" "ec2-user@$ip" 'echo ready' >/dev/null 2>&1; then break; fi; [[ $n == 60 ]] && exit 1; sleep 5; done; done
-for idx in "${!IPS[@]}"; do ip=${IPS[$idx]}; key_json=$(node -e "const a=require('/mnt/newdata/gov/kpi/pr/ab-m1/blockchain-configs/base/genesis_accounts.json').others[$idx]; process.stdout.write(a.private_key)"); "${SSH[@]}" "ec2-user@$ip" bash -s -- "$idx" "$RUN_ID" "$NODE0_PUBLIC" "$key_json" <<'REMOTE' > "$EVIDENCE/node-$idx-bootstrap.log" 2>&1 &
+for idx in "${!IPS[@]}"; do ip=${IPS[$idx]}; key_json=$(node -e "const a=require('/mnt/newdata/gov/kpi/pr/ab-m1/blockchain-configs/base/genesis_accounts.json').others[$idx]; process.stdout.write(a.private_key)"); "${SSH[@]}" "ec2-user@$ip" bash -s -- "$idx" "$RUN_ID" "$NODE0_PRIVATE" "$NODE0_PUBLIC" "$key_json" <<'REMOTE' > "$EVIDENCE/node-$idx-bootstrap.log" 2>&1 &
 set -Eeuo pipefail
-idx=$1; run_id=$2; tracker_ip=$3; private_key=$4
+idx=$1; run_id=$2; tracker_ip=$3; candidate_ip=$4; private_key=$5
 sudo dnf install -y docker git >/dev/null
 sudo systemctl enable --now docker
 sudo usermod -aG docker ec2-user || true
@@ -75,7 +75,7 @@ sync_mode=peer
   -e BLOCKCHAIN_DATA_DIR=/home/ain_blockchain_data \
   -e PORT=8080 -e P2P_PORT=5000 \
   -e TRACKER_UPDATE_JSON_RPC_URL="http://$tracker_ip:8079/json-rpc" \
-  -e PEER_CANDIDATE_JSON_RPC_URL="http://$tracker_ip:8080/json-rpc" \
+  -e PEER_CANDIDATE_JSON_RPC_URL="http://$candidate_ip:8080/json-rpc" \
   -e STAKE=1000000 -e SEASON=custom -e CONSOLE_LOG=false \
   -e ENABLE_EXPRESS_RATE_LIMIT=false -e ENABLE_GAS_FEE_WORKAROUND=true \
   -e ENABLE_TX_SIG_VERIF_WORKAROUND=true -e TX_POOL_SIZE_LIMIT=1000000 \
