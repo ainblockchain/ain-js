@@ -58,7 +58,7 @@ FROM node:22-bookworm
 WORKDIR /app/ain-blockchain
 COPY . /app/ain-blockchain
 RUN yarn install --frozen-lockfile
-ENV HOSTING_ENV=aws
+ENV HOSTING_ENV=local
 ENTRYPOINT bash ./start_node_docker.sh
 DOCKER
 sudo docker build --network host -f /tmp/Dockerfile.ain -t "ain-p2p:$run_id" .
