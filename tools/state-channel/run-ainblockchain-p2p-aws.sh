@@ -70,7 +70,7 @@ mkdir -p "$HOME/ain-data-$run_id"
 sync_mode=peer
 [[ "$idx" == 0 ]] && sync_mode=full
  sudo docker run --name "ain-node-$run_id" --network host -d --cpus=32 --memory=120g \
-  -e ACCOUNT_INJECTION_OPTION=private_key -e PRIVATE_KEY="$private_key" -e SYNC_MODE="$sync_mode" \
+  -e ACCOUNT_INJECTION_OPTION=private_key -e PRIVATE_KEY="$private_key" -e UNSAFE_PRIVATE_KEY="$private_key" -e SYNC_MODE="$sync_mode" \
   -e BLOCKCHAIN_CONFIGS_DIR=blockchain-configs/cert-10-nodes \
   -e BLOCKCHAIN_DATA_DIR=/home/ain_blockchain_data \
   -e PORT=8080 -e P2P_PORT=5000 \
