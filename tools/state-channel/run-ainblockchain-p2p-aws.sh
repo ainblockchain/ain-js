@@ -51,7 +51,7 @@ rm -rf "$HOME/ain-blockchain-$run_id"
 git clone --depth 1 --branch year3/m1-sharding-protocol https://github.com/ainblockchain/ain-blockchain.git "$HOME/ain-blockchain-$run_id"
 cd "$HOME/ain-blockchain-$run_id"
 cat > /tmp/Dockerfile.ain <<'DOCKER'
-FROM node:18.16
+FROM node:22-bookworm
 WORKDIR /app/ain-blockchain
 COPY . /app/ain-blockchain
 RUN yarn install --frozen-lockfile
