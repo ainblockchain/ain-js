@@ -29,6 +29,73 @@ export type { CooperativeEscrowOptions, CooperativeClose } from './state-channel
  * The main class of the ain-js SDK library.
  */
 export default class Ain {
+  /** Pinned execution layer for a client initialized with connect(). */
+  public executionLayer?: 'L1' | 'L2';
+  public executionGenesisHash?: string;
+  public layerCapabilities?: any;
+  private discoverDefaultLayer = false;
+  private layerDiscovery?: Promise<void>;
+
+  /** Negotiate before asynchronous signing when the constructor omitted chainId. */
+  async ensureDefaultLayer(): Promise<void> {
+    if (!this.discoverDefaultLayer || this.executionLayer) return;
+    if (!this.layerDiscovery) {
+      const provider = this.provider;
+      this.layerDiscovery = (async () => {
+        let discovered: Ain;
+        try { discovered = await Ain.connect(provider.endpoint, { axiosConfig: this.axiosConfig }); }
+        catch (error: any) {
+          // Only an explicit method-not-found response identifies a legacy node.
+          // Network failures or an unavailable L2 must never trigger legacy signing.
+          if (error.code === -32601 && this.provider === provider) {
+            this.discoverDefaultLayer = false; return;
+          }
+          throw error;
+        }
+        if (this.provider !== provider) throw Error('Provider changed during layer discovery');
+        this.executionLayer = discovered.executionLayer;
+        this.executionGenesisHash = discovered.executionGenesisHash;
+        this.layerCapabilities = discovered.layerCapabilities;
+        this.chainId = discovered.chainId;
+        this.wallet.setChainId(discovered.chainId);
+        this.discoverDefaultLayer = false;
+      })().catch(error => { this.layerDiscovery = undefined; throw error; });
+    }
+    return this.layerDiscovery;
+  }
+
+  /**
+   * Discover the gateway's default layer and signing domain before using the
+   * normal database/wallet API. Each client is pinned to one layer; concurrent
+   * L1 and L2 clients never mutate a shared wallet's signing chain ID.
+   */
+  static async connect(providerUrl: string, options: {
+    layer?: 'L1' | 'L2'; expectedGenesisHash?: string; axiosConfig?: AxiosRequestConfig;
+  } = {}): Promise<Ain> {
+    const ain = new Ain(providerUrl, null, 0, { axiosConfig: options.axiosConfig });
+    const info = await ain.provider.send('ain_getLayerInfo', {});
+    if (!info || info.version !== 1 || !['L1', 'L2'].includes(info.default_layer)) {
+      throw Error('Layer capabilities are unavailable or unsupported');
+    }
+    const layer = options.layer || info.default_layer;
+    if (!['L1', 'L2'].includes(layer)) throw Error('Unsupported execution layer');
+    const settings = info.layers?.[layer];
+    if (!settings || !Number.isSafeInteger(settings.chain_id) || settings.chain_id < 0 ||
+        settings.chain_id > 109 ||
+        !/^0x[a-f0-9]{64}$/.test(settings.genesis_hash)) {
+      throw Error('Selected layer has no valid signing domain');
+    }
+    if (options.expectedGenesisHash && options.expectedGenesisHash !== settings.genesis_hash) {
+      throw Error('Selected layer genesis does not match the expected chain');
+    }
+    if (!info.status?.[layer]?.healthy) throw Error('Selected layer is not ready');
+    ain.executionLayer = layer;
+    ain.executionGenesisHash = settings.genesis_hash;
+    ain.layerCapabilities = info;
+    ain.chainId = settings.chain_id;
+    ain.wallet.setChainId(settings.chain_id);
+    return ain;
+  }
   /** The axios request config object.  */
   public axiosConfig: AxiosRequestConfig | undefined;
   /** The chain ID of the blockchain network. */
@@ -68,6 +135,7 @@ export default class Ain {
    * @param {AinOptions} ainOptions The options of the class.
    */
   constructor(providerUrl: string, eventHandlerUrl?: string | null, chainId?: number, ainOptions?: AinOptions) {
+    this.discoverDefaultLayer = chainId === undefined;
     this.axiosConfig = ainOptions?.axiosConfig;
     this.provider = new Provider(this, providerUrl, this.axiosConfig);
     this.eventHandlerUrl = eventHandlerUrl;
@@ -93,6 +161,12 @@ export default class Ain {
    * @param {AxiosRequestConfig} axiosConfig The axios request config.
    */
   setProvider(providerUrl: string, eventHandlerUrl?: string | null, chainId?: number, axiosConfig?: AxiosRequestConfig | undefined) {
+    if (this.executionLayer) {
+      throw Error('A layer-pinned client cannot change provider; use Ain.connect() for a new client');
+    }
+    if (this.discoverDefaultLayer && this.layerDiscovery) throw Error('Cannot change provider during layer discovery');
+    this.discoverDefaultLayer = chainId === undefined;
+    this.layerDiscovery = undefined;
     if (axiosConfig) {
       this.axiosConfig = axiosConfig;
     }
@@ -105,6 +179,7 @@ export default class Ain {
     this.deployment = new Deployment(this.provider);
     this.cogito = new Cogito(this, this.provider);
     this.wallet.setChainId(this.chainId);
+    if (this.signer instanceof DefaultSigner) this.signer = new DefaultSigner(this.wallet, this.provider);
   }
 
   /**

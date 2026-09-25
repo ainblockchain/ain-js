@@ -365,6 +365,9 @@ export default class Wallet {
     const addr = this.getImpliedAddress(address);
     const account = this.accounts[addr];
     if (account.keyType === 'p256') {
+      if (this.ain.executionLayer) {
+        throw new Error('Layer-pinned transactions require a chain-domain-bound signature; P256 is not supported');
+      }
       return p256SignTransaction(txBody, account.private_key);
     }
     return Ain.utils.ecSignTransaction(txBody, Buffer.from(account.private_key, 'hex'), this.chainId);

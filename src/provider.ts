@@ -52,19 +52,37 @@ export default class Provider {
    * @returns {Promise<any>}
    */
   async send(rpcMethod: string, params?: any): Promise<any> {
+    const layer = this.ain.executionLayer;
+    if (layer && params?.layer !== undefined && params.layer !== layer) {
+      throw Error('RPC layer differs from the pinned signing domain');
+    }
+    return this.request(rpcMethod, { ...params, ...(layer ? { layer } : {}) });
+  }
+
+  /** Read an inner inbox transaction's nonce without changing the client's signing layer. */
+  async sendLayerRead(rpcMethod: string, params: any, layer: 'L1' | 'L2'): Promise<any> {
+    if (!['ain_getNonce', 'ain_getTimestamp'].includes(rpcMethod) || !this.ain.layerCapabilities?.layers?.[layer]) {
+      throw Error('Unsupported cross-layer read');
+    }
+    return this.request(rpcMethod, { ...params, layer });
+  }
+
+  private async request(rpcMethod: string, params?: any): Promise<any> {
     const data = {
       jsonrpc: "2.0",
       method: rpcMethod,
-      params: Object.assign(params || {}, { protoVer: this.ain.net.protoVer }),
+      params: { ...params, protoVer: this.ain.net.protoVer },
       id: 0
     };
     const response = await this.httpClient.post(this.apiEndpoint, data);
+    const rpcError = get(response, 'data.error');
+    if (rpcError) throw new BlockchainError(rpcError.code, rpcError.message);
     const rawResult = get(response, 'data.result');
     if (this.ain.rawResultMode) {
       return rawResult;
     }
-    if (typeof rawResult !== 'object' || !(rawResult.code === undefined || rawResult.code === 0)) {
-      throw new BlockchainError(rawResult.code, rawResult.message);
+    if (!rawResult || typeof rawResult !== 'object' || !(rawResult.code === undefined || rawResult.code === 0)) {
+      throw new BlockchainError(rawResult?.code, rawResult?.message || 'Invalid RPC response');
     }
     return rawResult.code !== undefined ? rawResult : get(rawResult, 'result', null);
   }
