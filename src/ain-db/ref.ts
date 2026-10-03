@@ -129,10 +129,13 @@ export default class Reference {
    * @returns {Promise<any>} The results of the get operations.
    */
   get(gets: GetOperation[]): Promise<any> {
-    const request = { type: 'GET', op_list: gets };
-    for (let i = 0; i < gets.length; i++) {
-      request.op_list[i].ref = Reference.extendPath(this.path, gets[i].ref);
-    }
+    const request = {
+      type: 'GET',
+      op_list: gets.map(get => ({
+        ...get,
+        ref: Reference.extendPath(this.path, get.ref),
+      })),
+    };
     return this._ain.provider.send('ain_get', request);
   }
 
