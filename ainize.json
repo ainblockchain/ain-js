@@ -1,0 +1,7 @@
+{
+  "name": "ain-js",
+  "kind": "service",
+  "port": 8080,
+  "healthcheck": "/",
+  "build": { "dockerfile": "Dockerfile.ainize", "context": "." }
+}
